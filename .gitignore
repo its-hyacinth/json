@@ -1,0 +1,31 @@
+# Dependencies
+/node_modules
+
+# Environment variables
+.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Uploaded files
+/uploads/
+*.pdf
+
+# Build files
+/dist/
+/build/
+
+# Environment files
+.env.local
+.env.*.local
+
+# System files
+.DS_Store
+Thumbs.db 
