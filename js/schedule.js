@@ -1,3 +1,181 @@
+$(document).ready(function() {
+    // Load schedules when page loads
+    loadSchedules();
+
+    // Handle Add Schedule Form Submit
+    $('#addScheduleForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            title: $('#title').val(),
+            date: $('#date').val(),
+            time: $('#time').val(),
+            location: $('#location').val()
+        };
+
+        $.ajax({
+            url: '/api/schedules',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                $('#addScheduleModal').modal('hide');
+                $('#addScheduleForm')[0].reset();
+                loadSchedules();
+                showAlert('Schedule added successfully!', 'success');
+            },
+            error: function(xhr, status, error) {
+                showAlert('Error adding schedule: ' + error, 'danger');
+            }
+        });
+    });
+
+    // Handle Edit Schedule Form Submit
+    $('#editScheduleForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            title: $('#edit_title').val(),
+            date: $('#edit_date').val(),
+            time: $('#edit_time').val(),
+            location: $('#edit_location').val()
+        };
+
+        const id = $('#edit_id').val();
+
+        $.ajax({
+            url: `/api/schedules/${id}`,
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                $('#editScheduleModal').modal('hide');
+                loadSchedules();
+                showAlert('Schedule updated successfully!', 'success');
+            },
+            error: function(xhr, status, error) {
+                showAlert('Error updating schedule: ' + error, 'danger');
+            }
+        });
+    });
+});
+
+// Load Schedules Function
+function loadSchedules() {
+    $.ajax({
+        url: '/api/schedules',
+        type: 'GET',
+        success: function(schedules) {
+            let tableBody = '';
+            if (schedules.length === 0) {
+                tableBody = `
+                    <tr>
+                        <td colspan="6" class="text-center">No schedules found</td>
+                    </tr>
+                `;
+            } else {
+                schedules.forEach(function(schedule) {
+                    const formattedDate = new Date(schedule.date).toLocaleDateString();
+                    const formattedTime = formatTime(schedule.time);
+                    tableBody += `
+                        <tr>
+                            <td>${schedule.id}</td>
+                            <td>${schedule.title}</td>
+                            <td>${formattedDate}</td>
+                            <td>${formattedTime}</td>
+                            <td>${schedule.location}</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-primary btn-action" onclick="editSchedule(${schedule.id})" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger btn-action" onclick="deleteSchedule(${schedule.id})" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            $('#scheduleTableBody').html(tableBody);
+        },
+        error: function(xhr, status, error) {
+            showAlert('Error loading schedules: ' + error, 'danger');
+        }
+    });
+}
+
+// Edit Schedule Function
+function editSchedule(id) {
+    $.ajax({
+        url: `/api/schedules/${id}`,
+        type: 'GET',
+        success: function(schedule) {
+            $('#edit_id').val(schedule.id);
+            $('#edit_title').val(schedule.title);
+            $('#edit_date').val(schedule.date);
+            $('#edit_time').val(schedule.time);
+            $('#edit_location').val(schedule.location);
+            $('#editScheduleModal').modal('show');
+        },
+        error: function(xhr, status, error) {
+            showAlert('Error loading schedule details: ' + error, 'danger');
+        }
+    });
+}
+
+// Delete Schedule Function
+function deleteSchedule(id) {
+    if (confirm('Are you sure you want to delete this schedule?')) {
+        $.ajax({
+            url: `/api/schedules/${id}`,
+            type: 'DELETE',
+            success: function(response) {
+                loadSchedules();
+                showAlert('Schedule deleted successfully!', 'success');
+            },
+            error: function(xhr, status, error) {
+                showAlert('Error deleting schedule: ' + error, 'danger');
+            }
+        });
+    }
+}
+
+// Helper Functions
+function formatTime(time) {
+    if (!time) return '';
+    try {
+        const [hours, minutes] = time.split(':');
+        const date = new Date();
+        date.setHours(hours);
+        date.setMinutes(minutes);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+        return time;
+    }
+}
+
+function showAlert(message, type) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    // Remove any existing alerts
+    $('.alert').remove();
+    
+    // Add the new alert at the top of the container
+    $('.container').prepend(alertHtml);
+    
+    // Auto-dismiss after 3 seconds
+    setTimeout(() => {
+        $('.alert').fadeOut('slow', function() {
+            $(this).remove();
+        });
+    }, 3000);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize calendar
     const calendarEl = document.getElementById('calendar');

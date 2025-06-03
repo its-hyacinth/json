@@ -5,212 +5,276 @@ const fs = require('fs');
 const pdfParse = require('pdf-parse');
 const XLSX = require('xlsx');
 const mammoth = require('mammoth');
+const cors = require('cors');
+const http = require('http');
+const socketIo = require('socket.io');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const server = http.createServer(app);
+const io = socketIo(server);
 
-// Serve static files
-app.use(express.static(__dirname));
+// Enable CORS
+app.use(cors());
 
-// Configure multer for PDF uploads
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, 'uploads');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir);
-        }
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname);
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// JWT secret key
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+// In-memory storage (replace with database in production)
+let schedules = [];
+let users = [];
+let leaveRequests = [];
+let overtimeEvents = [];
+let trainingRequests = [];
+let courtEvents = [];
+
+// Authentication middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Invalid token' });
     }
+    req.user = user;
+    next();
+  });
+};
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir);
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
 });
 
 const upload = multer({
-    storage: storage,
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype === 'application/pdf') {
-            cb(null, true);
-        } else {
-            cb(new Error('Only PDF files are allowed!'), false);
-        }
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'), false);
     }
+  }
 });
 
-// Handle PDF upload
-app.post('/upload-pdf', upload.single('pdfFile'), async (req, res) => {
-    try {
-        if (!req.file) {
-            throw new Error('No file uploaded');
-        }
+// Authentication routes
+app.post('/api/auth/register', async (req, res) => {
+  const { email, password, role } = req.body;
 
-        const dataBuffer = fs.readFileSync(req.file.path);
-        const data = await pdfParse(dataBuffer);
+  if (!email.endsWith('@cnu.edu')) {
+    return res.status(400).json({ error: 'Only @cnu.edu email addresses are allowed' });
+  }
 
-        // Extract dates from PDF content
-        const events = extractDatesFromText(data.text);
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = {
+    id: users.length + 1,
+    email,
+    password: hashedPassword,
+    role
+  };
 
-        res.json({
-            success: true,
-            filename: req.file.filename,
-            events: events
-        });
-    } catch (error) {
-        console.error('Error processing PDF:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+  users.push(user);
+  res.status(201).json({ message: 'User registered successfully' });
 });
 
-// Handle PDF deletion
-app.delete('/delete-pdf/:filename', (req, res) => {
-    const filename = req.params.filename;
-    const filepath = path.join(__dirname, 'uploads', filename);
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+  const user = users.find(u => u.email === email);
 
-    fs.unlink(filepath, (err) => {
-        if (err) {
-            console.error('Error deleting file:', err);
-            return res.status(500).json({
-                success: false,
-                error: 'Failed to delete file'
-            });
-        }
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
 
-        res.json({
-            success: true,
-            message: 'File deleted successfully'
-        });
-    });
+  const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET);
+  res.json({ token });
 });
 
-// Schedule upload endpoint
-app.post('/api/upload-schedule', upload.single('file'), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
-
-        const filePath = req.file.path;
-        const fileType = path.extname(req.file.originalname).toLowerCase();
-        let events = [];
-
-        // Process file based on type
-        switch (fileType) {
-            case '.xlsx':
-            case '.xls':
-                events = await processExcelSchedule(filePath);
-                break;
-            case '.pdf':
-                events = await processPDFSchedule(filePath);
-                break;
-            case '.doc':
-            case '.docx':
-                events = await processWordSchedule(filePath);
-                break;
-            default:
-                throw new Error('Unsupported file type');
-        }
-
-        res.json({ events });
-
-    } catch (error) {
-        console.error('Error processing schedule:', error);
-        res.status(500).json({ error: 'Failed to process schedule' });
-    }
+// Schedule routes
+app.get('/api/schedules', authenticateToken, (req, res) => {
+  res.json(schedules);
 });
 
-// Process Excel schedule
-async function processExcelSchedule(filePath) {
-    const workbook = XLSX.readFile(filePath);
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = XLSX.utils.sheet_to_json(sheet);
+app.post('/api/schedules', authenticateToken, (req, res) => {
+  try {
+    const { date, startTime, endTime, type } = req.body;
     
-    return data.map(row => ({
-        title: row.Title || 'Shift',
-        start: new Date(row.Start),
-        end: new Date(row.End),
-        description: row.Description || '',
-        backgroundColor: '#2196f3'
-    }));
-}
-
-// Process PDF schedule
-async function processPDFSchedule(filePath) {
-    const dataBuffer = fs.readFileSync(filePath);
-    const data = await pdfParse(dataBuffer);
-    
-    // Here you would implement your PDF parsing logic
-    // This is a simplified example
-    const events = [];
-    const lines = data.text.split('\n');
-    
-    for (const line of lines) {
-        const match = line.match(/(\d{2}\/\d{2}\/\d{4})\s+(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+(.+)/);
-        if (match) {
-            const [_, date, startTime, endTime, title] = match;
-            events.push({
-                title: title.trim(),
-                start: new Date(`${date} ${startTime}`),
-                end: new Date(`${date} ${endTime}`),
-                backgroundColor: '#2196f3'
-            });
-        }
-    }
-    
-    return events;
-}
-
-// Process Word schedule
-async function processWordSchedule(filePath) {
-    const result = await mammoth.extractRawText({ path: filePath });
-    const text = result.value;
-    
-    // Here you would implement your Word document parsing logic
-    // This is a simplified example
-    const events = [];
-    const lines = text.split('\n');
-    
-    for (const line of lines) {
-        const match = line.match(/(\d{2}\/\d{2}\/\d{4})\s+(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+(.+)/);
-        if (match) {
-            const [_, date, startTime, endTime, title] = match;
-            events.push({
-                title: title.trim(),
-                start: new Date(`${date} ${startTime}`),
-                end: new Date(`${date} ${endTime}`),
-                backgroundColor: '#2196f3'
-            });
-        }
-    }
-    
-    return events;
-}
-
-// Function to extract dates from PDF text
-function extractDatesFromText(text) {
-    const events = [];
-    
-    // Regular expression for date patterns (customize based on your PDF format)
-    const datePattern = /(\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2})/g;
-    
-    let match;
-    while ((match = datePattern.exec(text)) !== null) {
-        const date = new Date(match[1]);
-        if (!isNaN(date)) {
-            // Create an event for each found date
-            events.push({
-                title: 'Schedule Event',
-                start: date.toISOString().split('T')[0],
-                end: date.toISOString().split('T')[0]
-            });
-        }
+    if (!date || !startTime || !endTime || !type) {
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    return events;
-}
+    const newSchedule = {
+      id: schedules.length + 1,
+      officerId: req.user.id,
+      date: new Date(date),
+      startTime,
+      endTime,
+      type,
+      createdBy: req.user.id,
+      createdAt: new Date()
+    };
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    schedules.push(newSchedule);
+    io.emit('schedule-update', { type: 'add', schedule: newSchedule });
+    res.status(201).json(newSchedule);
+  } catch (error) {
+    console.error('Error creating schedule:', error);
+    res.status(500).json({ error: 'Failed to create schedule' });
+  }
+});
+
+app.put('/api/schedules/:id', authenticateToken, (req, res) => {
+  try {
+    const { id } = req.params;
+    const { date, startTime, endTime, type } = req.body;
+    const scheduleIndex = schedules.findIndex(s => s.id === parseInt(id));
+
+    if (scheduleIndex === -1) {
+      return res.status(404).json({ error: 'Schedule not found' });
+    }
+
+    const updatedSchedule = {
+      ...schedules[scheduleIndex],
+      date: date ? new Date(date) : schedules[scheduleIndex].date,
+      startTime: startTime || schedules[scheduleIndex].startTime,
+      endTime: endTime || schedules[scheduleIndex].endTime,
+      type: type || schedules[scheduleIndex].type,
+      updatedAt: new Date()
+    };
+
+    schedules[scheduleIndex] = updatedSchedule;
+    io.emit('schedule-update', { type: 'update', schedule: updatedSchedule });
+    res.json(updatedSchedule);
+  } catch (error) {
+    console.error('Error updating schedule:', error);
+    res.status(500).json({ error: 'Failed to update schedule' });
+  }
+});
+
+app.delete('/api/schedules/:id', authenticateToken, (req, res) => {
+  try {
+    const { id } = req.params;
+    const scheduleIndex = schedules.findIndex(s => s.id === parseInt(id));
+
+    if (scheduleIndex === -1) {
+      return res.status(404).json({ error: 'Schedule not found' });
+    }
+
+    const deletedSchedule = schedules[scheduleIndex];
+    schedules.splice(scheduleIndex, 1);
+    io.emit('schedule-update', { type: 'delete', scheduleId: id });
+    res.json({ message: 'Schedule deleted successfully', schedule: deletedSchedule });
+  } catch (error) {
+    console.error('Error deleting schedule:', error);
+    res.status(500).json({ error: 'Failed to delete schedule' });
+  }
+});
+
+// Leave request routes
+app.post('/api/leave', authenticateToken, upload.single('document'), (req, res) => {
+  const { startDate, endDate, type, hours } = req.body;
+  const newRequest = {
+    id: leaveRequests.length + 1,
+    officerId: req.user.id,
+    startDate,
+    endDate,
+    type,
+    hours,
+    status: 'pending',
+    documentUrl: req.file ? `/uploads/${req.file.filename}` : null
+  };
+  leaveRequests.push(newRequest);
+  io.emit('leave-update', { type: 'add', request: newRequest });
+  res.json(newRequest);
+});
+
+// Overtime routes
+app.post('/api/overtime', authenticateToken, (req, res) => {
+  const { date, hours, description } = req.body;
+  const newEvent = {
+    id: overtimeEvents.length + 1,
+    officerId: req.user.id,
+    date,
+    hours,
+    description,
+    status: 'available'
+  };
+  overtimeEvents.push(newEvent);
+  io.emit('overtime-update', { type: 'add', event: newEvent });
+  res.json(newEvent);
+});
+
+// Training routes
+app.post('/api/training', authenticateToken, upload.single('document'), (req, res) => {
+  const { title, date, duration, location } = req.body;
+  const newTraining = {
+    id: trainingRequests.length + 1,
+    officerId: req.user.id,
+    title,
+    date,
+    duration,
+    location,
+    status: 'pending',
+    documentUrl: req.file ? `/uploads/${req.file.filename}` : null
+  };
+  trainingRequests.push(newTraining);
+  io.emit('training-update', { type: 'add', training: newTraining });
+  res.json(newTraining);
+});
+
+// Court routes
+app.post('/api/court', authenticateToken, upload.single('subpoena'), (req, res) => {
+  const { date, time, location, caseNumber } = req.body;
+  const newCourt = {
+    id: courtEvents.length + 1,
+    officerId: req.user.id,
+    date,
+    time,
+    location,
+    caseNumber,
+    subpoenaUrl: req.file ? `/uploads/${req.file.filename}` : null
+  };
+  courtEvents.push(newCourt);
+  io.emit('court-update', { type: 'add', court: newCourt });
+  res.json(newCourt);
+});
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('Client connected');
+  
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
+
+// Handle React routing, return all requests to React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
+const port = process.env.PORT || 3000;
+server.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 }); 

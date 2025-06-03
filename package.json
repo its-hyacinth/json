@@ -4,7 +4,12 @@
   "description": "CNUPD Scheduling System",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "nodemon server.js",
+    "client": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "express": "^4.17.1",
@@ -13,6 +18,32 @@
     "xlsx": "^0.18.5",
     "mammoth": "^1.5.1",
     "cors": "^2.8.5",
-    "body-parser": "^1.19.0"
+    "body-parser": "^1.19.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@mui/material": "^5.15.11",
+    "@mui/icons-material": "^5.15.11",
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "react-router-dom": "^6.22.1",
+    "socket.io": "^4.7.4",
+    "socket.io-client": "^4.7.4",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "jspdf": "^2.5.1",
+    "date-fns": "^3.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.56",
+    "@types/react-dom": "^18.2.19",
+    "@types/node": "^20.11.19",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.1.4",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "nodemon": "^3.0.3",
+    "concurrently": "^8.2.2"
   }
 } 
