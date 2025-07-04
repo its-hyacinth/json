@@ -1,17 +1,47 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Sample event data for demonstration
+    // In a real app, this would come from your backend or uploaded PDF parsing
+    const events = [
+        {
+            title: 'Officer Smith - On Duty',
+            start: '2025-06-23T08:00:00',
+            end: '2025-06-23T16:00:00',
+            backgroundColor: '#28a745', // Green
+            borderColor: '#28a745',
+            extendedProps: { status: 'on-duty' }
+        },
+        {
+            title: 'Officer Lee - Absent',
+            start: '2025-06-23T08:00:00',
+            end: '2025-06-23T16:00:00',
+            backgroundColor: '#dc3545', // Red
+            borderColor: '#dc3545',
+            extendedProps: { status: 'absent' }
+        },
+        {
+            title: 'Officer Patel - On Leave',
+            start: '2025-06-24T08:00:00',
+            end: '2025-06-24T16:00:00',
+            backgroundColor: '#007bff', // Blue
+            borderColor: '#007bff',
+            extendedProps: { status: 'on-leave' }
+        },
+        // Add more events as needed
+    ];
+
     // Initialize FullCalendar
     const calendarEl = document.getElementById('calendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
+        initialView: 'timeGridWeek', // Set to weekly view
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        events: [], // Will be populated from uploaded PDFs
+        events: events,
         eventClick: function(info) {
-            // Show PDF details when clicking an event
-            window.open(`../uploads/${info.event.extendedProps.filename}`, '_blank');
+            // Show event details (can be customized)
+            alert(`${info.event.title}\nStatus: ${info.event.extendedProps.status}`);
         }
     });
     calendar.render();
