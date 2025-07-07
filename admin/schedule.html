@@ -162,7 +162,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="../assets/cnu-logo.png" alt="CNU Logo" class="sidebar-logo">
+                <img src="../assets/cnupd-logo.png" alt="CNU Logo" class="sidebar-logo">
                 <h2>Admin Dashboard</h2>
             </div>
             <nav class="sidebar-nav">
@@ -192,6 +192,51 @@
                     </div>
                     <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none;" />
                 </div>
+            </div>
+            <div class="mb-4" id="doc-switcher-container">
+                <div class="d-flex align-items-center justify-content-between mb-3" style="padding: 0 8px;">
+                    <span id="docLabel" style="font-size: 1.1rem; color: #222;">July 2025 - Patrol Schedule</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="prevDocBtn" class="btn btn-primary" style="min-width: 48px; font-size: 1.2rem;">&lt;</button>
+                        <button id="nextDocBtn" class="btn btn-primary" style="min-width: 48px; font-size: 1.2rem;">&gt;</button>
+                    </div>
+                </div>
+                <div id="julyDoc" style="height: 60vh; width: 100%; max-width: 1100px; margin: 0 auto;">
+                    <iframe 
+                        src="https://docs.google.com/document/d/1w3ljHJyOc2ub4tPNK-I2LXOoA9yZ4Gzj/preview" 
+                        style="width:100%; height:100%; border:none; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+                    </iframe>
+                </div>
+                <div id="augustDoc" style="display:none; height: 60vh; width: 100%; max-width: 1100px; margin: 0 auto;">
+                    <iframe 
+                        src="https://docs.google.com/document/d/1MBrSDcRQMHFh6a-AGaqo7Te3hdlIquWa/preview" 
+                        style="width:100%; height:100%; border:none; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+                    </iframe>
+                </div>
+                <script>
+                    const prevBtn = document.getElementById('prevDocBtn');
+                    const nextBtn = document.getElementById('nextDocBtn');
+                    const julyDoc = document.getElementById('julyDoc');
+                    const augustDoc = document.getElementById('augustDoc');
+                    const docLabel = document.getElementById('docLabel');
+                    let showingJuly = true;
+                    prevBtn.onclick = function() {
+                        if (!showingJuly) {
+                            augustDoc.style.display = 'none';
+                            julyDoc.style.display = '';
+                            docLabel.textContent = 'July 2025 - Patrol Schedule';
+                            showingJuly = true;
+                        }
+                    };
+                    nextBtn.onclick = function() {
+                        if (showingJuly) {
+                            julyDoc.style.display = 'none';
+                            augustDoc.style.display = '';
+                            docLabel.textContent = 'August 2025 - Patrol Schedule';
+                            showingJuly = false;
+                        }
+                    };
+                </script>
             </div>
             <div class="calendar-container">
                 <div id="calendar"></div>
