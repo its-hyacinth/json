@@ -210,19 +210,50 @@ app.post('/api/leave', authenticateToken, upload.single('document'), (req, res) 
 });
 
 // Overtime routes
+app.get('/api/overtime', authenticateToken, (req, res) => {
+  res.json(overtimeEvents);
+});
+
+app.get('/api/overtime/mine', authenticateToken, (req, res) => {
+  const myEvents = overtimeEvents.filter(ev => ev.signups && ev.signups.includes(req.user.id));
+  res.json(myEvents);
+});
+
 app.post('/api/overtime', authenticateToken, (req, res) => {
-  const { date, hours, description } = req.body;
+  const { date, hours, description, required, location, event } = req.body;
   const newEvent = {
     id: overtimeEvents.length + 1,
     officerId: req.user.id,
     date,
     hours,
     description,
+    required: required || 1,
+    location: location || '',
+    event: event || '',
+    signups: [],
     status: 'available'
   };
   overtimeEvents.push(newEvent);
   io.emit('overtime-update', { type: 'add', event: newEvent });
   res.json(newEvent);
+});
+
+app.post('/api/overtime/:id/signup', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const event = overtimeEvents.find(ev => ev.id === parseInt(id));
+  if (!event) {
+    return res.status(404).json({ error: 'Event not found' });
+  }
+  if (!event.signups) event.signups = [];
+  if (event.signups.includes(req.user.id)) {
+    return res.status(400).json({ error: 'Already signed up' });
+  }
+  if (event.signups.length >= event.required) {
+    return res.status(400).json({ error: 'Event is full' });
+  }
+  event.signups.push(req.user.id);
+  io.emit('overtime-update', { type: 'signup', eventId: event.id, officerId: req.user.id });
+  res.json(event);
 });
 
 // Training routes

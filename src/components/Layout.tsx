@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Box, Drawer, AppBar, Toolbar, List, Typography, Divider, IconButton, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -14,6 +14,7 @@ import {
   Brightness7 as LightModeIcon,
   Print as PrintIcon,
   Share as ShareIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -28,6 +29,10 @@ interface LayoutProps {
 const Layout = ({ children, darkMode, setDarkMode }: LayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [notifications] = useState([
+    { id: 1, message: 'Pending leave requests: 2' },
+    { id: 2, message: 'Schedule updated by supervisor' },
+  ]);
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
@@ -38,7 +43,14 @@ const Layout = ({ children, darkMode, setDarkMode }: LayoutProps) => {
     { text: 'Court', icon: <CourtIcon />, path: '/court' },
     { text: 'Accounts', icon: <AccountsIcon />, path: '/accounts' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+    { text: 'Logout', icon: <LogoutIcon />, path: '/logout', logout: true },
   ];
+
+  const handleLogout = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = '/login';
+  };
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -60,10 +72,9 @@ const Layout = ({ children, darkMode, setDarkMode }: LayoutProps) => {
             {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
           </IconButton>
         </Toolbar>
-        {/* Notification Bar */}
-        <Box sx={{ bgcolor: 'warning.main', p: 1, textAlign: 'center' }}>
-          <Typography variant="body2" color="warning.contrastText">
-            You have 2 new notifications
+        <Box sx={{ bgcolor: 'warning.main', p: 1, textAlign: 'center', display: notifications.length ? 'flex' : 'none', alignItems: 'center', gap: 2 }}>
+          <Typography variant="body2" color="warning.contrastText" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
+            {notifications.map(n => n.message).join(' | ')}
           </Typography>
         </Box>
       </AppBar>
@@ -86,7 +97,13 @@ const Layout = ({ children, darkMode, setDarkMode }: LayoutProps) => {
                 button
                 key={item.text}
                 selected={location.pathname === item.path}
-                onClick={() => navigate(item.path)}
+                onClick={() => {
+                  if (item.logout) {
+                    handleLogout();
+                  } else {
+                    navigate(item.path);
+                  }
+                }}
               >
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} />

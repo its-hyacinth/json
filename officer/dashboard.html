@@ -12,9 +12,34 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .dashboard-container {
+            margin-top: 0;
+            padding-top: 0;
+        }
+        .notification-bar {
+            background: #00398c; /* CNUPD blue */
+            color: #fff;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            padding-left: 16px;
+            font-size: 15px;
+            font-family: 'Montserrat', sans-serif;
+            border-bottom: 2px solid #fff;
+        }
+        .content-header h1 {
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
-    <div id="notificationBar" class="notification-bar">Loading notifications...</div>
+    <div id="notificationBar" class="notification-bar"></div>
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -23,25 +48,33 @@
                 <h2>Employee Dashboard</h2>
             </div>
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item active">
+                <a href="dashboard.html" class="nav-item active">
                     <i class="fas fa-home"></i>
                     <span>Overview</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="schedule.html" class="nav-item">
                     <i class="fas fa-calendar"></i>
                     <span>My Schedule</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="leave-requests.html" class="nav-item">
                     <i class="fas fa-clock"></i>
                     <span>Leave Requests</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="training-requests.html" class="nav-item">
                     <i class="fas fa-chalkboard-teacher"></i>
                     <span>Training Requests</span>
                 </a>
-                <a href="#" class="nav-item">
+                <a href="court.html" class="nav-item">
                     <i class="fas fa-gavel"></i>
                     <span>Court</span>
+                </a>
+                <a href="accounts.html" class="nav-item">
+                    <i class="fas fa-user"></i>
+                    <span>Accounts</span>
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
                 </a>
                 <a href="../html/index.html" class="nav-item logout">
                     <i class="fas fa-sign-out-alt"></i>
@@ -57,6 +90,10 @@
                     <button class="btn-secondary" id="printBtn"><i class="fas fa-print"></i> Print</button>
                     <button class="btn-secondary" id="viewScheduleBtn"><i class="fas fa-calendar"></i> View Schedule</button>
                     <button class="btn-secondary" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
+                    <button class="btn-secondary" id="notificationBell" style="position: relative;">
+                        <i class="fas fa-bell"></i>
+                        <span id="notificationBadge" style="display:none;position:absolute;top:4px;right:4px;background:#d32f2f;color:#fff;border-radius:50%;font-size:11px;padding:2px 6px;">0</span>
+                    </button>
                 </div>
             </header>
             <div class="dashboard-grid">
@@ -136,6 +173,36 @@
             alert('Link copied to clipboard!');
         }
     };
+    document.getElementById('employeeName').value = localStorage.getItem('userName') || 'Officer';
+    async function submitLeaveRequest(event) {
+        event.preventDefault();
+        const form = document.getElementById('leaveRequestForm');
+        const formData = new FormData(form);
+        formData.append('name', document.getElementById('employeeName').value);
+        formData.append('startDate', document.getElementById('startDate').value);
+        formData.append('endDate', document.getElementById('endDate').value);
+        formData.append('hours', document.getElementById('hours').value);
+        formData.append('type', document.getElementById('leaveType').value);
+        formData.append('comments', document.getElementById('comments').value);
+        try {
+            const response = await fetch('/api/leave', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
+                },
+                body: formData
+            });
+            const result = await response.json();
+            if (response.ok) {
+                document.getElementById('notificationBar').textContent = 'Leave request submitted! Awaiting supervisor approval.';
+                form.reset();
+            } else {
+                alert(result.error || 'Failed to submit leave request.');
+            }
+        } catch (err) {
+            alert('Error submitting leave request.');
+        }
+    }
     </script>
 </body>
 </html> 

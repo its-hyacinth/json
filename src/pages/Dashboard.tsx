@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, Paper, Typography, Grid, IconButton, Chip } from '@mui/material';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth } from 'date-fns';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, setYear } from 'date-fns';
 
 interface Event {
   id: number;
@@ -13,6 +13,7 @@ interface Event {
 
 const Dashboard = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [yearPickerOpen, setYearPickerOpen] = useState(false);
   
   // Mock events - replace with API call
   const events: Event[] = [
@@ -47,6 +48,10 @@ const Dashboard = () => {
     setCurrentDate(addMonths(currentDate, 1));
   };
 
+  const handleYearChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrentDate(setYear(currentDate, parseInt(event.target.value)));
+  };
+
   const days = eachDayOfInterval({
     start: startOfMonth(currentDate),
     end: endOfMonth(currentDate)
@@ -70,6 +75,15 @@ const Dashboard = () => {
         <IconButton onClick={handleNextMonth}>
           <ChevronRight />
         </IconButton>
+        <select
+          value={format(currentDate, 'yyyy')}
+          onChange={handleYearChange}
+          style={{ marginLeft: 16, fontSize: 16 }}
+        >
+          {Array.from({ length: 10 }, (_, i) => 2020 + i).map(year => (
+            <option key={year} value={year}>{year}</option>
+          ))}
+        </select>
       </Box>
 
       <Grid container spacing={1}>

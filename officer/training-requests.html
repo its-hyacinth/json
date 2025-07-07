@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Requests - CNUPD Employee Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .dashboard-container {
+            margin-top: 0;
+            padding-top: 0;
+        }
+        .notification-bar {
+            background: #00398c;
+            color: #fff;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            padding-left: 16px;
+            font-size: 15px;
+            font-family: 'Montserrat', sans-serif;
+            border-bottom: 2px solid #fff;
+        }
+        .content-header h1 {
+            color: #fff;
+        }
+        .main-content {
+            background: #00398c;
+            min-height: 100vh;
+            padding: 32px;
+        }
+        .training-form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 32px 24px;
+        }
+        .form-group, .form-row {
+            margin-bottom: 18px;
+        }
+        .form-row {
+            display: flex;
+            gap: 16px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .btn-primary {
+            background: #00398c;
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #00398c;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="notificationBar" class="notification-bar"></div>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="../assets/cnupd.png" alt="CNUPD Logo" class="sidebar-logo">
+                <h2>Employee Dashboard</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Overview</span>
+                </a>
+                <a href="schedule.html" class="nav-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>My Schedule</span>
+                </a>
+                <a href="leave-requests.html" class="nav-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Leave Requests</span>
+                </a>
+                <a href="training-requests.html" class="nav-item active">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span>Training Requests</span>
+                </a>
+                <a href="court.html" class="nav-item">
+                    <i class="fas fa-gavel"></i>
+                    <span>Court</span>
+                </a>
+                <a href="accounts.html" class="nav-item">
+                    <i class="fas fa-user"></i>
+                    <span>Accounts</span>
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="../html/index.html" class="nav-item logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Training Request</h1>
+                <div class="header-actions">
+                    <button class="btn-secondary" id="printBtn"><i class="fas fa-print"></i> Print</button>
+                    <button class="btn-secondary" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
+                </div>
+            </header>
+            <div class="training-form-container">
+                <form id="trainingRequestForm" enctype="multipart/form-data" onsubmit="submitTrainingRequest(event)">
+                    <div class="form-group">
+                        <label for="employeeName">Employee</label>
+                        <input type="text" id="employeeName">
+                    </div>
+                    <div class="form-group">
+                        <label for="trainingTitle">Title</label>
+                        <input type="text" id="trainingTitle" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startDate">Start Date</label>
+                            <input type="date" id="startDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="endDate">End Date</label>
+                            <input type="date" id="endDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="hours">Number of Hours</label>
+                            <select id="hours" required>
+                                <option value="">Select hours</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="trainingLink">Link</label>
+                        <input type="url" id="trainingLink" placeholder="https://">
+                    </div>
+                    <div class="form-group">
+                        <label for="comments">Comments</label>
+                        <textarea id="comments" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="supportingDocs">Supporting Documents (PDF only)</label>
+                        <input type="file" id="supportingDocs" accept="application/pdf">
+                    </div>
+                    <div id="conflictWarning" style="color: red; font-weight: bold; display: none;"></div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn-primary">Sign & Submit</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script src="../js/auth.js"></script>
+    <script src="../js/employee.js"></script>
+    <script src="../js/notifications.js"></script>
+    <script>
+        document.getElementById('printBtn').onclick = function() { window.print(); };
+        document.getElementById('shareBtn').onclick = function() {
+            if (navigator.share) {
+                navigator.share({ title: document.title, url: window.location.href });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link copied to clipboard!');
+            }
+        };
+        document.getElementById('employeeName').value = localStorage.getItem('userName') || 'Officer';
+        async function submitTrainingRequest(event) {
+            event.preventDefault();
+            const form = document.getElementById('trainingRequestForm');
+            const formData = new FormData(form);
+            formData.append('employee', document.getElementById('employeeName').value);
+            formData.append('title', document.getElementById('trainingTitle').value);
+            formData.append('startDate', document.getElementById('startDate').value);
+            formData.append('endDate', document.getElementById('endDate').value);
+            formData.append('hours', document.getElementById('hours').value);
+            formData.append('link', document.getElementById('trainingLink').value);
+            formData.append('comments', document.getElementById('comments').value);
+            try {
+                const response = await fetch('/api/training', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + (localStorage.getItem('token') || '')
+                    },
+                    body: formData
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    document.getElementById('notificationBar').textContent = 'Training request submitted! Awaiting supervisor approval.';
+                    form.reset();
+                } else {
+                    alert(result.error || 'Failed to submit training request.');
+                }
+            } catch (err) {
+                alert('Error submitting training request.');
+            }
+        }
+    </script>
+</body>
+</html> 

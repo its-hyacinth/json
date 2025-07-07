@@ -34,6 +34,7 @@ interface Shift {
 
 const Schedule = () => {
   const navigate = useNavigate();
+  const [userRole] = useState<'owner' | 'employee'>('owner');
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
@@ -42,7 +43,6 @@ const Schedule = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handleAutoGenerate = () => {
-    // Mock auto-generation logic
     const newShifts: Shift[] = [
       {
         id: 1,
@@ -66,7 +66,6 @@ const Schedule = () => {
 
   const handleAddShift = async () => {
     try {
-      // Add shift logic
       const response = await fetch('/api/schedules', {
         method: 'POST',
         headers: {
@@ -94,12 +93,17 @@ const Schedule = () => {
   };
 
   const checkConflicts = (newShift: Partial<Shift>) => {
-    // Check for conflicts with existing shifts
     return shifts.some(shift => 
       format(shift.date, 'yyyy-MM-dd') === format(newShift.date as Date, 'yyyy-MM-dd') &&
       shift.officerId === newShift.officerId
     );
   };
+
+  // Mock overtime events for demonstration
+  const overtimeEvents = [
+    { date: '2024-06-07', officerId: 101, event: 'Commencement' },
+    { date: '2024-06-15', officerId: 102, event: 'Concert' },
+  ];
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -107,22 +111,26 @@ const Schedule = () => {
         <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h4">Schedule Management</Typography>
           <Box>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              onClick={() => setOpenDialog(true)}
-              sx={{ mr: 2 }}
-            >
-              Add Shift
-            </Button>
-            <Button 
-              variant="contained" 
-              color="secondary" 
-              onClick={handleAutoGenerate}
-              sx={{ mr: 2 }}
-            >
-              Auto-Generate Schedule
-            </Button>
+            {userRole === 'owner' && (
+              <>
+                <Button 
+                  variant="contained" 
+                  color="primary" 
+                  onClick={() => setOpenDialog(true)}
+                  sx={{ mr: 2 }}
+                >
+                  Add Shift
+                </Button>
+                <Button 
+                  variant="contained" 
+                  color="secondary" 
+                  onClick={handleAutoGenerate}
+                  sx={{ mr: 2 }}
+                >
+                  Auto-Generate Schedule
+                </Button>
+              </>
+            )}
             <Button
               variant="outlined"
               startIcon={<ArrowBack />}
@@ -161,23 +169,30 @@ const Schedule = () => {
 
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>Current Schedule</Typography>
-          {shifts.map(shift => (
-            <Tooltip 
-              key={shift.id}
-              title={`Officer ID: ${shift.officerId}\nTime: ${shift.startTime} - ${shift.endTime}`}
-            >
-              <Box sx={{ 
-                p: 2, 
-                mb: 1, 
-                bgcolor: 'primary.light',
-                color: 'white',
-                borderRadius: 1,
-                cursor: 'pointer'
-              }}>
-                <Typography>{format(shift.date, 'MMM dd, yyyy')} - {shift.type}</Typography>
-              </Box>
-            </Tooltip>
-          ))}
+          {shifts.map(shift => {
+            const overtime = overtimeEvents.find(ot =>
+              format(shift.date, 'yyyy-MM-dd') === ot.date && shift.officerId === ot.officerId
+            );
+            return (
+              <Tooltip
+                key={shift.id}
+                title={overtime ? `Overtime: ${overtime.event}` : ''}
+                arrow
+                disableHoverListener={!overtime}
+              >
+                <Box sx={{
+                  p: 2,
+                  mb: 1,
+                  bgcolor: 'primary.light',
+                  color: 'white',
+                  borderRadius: 1,
+                  cursor: 'pointer'
+                }}>
+                  <Typography>{format(shift.date, 'MMM dd, yyyy')} - {shift.type}</Typography>
+                </Box>
+              </Tooltip>
+            );
+          })}
         </Paper>
 
         <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
@@ -204,18 +219,22 @@ const Schedule = () => {
                 inputProps={{ step: 300 }}
               />
               <FormControl>
-                <InputLabel>Shift Type</InputLabel>
-                <Select id="shiftType" label="Shift Type" defaultValue="day">
-                  <MenuItem value="day">Day Shift</MenuItem>
-                  <MenuItem value="night">Night Shift</MenuItem>
-                  <MenuItem value="special">Special Detail</MenuItem>
+                <InputLabel id="shiftType-label">Shift Type</InputLabel>
+                <Select
+                  labelId="shiftType-label"
+                  id="shiftType"
+                  label="Shift Type"
+                  defaultValue="Day Shift"
+                >
+                  <MenuItem value="Day Shift">Day Shift</MenuItem>
+                  <MenuItem value="Night Shift">Night Shift</MenuItem>
                 </Select>
               </FormControl>
             </Box>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-            <Button onClick={handleAddShift} variant="contained">Add Shift</Button>
+            <Button onClick={handleAddShift} variant="contained">Add</Button>
           </DialogActions>
         </Dialog>
       </Box>

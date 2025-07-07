@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - CNUPD Employee Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            background: #00398c;
+        }
+        .dashboard-container {
+            margin-top: 0;
+            padding-top: 0;
+        }
+        .notification-bar {
+            background: #00398c;
+            color: #fff;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            padding-left: 16px;
+            font-size: 15px;
+            font-family: 'Montserrat', sans-serif;
+            border-bottom: 2px solid #fff;
+        }
+        .content-header h1 {
+            color: #fff;
+        }
+        .main-content {
+            background: #00398c;
+            min-height: 100vh;
+            padding: 32px;
+        }
+        .settings-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+            padding: 40px 32px 32px 32px;
+            animation: fadeIn 0.8s cubic-bezier(.4,0,.2,1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .settings-section {
+            margin-bottom: 36px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            position: relative;
+        }
+        .settings-section:last-child {
+            border-bottom: none;
+        }
+        .settings-section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: #00398c;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .settings-section h2 i {
+            color: #1976d2;
+            font-size: 1.3em;
+        }
+        .toggle-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { display: none; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #e5e7eb;
+            border-radius: 24px;
+            transition: background 0.3s;
+        }
+        .switch input:checked + .slider {
+            background: #1976d2;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        .switch input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        .settings-row {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .settings-row > * {
+            flex: 1 1 200px;
+        }
+        .btn-primary {
+            background: #00398c;
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover {
+            background: #1976d2;
+        }
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #00398c;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-secondary:hover {
+            background: #dbeafe;
+        }
+        .faq-section textarea {
+            width: 100%;
+            min-height: 80px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            padding: 8px;
+            font-size: 15px;
+            background: #f7f9fa;
+            transition: box-shadow 0.2s;
+        }
+        .faq-section textarea:focus {
+            box-shadow: 0 0 0 2px #1976d2;
+            outline: none;
+        }
+        .settings-link {
+            color: #00398c;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+        .settings-row input[type="text"],
+        .settings-row input[type="tel"],
+        .settings-row input[type="email"] {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+            background: #f7f9fa;
+            margin-bottom: 0;
+            transition: box-shadow 0.2s;
+        }
+        .settings-row input:focus {
+            box-shadow: 0 0 0 2px #1976d2;
+            outline: none;
+        }
+        @media (max-width: 800px) {
+            .settings-container { padding: 18px 4vw; }
+        }
+        @media (max-width: 600px) {
+            .main-content { padding: 8px; }
+            .settings-container { padding: 10px 2vw; }
+        }
+    </style>
+</head>
+<body>
+    <div id="notificationBar" class="notification-bar"></div>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="../assets/cnupd.png" alt="CNUPD Logo" class="sidebar-logo">
+                <h2>Employee Dashboard</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Overview</span>
+                </a>
+                <a href="schedule.html" class="nav-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>My Schedule</span>
+                </a>
+                <a href="leave-requests.html" class="nav-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Leave Requests</span>
+                </a>
+                <a href="training-requests.html" class="nav-item">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span>Training Requests</span>
+                </a>
+                <a href="court.html" class="nav-item">
+                    <i class="fas fa-gavel"></i>
+                    <span>Court</span>
+                </a>
+                <a href="accounts.html" class="nav-item">
+                    <i class="fas fa-user"></i>
+                    <span>Accounts</span>
+                </a>
+                <a href="settings.html" class="nav-item active">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="../html/index.html" class="nav-item logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Settings</h1>
+                <div class="header-actions">
+                    <button class="btn-secondary" id="printBtn"><i class="fas fa-print"></i> Print</button>
+                    <button class="btn-secondary" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
+                </div>
+            </header>
+            <div class="settings-container">
+                <div class="settings-section">
+                    <h2><i class="fas fa-adjust"></i> Theme Selection</h2>
+                    <label class="toggle-switch">
+                        <span>Dark Mode</span>
+                        <span class="switch">
+                            <input type="checkbox" id="themeToggle">
+                            <span class="slider"></span>
+                        </span>
+                    </label>
+                </div>
+                <div class="settings-section">
+                    <h2><i class="fas fa-bell"></i> Notification Preferences</h2>
+                    <div class="settings-row">
+                        <label class="toggle-switch"><span>Email Notifications</span><span class="switch"><input type="checkbox" id="notifEmail" checked><span class="slider"></span></span></label>
+                        <label class="toggle-switch"><span>SMS Notifications</span><span class="switch"><input type="checkbox" id="notifSMS"><span class="slider"></span></span></label>
+                    </div>
+                    <div class="settings-row">
+                        <label class="toggle-switch"><span>Training Approvals</span><span class="switch"><input type="checkbox" id="notifTraining" checked><span class="slider"></span></span></label>
+                        <label class="toggle-switch"><span>Court Reminders</span><span class="switch"><input type="checkbox" id="notifCourt" checked><span class="slider"></span></span></label>
+                        <label class="toggle-switch"><span>Emergency Alerts</span><span class="switch"><input type="checkbox" id="notifEmergency" checked><span class="slider"></span></span></label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h2><i class="fas fa-user-shield"></i> Emergency Contact Information</h2>
+                    <div class="settings-row">
+                        <input type="text" id="emergencyName" placeholder="Contact Name">
+                        <input type="tel" id="emergencyPhone" placeholder="Phone Number">
+                        <input type="email" id="emergencyEmail" placeholder="Email Address">
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h2><i class="fas fa-sync-alt"></i> App Updates</h2>
+                    <label class="toggle-switch">
+                        <span>Enable Automatic Updates</span>
+                        <span class="switch">
+                            <input type="checkbox" id="autoUpdate" checked>
+                            <span class="slider"></span>
+                        </span>
+                    </label>
+                    <div style="margin-top: 8px; color: #555;">
+                        You will receive push notifications when updates are available or installed.
+                    </div>
+                </div>
+                <div class="settings-section faq-section">
+                    <h2><i class="fas fa-question-circle"></i> Instructions & FAQ</h2>
+                    <textarea id="faqContent" readonly>Welcome to the CNUPD Scheduler App! Here you can manage your schedule, request leave, sign up for overtime, and more. For help, contact your supervisor or admin.</textarea>
+                    <div style="margin-top: 8px;">
+                        <span style="color: #888;">Admins can edit and expand this content as needed.</span>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h2><i class="fas fa-lock"></i> Security Options</h2>
+                    <button class="btn-secondary" onclick="alert('Change password feature coming soon!')">Change Password</button>
+                    <button class="btn-secondary" onclick="alert('Passcode lock for mobile coming soon!')">Enable Passcode Lock</button>
+                </div>
+                <div class="settings-section">
+                    <h2><i class="fas fa-external-link-alt"></i> University Police Website</h2>
+                    <a href="https://cnu.edu/police/" target="_blank" class="settings-link">https://cnu.edu/police/</a>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        document.getElementById('printBtn').onclick = function() { window.print(); };
+        document.getElementById('shareBtn').onclick = function() {
+            if (navigator.share) {
+                navigator.share({ title: document.title, url: window.location.href });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link copied to clipboard!');
+            }
+        };
+        // Theme toggle demo
+        document.getElementById('themeToggle').addEventListener('change', function() {
+            if (this.checked) {
+                document.body.style.background = '#222';
+                document.querySelector('.main-content').style.background = '#222';
+                document.querySelector('.settings-container').style.background = '#333';
+                document.querySelector('.settings-container').style.color = '#fff';
+            } else {
+                document.body.style.background = '#00398c';
+                document.querySelector('.main-content').style.background = '#00398c';
+                document.querySelector('.settings-container').style.background = '#fff';
+                document.querySelector('.settings-container').style.color = '';
+            }
+        });
+    </script>
+</body>
+</html> 
