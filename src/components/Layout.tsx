@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Box, Drawer, AppBar, Toolbar, List, Typography, Divider, IconButton, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Box, Drawer, AppBar, Toolbar, List, Typography, IconButton, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,

@@ -13,7 +13,6 @@ interface Event {
 
 const Dashboard = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [yearPickerOpen, setYearPickerOpen] = useState(false);
   
   // Mock events - replace with API call
   const events: Event[] = [

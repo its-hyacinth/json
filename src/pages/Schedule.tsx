@@ -73,9 +73,9 @@ const Schedule = () => {
         },
         body: JSON.stringify({
           date: selectedDate,
-          startTime: document.getElementById('startTime')?.value,
-          endTime: document.getElementById('endTime')?.value,
-          type: document.getElementById('shiftType')?.value,
+          startTime: (document.getElementById('startTime') as HTMLInputElement | null)?.value,
+          endTime: (document.getElementById('endTime') as HTMLInputElement | null)?.value,
+          type: (document.getElementById('shiftType') as HTMLSelectElement | null)?.value,
         }),
       });
 
@@ -90,13 +90,6 @@ const Schedule = () => {
     } catch (err) {
       setError('Error adding shift: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
-  };
-
-  const checkConflicts = (newShift: Partial<Shift>) => {
-    return shifts.some(shift => 
-      format(shift.date, 'yyyy-MM-dd') === format(newShift.date as Date, 'yyyy-MM-dd') &&
-      shift.officerId === newShift.officerId
-    );
   };
 
   // Mock overtime events for demonstration
