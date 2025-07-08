@@ -21,7 +21,7 @@ app.use(cors());
 // Middleware to parse JSON bodies
 app.use(express.json());
 
-// Serve static files from the React app
+// Serve static files from the React app build
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // JWT secret key
@@ -300,7 +300,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Handle React routing, return all requests to React app
+// All other GET requests not handled before will return the React app
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
