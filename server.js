@@ -300,10 +300,15 @@ io.on('connection', (socket) => {
   });
 });
 
-// All other GET requests not handled before will return the React app
+// Catch-all to serve React's index.html for any non-API route
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
+
+// Commented out the default Hello World route to allow React app to be served
+// app.get('/', (req, res) => {
+//   res.send('Hello World');
+// });
 
 const port = process.env.PORT || 3000;
 server.listen(port, () => {
