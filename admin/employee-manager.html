@@ -94,6 +94,12 @@
             </div>
         </main>
     </div>
+    <script>
+      const user = JSON.parse(sessionStorage.getItem('currentUser'));
+      if (!user || user.role !== 'admin') {
+        window.location.href = '../admin/login.html';
+      }
+    </script>
     <script src="../js/employee-manager.js"></script>
 </body>
 </html> 

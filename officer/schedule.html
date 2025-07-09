@@ -135,6 +135,10 @@
         </main>
     </div>
     <script>
+        const user = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!user || user.role === 'admin') {
+            window.location.href = '../officer/login.html';
+        }
         document.getElementById('printBtn').onclick = function() { window.print(); };
         document.getElementById('shareBtn').onclick = function() {
             if (navigator.share) {

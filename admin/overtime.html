@@ -70,6 +70,10 @@
         </main>
     </div>
     <script>
+        const user = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!user || user.role !== 'admin') {
+            window.location.href = '../admin/login.html';
+        }
         // Placeholder data - replace with fetch from backend if available
         const overtimeRequests = [
             { name: 'John Doe', date: '2024-06-21', hours: 4, reason: 'Event Security', status: 'Pending' },

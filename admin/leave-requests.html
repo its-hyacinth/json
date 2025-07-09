@@ -120,6 +120,12 @@
             </div>
         </div>
     </div>
+    <script>
+      const user = JSON.parse(sessionStorage.getItem('currentUser'));
+      if (!user || user.role !== 'admin') {
+        window.location.href = '../admin/login.html';
+      }
+    </script>
     <script src="../js/leave-requests.js"></script>
 </body>
 </html> 

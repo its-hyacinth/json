@@ -330,6 +330,10 @@
                 document.querySelector('.settings-container').style.color = '';
             }
         });
+        const user = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!user || user.role === 'admin') {
+            window.location.href = '../officer/login.html';
+        }
     </script>
 </body>
 </html> 
