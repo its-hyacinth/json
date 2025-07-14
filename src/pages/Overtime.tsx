@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Paper, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton } from '@mui/material';
+import { Box, Paper, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Tooltip } from '@mui/material';
 import { Print as PrintIcon, Share as ShareIcon } from '@mui/icons-material';
 
 interface OvertimeEvent {
@@ -97,7 +97,11 @@ const Overtime = () => {
             <TableBody>
               {availableEvents.map(ev => (
                 <TableRow key={ev.id}>
-                  <TableCell>{ev.date}</TableCell>
+                  <TableCell>
+                    <Tooltip title={`Location: ${ev.location} | Officers Required: ${ev.required}`} arrow>
+                      <span>{ev.date}</span>
+                    </Tooltip>
+                  </TableCell>
                   <TableCell>{ev.event}</TableCell>
                   <TableCell>{ev.signups} / {ev.required}</TableCell>
                   <TableCell>
@@ -111,6 +115,13 @@ const Overtime = () => {
           </Table>
         </TableContainer>
       </Paper>
+      {/* Color Legend */}
+      <Box sx={{ display: 'flex', gap: 2, mt: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 16, height: 16, bgcolor: '#FFD600', borderRadius: 1, border: '1px solid #ccc' }} />
+          <Typography variant="body2">Overtime</Typography>
+        </Box>
+      </Box>
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>Create Overtime Event</DialogTitle>
         <DialogContent>

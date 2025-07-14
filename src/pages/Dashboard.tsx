@@ -125,6 +125,25 @@ const Dashboard = () => {
           </Grid>
         ))}
       </Grid>
+      {/* Color Legend */}
+      <Box sx={{ display: 'flex', gap: 2, mt: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 16, height: 16, bgcolor: '#4CAF50', borderRadius: 1, border: '1px solid #ccc' }} />
+          <Typography variant="body2">Leave</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 16, height: 16, bgcolor: '#F44336', borderRadius: 1, border: '1px solid #ccc' }} />
+          <Typography variant="body2">Court</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 16, height: 16, bgcolor: '#2196F3', borderRadius: 1, border: '1px solid #ccc' }} />
+          <Typography variant="body2">Training</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 16, height: 16, bgcolor: '#FFD600', borderRadius: 1, border: '1px solid #ccc' }} />
+          <Typography variant="body2">Overtime</Typography>
+        </Box>
+      </Box>
     </Box>
   );
 };

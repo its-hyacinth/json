@@ -22,6 +22,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { ArrowBack } from '@mui/icons-material';
+import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 
 interface Shift {
   id: number;
@@ -98,6 +99,23 @@ const Schedule = () => {
     { date: '2024-06-15', officerId: 102, event: 'Concert' },
   ];
 
+  // Google Doc URLs for each month
+  const scheduleDocs = [
+    {
+      label: 'June',
+      url: 'https://docs.google.com/document/d/1Qqnl1I1RzWPRgu0zVsAqANRbLrwFPa--/edit?usp=drive_link&ouid=117352121642263211642&rtpof=true&sd=true',
+    },
+    {
+      label: 'July',
+      url: 'https://docs.google.com/document/d/1w3ljHJyOc2ub4tPNK-I2LXOoA9yZ4Gzj/edit?usp=drive_link&ouid=117352121642263211642&rtpof=true&sd=true',
+    },
+    {
+      label: 'August',
+      url: 'https://docs.google.com/document/d/1MBrSDcRQMHFh6a-AGaqo7Te3hdlIquWa/edit?usp=drive_link&ouid=117352121642263211642&rtpof=true&sd=true',
+    },
+  ];
+  const [docIndex, setDocIndex] = useState(0);
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Box>
@@ -160,33 +178,42 @@ const Schedule = () => {
           </Box>
         </Paper>
 
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Current Schedule</Typography>
-          {shifts.map(shift => {
-            const overtime = overtimeEvents.find(ot =>
-              format(shift.date, 'yyyy-MM-dd') === ot.date && shift.officerId === ot.officerId
-            );
-            return (
-              <Tooltip
-                key={shift.id}
-                title={overtime ? `Overtime: ${overtime.event}` : ''}
-                arrow
-                disableHoverListener={!overtime}
-              >
-                <Box sx={{
-                  p: 2,
-                  mb: 1,
-                  bgcolor: 'primary.light',
-                  color: 'white',
-                  borderRadius: 1,
-                  cursor: 'pointer'
-                }}>
-                  <Typography>{format(shift.date, 'MMM dd, yyyy')} - {shift.type}</Typography>
-                </Box>
-              </Tooltip>
-            );
-          })}
-        </Paper>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+          <Button onClick={() => setDocIndex((docIndex + scheduleDocs.length - 1) % scheduleDocs.length)}>
+            <ChevronLeft />
+          </Button>
+          <Typography variant="h5" sx={{ mx: 2 }}>{scheduleDocs[docIndex].label} Schedule</Typography>
+          <Button onClick={() => setDocIndex((docIndex + 1) % scheduleDocs.length)}>
+            <ChevronRight />
+          </Button>
+        </Box>
+        <Box sx={{ width: '100%', height: '80vh', bgcolor: 'white', borderRadius: 2, overflow: 'hidden', boxShadow: 2, mb: 2 }}>
+          <iframe
+            title={scheduleDocs[docIndex].label + ' Schedule'}
+            src={scheduleDocs[docIndex].url + '&embedded=true'}
+            style={{ width: '100%', height: '100%', border: 'none', background: 'white' }}
+            allowFullScreen
+          />
+        </Box>
+        {/* Color Legend */}
+        <Box sx={{ display: 'flex', gap: 2, mt: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ width: 16, height: 16, bgcolor: '#4CAF50', borderRadius: 1, border: '1px solid #ccc' }} />
+            <Typography variant="body2">Leave</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ width: 16, height: 16, bgcolor: '#F44336', borderRadius: 1, border: '1px solid #ccc' }} />
+            <Typography variant="body2">Court</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ width: 16, height: 16, bgcolor: '#2196F3', borderRadius: 1, border: '1px solid #ccc' }} />
+            <Typography variant="body2">Training</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ width: 16, height: 16, bgcolor: '#FFD600', borderRadius: 1, border: '1px solid #ccc' }} />
+            <Typography variant="body2">Overtime</Typography>
+          </Box>
+        </Box>
 
         <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
           <DialogTitle>Add New Shift</DialogTitle>

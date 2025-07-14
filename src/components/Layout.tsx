@@ -65,18 +65,45 @@ const Layout = ({ children, darkMode, setDarkMode }: LayoutProps) => {
           <IconButton color="inherit" onClick={() => window.print()}>
             <PrintIcon />
           </IconButton>
-          <IconButton color="inherit" onClick={() => navigator.share({ title: 'CNUPD Scheduler', url: window.location.href })}>
+          <IconButton color="inherit" onClick={() => navigator.share ? navigator.share({ title: 'CNUPD Scheduler', url: window.location.href }) : alert('Share not supported on this browser.') }>
             <ShareIcon />
           </IconButton>
           <IconButton color="inherit" onClick={() => setDarkMode(!darkMode)}>
             {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
           </IconButton>
         </Toolbar>
-        <Box sx={{ bgcolor: 'warning.main', p: 1, textAlign: 'center', display: notifications.length ? 'flex' : 'none', alignItems: 'center', gap: 2 }}>
-          <Typography variant="body2" color="warning.contrastText" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
-            {notifications.map(n => n.message).join(' | ')}
-          </Typography>
+        {/* Notification Bar */}
+        <Box sx={{
+          bgcolor: 'warning.main',
+          color: 'warning.contrastText',
+          px: 2,
+          py: 0.5,
+          borderBottom: '1px solid #fff',
+          width: '100%',
+          overflow: 'hidden',
+          position: 'relative',
+          minHeight: 32,
+          display: notifications.length ? 'flex' : 'none',
+          alignItems: 'center',
+        }}>
+          <Box
+            sx={{
+              whiteSpace: 'nowrap',
+              display: 'inline-block',
+              animation: 'scroll-left 20s linear infinite',
+              fontWeight: 600,
+              fontSize: 16,
+            }}
+          >
+            {notifications.map(n => n.message).join('   |   ')}
+          </Box>
         </Box>
+        <style>{`
+          @keyframes scroll-left {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+          }
+        `}</style>
       </AppBar>
       <Drawer
         variant="permanent"

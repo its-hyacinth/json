@@ -177,9 +177,11 @@ const Leave = () => {
 
           {activeStep === 1 && (
             <Box>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>Supporting Documents (PDF)</Typography>
               <TextField
                 type="file"
                 fullWidth
+                inputProps={{ accept: 'application/pdf' }}
                 onChange={handleFileUpload}
                 sx={{ mb: 2 }}
                 InputLabelProps={{ shrink: true }}
@@ -271,6 +273,13 @@ const Leave = () => {
             </Box>
           ))}
         </Paper>
+      </Box>
+      {/* Color Legend */}
+      <Box sx={{ display: 'flex', gap: 2, mt: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ width: 16, height: 16, bgcolor: '#4CAF50', borderRadius: 1, border: '1px solid #ccc' }} />
+          <Typography variant="body2">Leave</Typography>
+        </Box>
       </Box>
     </LocalizationProvider>
   );
