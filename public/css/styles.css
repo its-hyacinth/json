@@ -926,3 +926,74 @@ input[type="month"] {
     border-radius: 8px;
     font-family: inherit;
 }
+
+/* Header */
+.header {
+  background: #0a376b;
+  color: #fff;
+  padding: 16px 24px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Notification Bar */
+.notification-bar {
+  background: #f57c00;
+  color: #fff;
+  padding: 8px 24px;
+  font-size: 1rem;
+  margin-bottom: 16px;
+}
+
+/* Sidebar */
+.sidebar {
+  background: #f5f5f5;
+  padding: 24px 0;
+  min-width: 200px;
+  height: 100vh;
+  border-right: 1px solid #e0e0e0;
+}
+
+.sidebar .menu-item {
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.sidebar .menu-item:hover {
+  background: #e3eafc;
+}
+
+/* Main Content */
+.main-content {
+  padding: 32px;
+  background: #fff;
+  min-height: 100vh;
+}
+
+/* Calendar Controls */
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.calendar-days {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.calendar-day {
+  background: #0a376b;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+}
