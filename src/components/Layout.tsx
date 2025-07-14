@@ -49,7 +49,7 @@ const Layout = ({ children, darkMode, setDarkMode }: LayoutProps) => {
   const handleLogout = () => {
     localStorage.clear();
     sessionStorage.clear();
-    window.location.href = '/login';
+    navigate('/login');
   };
 
   return (
