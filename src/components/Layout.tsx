@@ -56,7 +56,7 @@ const Layout = ({ children, darkMode, setDarkMode }: LayoutProps) => {
     <Box sx={{ display: 'flex' }}>
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
-          <IconButton color="inherit" edge="start" sx={{ mr: 2 }}>
+          <IconButton color="inherit" edge="start" sx={{ mr: 2 }} onClick={() => navigate('/') }>
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
@@ -113,6 +113,8 @@ const Layout = ({ children, darkMode, setDarkMode }: LayoutProps) => {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
+            bgcolor: '#003366', // CNU Blue
+            color: 'white',
           },
         }}
       >

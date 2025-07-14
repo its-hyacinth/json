@@ -33,6 +33,15 @@ interface Shift {
   type: string;
 }
 
+// Add event interface for schedule
+interface ScheduleEvent {
+  id: number;
+  title: string;
+  date: Date;
+  type: 'leave-pending' | 'leave-approved' | 'training' | 'court';
+  color: string;
+}
+
 const Schedule = () => {
   const navigate = useNavigate();
   const [userRole] = useState<'owner' | 'employee'>('owner');
@@ -42,6 +51,20 @@ const Schedule = () => {
   const [minStaffing, setMinStaffing] = useState(3);
   const [maxHours, setMaxHours] = useState(12);
   const [error, setError] = useState<string | null>(null);
+
+  // Centralized event state (mock for now, to be updated by other pages)
+  const [events, setEvents] = useState<ScheduleEvent[]>([
+    // Example events
+    { id: 1, title: 'Annual Leave', date: new Date(2024, 5, 15), type: 'leave-approved', color: '#4CAF50' },
+    { id: 2, title: 'Pending Leave', date: new Date(2024, 5, 18), type: 'leave-pending', color: '#FFD600' },
+    { id: 3, title: 'Court Appearance', date: new Date(2024, 5, 20), type: 'court', color: '#F44336' },
+    { id: 4, title: 'Training Session', date: new Date(2024, 5, 25), type: 'training', color: '#2196F3' },
+  ]);
+
+  // Helper to get events for a given day
+  const getEventsForDay = (date: Date) => {
+    return events.filter(event => format(event.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'));
+  };
 
   const handleAutoGenerate = () => {
     const newShifts: Shift[] = [
@@ -190,7 +213,7 @@ const Schedule = () => {
         <Box sx={{ width: '100%', height: '80vh', bgcolor: 'white', borderRadius: 2, overflow: 'hidden', boxShadow: 2, mb: 2 }}>
           <iframe
             title={scheduleDocs[docIndex].label + ' Schedule'}
-            src={scheduleDocs[docIndex].url + '&embedded=true'}
+            src={scheduleDocs[docIndex].url.replace('/edit', '/preview')}
             style={{ width: '100%', height: '100%', border: 'none', background: 'white' }}
             allowFullScreen
           />
