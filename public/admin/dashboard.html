@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="background: #0a3a7e; color: #fff; font-family: 'Montserrat', sans-serif;">
+    <div style="position: absolute; top: 16px; left: 16px; z-index: 10;">
+      <img src="/assets/cnupd.png" alt="CNUPD Badge" style="height: 80px; width: auto;" />
+    </div>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <img src="/assets/cnupd.png" alt="CNUPD Logo" class="login-logo">
+                <h1>Admin Dashboard</h1>
+            </div>
+            <div style="margin: 2rem 0; text-align: center;">
+                Welcome, <span id="adminName">Admin</span>!
+            </div>
+            <div style="text-align: center;">
+                <a href="#" id="logoutBtn" class="login-btn">Logout</a>
+            </div>
+        </div>
+    </div>
+    <script src="/js/auth.js"></script>
+    <script>
+    // Authentication check
+    const user = JSON.parse(sessionStorage.getItem('currentUser'));
+    if (!user || user.role !== 'admin') {
+        window.location.href = '/admin/login.html';
+    } else {
+        document.getElementById('adminName').textContent = user.name || 'Admin';
+    }
+    document.getElementById('logoutBtn').onclick = function() {
+        sessionStorage.clear();
+        window.location.href = '/admin/login.html';
+    };
+    </script>
+</body>
+</html> 
