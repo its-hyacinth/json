@@ -74,7 +74,7 @@ function handleAdminLogin(event) {
     if (user && user.role === 'admin') {
         console.log('Login successful, redirecting to dashboard...');
         sessionStorage.setItem('currentUser', JSON.stringify(user));
-        window.location.href = '../admin/dashboard.html';
+        window.location.href = '/admin/dashboard.html';
     } else {
         console.log('Login failed');
         alert('Invalid credentials or unauthorized access.');
@@ -106,7 +106,7 @@ function handleEmployeeLogin(event) {
     if (user && user.role !== 'admin') {
         console.log('Login successful, redirecting to dashboard...');
         sessionStorage.setItem('currentUser', JSON.stringify(user));
-        window.location.href = '../officer/dashboard.html';
+        window.location.href = '/officer/dashboard.html';
     } else {
         console.log('Login failed');
         alert('Invalid credentials or unauthorized access.');
@@ -280,5 +280,5 @@ document.addEventListener('DOMContentLoaded', () => {
 // Handle logout
 function logout() {
     sessionStorage.removeItem('currentUser');
-    window.location.href = '../html/index.html';
+    window.location.href = '/index.html';
 } 
