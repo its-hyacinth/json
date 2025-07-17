@@ -24,9 +24,10 @@ interface LayoutProps {
   children: ReactNode;
   darkMode: boolean;
   setDarkMode: (mode: boolean) => void;
+  onLogout?: () => void;
 }
 
-const Layout = ({ children, darkMode, setDarkMode }: LayoutProps) => {
+const Layout = ({ children, darkMode, setDarkMode, onLogout }: LayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [notifications] = useState([
@@ -49,7 +50,7 @@ const Layout = ({ children, darkMode, setDarkMode }: LayoutProps) => {
   const handleLogout = () => {
     localStorage.clear();
     sessionStorage.clear();
-    navigate('/login');
+    if (onLogout) onLogout();
   };
 
   return (

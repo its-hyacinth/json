@@ -10,9 +10,12 @@ import Training from './pages/Training';
 import Court from './pages/Court';
 import Accounts from './pages/Accounts';
 import Settings from './pages/Settings';
+import LandingPage from './pages/LandingPage';
+import { useNavigate } from 'react-router-dom';
 
 const App = () => {
   const [darkMode, setDarkMode] = useState(false);
+  const [user, setUser] = useState<{ role: 'admin' | 'employee' } | null>(null);
 
   const theme = createTheme({
     palette: {
@@ -26,22 +29,32 @@ const App = () => {
     },
   });
 
+  const handleLogin = (role: 'admin' | 'employee') => {
+    setUser({ role });
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Layout darkMode={darkMode} setDarkMode={setDarkMode}>
+        {!user ? (
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/schedule" element={<Schedule />} />
-            <Route path="/overtime" element={<Overtime />} />
-            <Route path="/leave" element={<Leave />} />
-            <Route path="/training" element={<Training />} />
-            <Route path="/court" element={<Court />} />
-            <Route path="/accounts" element={<Accounts />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/*" element={<LandingPage onLogin={handleLogin} />} />
           </Routes>
-        </Layout>
+        ) : (
+          <Layout darkMode={darkMode} setDarkMode={setDarkMode} onLogout={() => setUser(null)}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/schedule" element={<Schedule />} />
+              <Route path="/overtime" element={<Overtime />} />
+              <Route path="/leave" element={<Leave />} />
+              <Route path="/training" element={<Training />} />
+              <Route path="/court" element={<Court />} />
+              <Route path="/accounts" element={<Accounts />} />
+              <Route path="/settings" element={<Settings />} />
+            </Routes>
+          </Layout>
+        )}
       </Router>
     </ThemeProvider>
   );
