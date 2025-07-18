@@ -1,152 +1,59 @@
-import { useState } from 'react';
-import { Box, Paper, Typography, Grid, IconButton, Chip } from '@mui/material';
-import { ChevronLeft, ChevronRight } from '@mui/icons-material';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, setYear } from 'date-fns';
+import React, { useState } from 'react';
 
-interface Event {
-  id: number;
-  title: string;
-  date: Date;
-  type: 'leave' | 'court' | 'training' | 'overtime';
-  color: string;
-}
+const scheduleImages = [
+  {
+    month: 'June 2025',
+    url: 'https://docs.google.com/document/d/1Qqnl1I1RzWPRgu0zVsAqANRbLrwFPa--/edit?usp=drive_link&ouid=117352121642263211642&rtpof=true&sd=true',
+    img: 'https://i.imgur.com/0Qw8QwF.png', // Placeholder image URL, replace with actual screenshot if available
+  },
+  {
+    month: 'July 2025',
+    url: 'https://docs.google.com/document/d/1w3ljHJyOc2ub4tPNK-I2LXOoA9yZ4Gzj/edit?usp=drive_link&ouid=117352121642263211642&rtpof=true&sd=true',
+    img: 'https://i.imgur.com/0Qw8QwF.png', // Placeholder image URL
+  },
+  {
+    month: 'August 2025',
+    url: 'https://docs.google.com/document/d/1MBrSDcRQMHFh6a-AGaqo7Te3hdlIquWa/edit?usp=drive_link&ouid=117352121642263211642&rtpof=true&sd=true',
+    img: 'https://i.imgur.com/0Qw8QwF.png', // Placeholder image URL
+  },
+];
 
-const Dashboard = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  
-  // Mock events - replace with API call
-  const events: Event[] = [
-    {
-      id: 1,
-      title: 'Annual Leave',
-      date: new Date(2024, 2, 15),
-      type: 'leave',
-      color: '#4CAF50'
-    },
-    {
-      id: 2,
-      title: 'Court Appearance',
-      date: new Date(2024, 2, 20),
-      type: 'court',
-      color: '#F44336'
-    },
-    {
-      id: 3,
-      title: 'Training Session',
-      date: new Date(2024, 2, 25),
-      type: 'training',
-      color: '#2196F3'
-    }
-  ];
+const legend = [
+  { color: 'bg-yellow-200', label: 'Leave' },
+  { color: 'bg-green-200', label: 'Training' },
+  { color: 'bg-blue-200', label: 'Military' },
+  { color: 'bg-purple-200', label: 'Court' },
+  { color: 'bg-pink-200', label: 'Overtime' },
+];
 
-  const handlePreviousMonth = () => {
-    setCurrentDate(subMonths(currentDate, 1));
-  };
+const Dashboard: React.FC = () => {
+  const [monthIdx, setMonthIdx] = useState(0);
+  const current = scheduleImages[monthIdx];
 
-  const handleNextMonth = () => {
-    setCurrentDate(addMonths(currentDate, 1));
-  };
-
-  const handleYearChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setCurrentDate(setYear(currentDate, parseInt(event.target.value)));
-  };
-
-  const days = eachDayOfInterval({
-    start: startOfMonth(currentDate),
-    end: endOfMonth(currentDate)
-  });
-
-  const getEventsForDay = (date: Date) => {
-    return events.filter(event => 
-      format(event.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
-    );
-  };
+  const handlePrev = () => setMonthIdx((idx) => (idx === 0 ? scheduleImages.length - 1 : idx - 1));
+  const handleNext = () => setMonthIdx((idx) => (idx === scheduleImages.length - 1 ? 0 : idx + 1));
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-      <Box sx={{ width: '80vw', maxWidth: 1200 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <IconButton onClick={handlePreviousMonth}>
-            <ChevronLeft />
-          </IconButton>
-          <Typography variant="h4" sx={{ mx: 2 }}>
-            {format(currentDate, 'MMMM yyyy')}
-          </Typography>
-          <IconButton onClick={handleNextMonth}>
-            <ChevronRight />
-          </IconButton>
-          <select
-            value={format(currentDate, 'yyyy')}
-            onChange={handleYearChange}
-            style={{ marginLeft: 16, fontSize: 16 }}
-          >
-            {Array.from({ length: 10 }, (_, i) => 2020 + i).map(year => (
-              <option key={year} value={year}>{year}</option>
-            ))}
-          </select>
-        </Box>
-
-        <Grid container spacing={1}>
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <Grid item xs key={day}>
-              <Paper sx={{ p: 1, textAlign: 'center', bgcolor: 'primary.main', color: 'white' }}>
-                {day}
-              </Paper>
-            </Grid>
-          ))}
-
-          {days.map(day => (
-            <Grid item xs key={format(day, 'yyyy-MM-dd')}>
-              <Paper 
-                sx={{ 
-                  p: 1, 
-                  minHeight: 100,
-                  bgcolor: isSameMonth(day, currentDate) ? 'background.paper' : 'action.hover'
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  {format(day, 'd')}
-                </Typography>
-                <Box sx={{ mt: 1 }}>
-                  {getEventsForDay(day).map(event => (
-                    <Chip
-                      key={event.id}
-                      label={event.title}
-                      size="small"
-                      sx={{ 
-                        mb: 0.5, 
-                        width: '100%',
-                        bgcolor: event.color,
-                        color: 'white'
-                      }}
-                    />
-                  ))}
-                </Box>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
-        {/* Color Legend */}
-        <Box sx={{ display: 'flex', gap: 2, mt: 3, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 16, height: 16, bgcolor: '#4CAF50', borderRadius: 1, border: '1px solid #ccc' }} />
-            <Typography variant="body2">Leave</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 16, height: 16, bgcolor: '#F44336', borderRadius: 1, border: '1px solid #ccc' }} />
-            <Typography variant="body2">Court</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 16, height: 16, bgcolor: '#2196F3', borderRadius: 1, border: '1px solid #ccc' }} />
-            <Typography variant="body2">Training</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 16, height: 16, bgcolor: '#FFD600', borderRadius: 1, border: '1px solid #ccc' }} />
-            <Typography variant="body2">Overtime</Typography>
-          </Box>
-        </Box>
-      </Box>
-    </Box>
+    <div className="max-w-4xl mx-auto">
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={handlePrev} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Previous</button>
+        <a href={current.url} target="_blank" rel="noopener noreferrer" className="text-xl font-bold text-blue-800 underline">{current.month}</a>
+        <button onClick={handleNext} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next</button>
+      </div>
+      <div className="border rounded-lg overflow-hidden shadow mb-4 bg-white">
+        {/* Replace with actual schedule table or image */}
+        <img src={current.img} alt={current.month + ' schedule'} className="w-full object-contain" />
+        <div className="p-2 text-center text-gray-500 text-sm">(Schedule preview - interactive version coming soon)</div>
+      </div>
+      <div className="flex gap-4 items-center justify-center mt-2">
+        {legend.map(item => (
+          <div key={item.label} className="flex items-center gap-1">
+            <span className={`inline-block w-4 h-4 rounded ${item.color} border border-gray-300`}></span>
+            <span className="text-xs text-gray-700">{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 

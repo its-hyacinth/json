@@ -1,152 +1,78 @@
-import { ReactNode, useState } from 'react';
-import { Box, Drawer, AppBar, Toolbar, List, Typography, IconButton, ListItem, ListItemIcon, ListItemText } from '@mui/material';
-import {
-  Menu as MenuIcon,
-  Dashboard as DashboardIcon,
-  Event as EventIcon,
-  AccessTime as OvertimeIcon,
-  BeachAccess as LeaveIcon,
-  School as TrainingIcon,
-  Gavel as CourtIcon,
-  People as AccountsIcon,
-  Settings as SettingsIcon,
-  Brightness4 as DarkModeIcon,
-  Brightness7 as LightModeIcon,
-  Print as PrintIcon,
-  Share as ShareIcon,
-  Logout as LogoutIcon,
-} from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 
-const drawerWidth = 240;
+const sidebarTabs = [
+  { name: 'Dashboard', path: '/dashboard' },
+  { name: 'Schedule', path: '/schedule' },
+  { name: 'Overtime', path: '/overtime' },
+  { name: 'Leave Requests', path: '/leave' },
+  { name: 'Training Requests', path: '/training' },
+  { name: 'Court', path: '/court' },
+  { name: 'Accounts', path: '/accounts' },
+  { name: 'Settings', path: '/settings' },
+];
 
-interface LayoutProps {
-  children: ReactNode;
-  darkMode: boolean;
-  setDarkMode: (mode: boolean) => void;
-  onLogout?: () => void;
-}
-
-const Layout = ({ children, darkMode, setDarkMode, onLogout }: LayoutProps) => {
-  const navigate = useNavigate();
+const Layout: React.FC = () => {
   const location = useLocation();
-  const [notifications] = useState([
-    { id: 1, message: 'Pending leave requests: 2' },
-    { id: 2, message: 'Schedule updated by supervisor' },
-  ]);
 
-  const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'Schedule', icon: <EventIcon />, path: '/schedule' },
-    { text: 'Overtime', icon: <OvertimeIcon />, path: '/overtime' },
-    { text: 'Leave', icon: <LeaveIcon />, path: '/leave' },
-    { text: 'Training', icon: <TrainingIcon />, path: '/training' },
-    { text: 'Court', icon: <CourtIcon />, path: '/court' },
-    { text: 'Accounts', icon: <AccountsIcon />, path: '/accounts' },
-    { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
-    { text: 'Logout', icon: <LogoutIcon />, path: '/logout', logout: true },
+  // Placeholder notifications
+  const notifications = [
+    'Pending leave request for Officer Smith',
+    'Schedule updated for July 2025',
+    'Supervisor approval needed for training',
   ];
 
-  const handleLogout = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    if (onLogout) onLogout();
+  // Print and Share handlers (stub)
+  const handlePrint = () => window.print();
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'CNU Scheduler',
+        url: window.location.href,
+      });
+    } else {
+      alert('Share not supported on this browser.');
+    }
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <IconButton color="inherit" edge="start" sx={{ mr: 2 }} onClick={() => navigate('/') }>
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            CNUPD Scheduler
-          </Typography>
-          <IconButton color="inherit" onClick={() => window.print()}>
-            <PrintIcon />
-          </IconButton>
-          <IconButton color="inherit" onClick={() => navigator.share ? navigator.share({ title: 'CNUPD Scheduler', url: window.location.href }) : alert('Share not supported on this browser.') }>
-            <ShareIcon />
-          </IconButton>
-          <IconButton color="inherit" onClick={() => setDarkMode(!darkMode)}>
-            {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
-          </IconButton>
-        </Toolbar>
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
+      <aside className="w-64 bg-blue-900 text-white flex flex-col py-6 px-2">
+        <div className="mb-8 text-2xl font-bold text-center">CNU Scheduler App</div>
+        <nav className="flex-1">
+          {sidebarTabs.map(tab => (
+            <Link
+              key={tab.name}
+              to={tab.path}
+              className={`block px-4 py-2 rounded mb-2 hover:bg-blue-700 transition ${location.pathname.startsWith(tab.path) ? 'bg-blue-700 font-semibold' : ''}`}
+            >
+              {tab.name}
+            </Link>
+          ))}
+        </nav>
+      </aside>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
         {/* Notification Bar */}
-        <Box sx={{
-          bgcolor: 'warning.main',
-          color: 'warning.contrastText',
-          px: 2,
-          py: 0.5,
-          borderBottom: '1px solid #fff',
-          width: '100%',
-          overflow: 'hidden',
-          position: 'relative',
-          minHeight: 32,
-          display: notifications.length ? 'flex' : 'none',
-          alignItems: 'center',
-        }}>
-          <Box
-            sx={{
-              whiteSpace: 'nowrap',
-              display: 'inline-block',
-              animation: 'scroll-left 20s linear infinite',
-              fontWeight: 600,
-              fontSize: 16,
-            }}
-          >
-            {notifications.map(n => n.message).join('   |   ')}
-          </Box>
-        </Box>
-        <style>{`
-          @keyframes scroll-left {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-          }
-        `}</style>
-      </AppBar>
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-            bgcolor: '#003366', // CNU Blue
-            color: 'white',
-          },
-        }}
-      >
-        <Toolbar />
-        <Box sx={{ overflow: 'auto' }}>
-          <List>
-            {menuItems.map((item) => (
-              <ListItem
-                button
-                key={item.text}
-                selected={location.pathname === item.path}
-                onClick={() => {
-                  if (item.logout) {
-                    handleLogout();
-                  } else {
-                    navigate(item.path);
-                  }
-                }}
-              >
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItem>
+        <div className="bg-yellow-200 text-yellow-900 py-2 px-4 flex items-center overflow-x-auto whitespace-nowrap border-b border-yellow-300 animate-marquee">
+          <div className="flex space-x-8">
+            {notifications.map((note, idx) => (
+              <span key={idx} className="font-medium">{note}</span>
             ))}
-          </List>
-        </Box>
-      </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        <Toolbar />
-        {children}
-      </Box>
-    </Box>
+          </div>
+        </div>
+        {/* Print & Share Buttons */}
+        <div className="flex justify-end items-center gap-2 p-4 bg-white border-b">
+          <button onClick={handlePrint} className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Print</button>
+          <button onClick={handleShare} className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700">Share</button>
+        </div>
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto p-6">
+          <Outlet />
+        </main>
+      </div>
+    </div>
   );
 };
 
