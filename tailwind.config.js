@@ -6,7 +6,13 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Montserrat', 'Arial', 'Helvetica', 'sans-serif'],
+      },
       colors: {
+        primary: {
+          DEFAULT: '#003366',
+        },
         'cnu-blue': '#003366',
         'cnu-gray': '#8B9DAF',
       },

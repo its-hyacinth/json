@@ -30,7 +30,10 @@
 .login-header h1 {
     color: var(--primary-color);
     font-size: 1.8rem;
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-family: 'Montserrat', Arial, Helvetica, sans-serif;
 }
 
 .form-group {
@@ -79,13 +82,16 @@
     border: none;
     border-radius: 8px;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     transition: background-color 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-family: 'Montserrat', Arial, Helvetica, sans-serif;
 }
 
 .login-btn:hover {
