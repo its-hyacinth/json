@@ -3,26 +3,764 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CNUPD Scheduler App</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/login.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Police Department - Streamlined Scheduling</title>
+    <style>
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #0f2027 0%, #203a43 25%, #2c5364 50%, #1e3c72 75%, #2a5298 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    position: relative;
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+/* Animated Background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+        radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.01) 0%, transparent 50%);
+    animation: backgroundFloat 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes backgroundFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+/* Main Container */
+.container {
+    text-align: center;
+    max-width: 480px;
+    width: 100%;
+    padding: 40px 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Logo Section */
+.logo-section {
+    margin-bottom: 40px;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.logo {
+    margin-bottom: 20px;
+}
+
+.logo-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.logo-icon::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    border-radius: 50%;
+    animation: logoShine 3s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes logoShine {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.logo-icon:hover {
+    transform: scale(1.05) rotate(5deg);
+    box-shadow: 
+        0 15px 40px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.university-text {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    opacity: 0.9;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.small-text {
+    font-size: 9px;
+    opacity: 0.7;
+    letter-spacing: 0.8px;
+}
+
+/* Department Title */
+.department-title {
+    font-size: 28px;
+    font-weight: 300;
+    letter-spacing: 3px;
+    margin-bottom: 50px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.department-title::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+}
+
+/* Welcome Section */
+.welcome-section {
+    margin-bottom: 40px;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.main-heading {
+    font-size: 36px;
+    font-weight: 300;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.subtitle {
+    font-size: 16px;
+    font-weight: 400;
+    opacity: 0.9;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Login Tabs */
+.login-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 30px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.tab-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.tab-button:hover::before {
+    left: 100%;
+}
+
+.tab-button.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tab-icon {
+    font-size: 16px;
+}
+
+.admin-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.8);
+    position: relative;
+}
+
+.admin-icon::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #1e3c72;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tab-button.active .admin-icon::after {
+    opacity: 1;
+}
+
+/* Login Forms */
+.login-forms {
+    position: relative;
+    animation: fadeInUp 0.8s ease-out 0.8s both;
+}
+
+.login-form {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 40px 30px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+}
+
+.login-form.active {
+    opacity: 1;
+    transform: translateY(0);
+    position: relative;
+    pointer-events: auto;
+}
+
+.form-header {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.form-header h3 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: white;
+}
+
+.form-header p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.form-group input {
+    width: 100%;
+    padding: 16px 50px 16px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.input-icon {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Form Options */
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.checkbox-container input {
+    display: none;
+}
+
+.checkmark {
+    width: 18px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    margin-right: 8px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.checkbox-container input:checked + .checkmark {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.checkbox-container input:checked + .checkmark::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.forgot-password {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.forgot-password:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+/* Submit Buttons */
+.login-submit {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-submit::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.login-submit:hover::before {
+    left: 100%;
+}
+
+.admin-submit {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    color: #1e3c72;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.admin-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.employee-submit {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+}
+
+.employee-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+}
+
+.submit-icon {
+    font-size: 18px;
+    transition: transform 0.3s ease;
+}
+
+.login-submit:hover .submit-icon {
+    transform: translateX(4px);
+}
+
+/* Additional Links */
+.additional-links {
+    margin-top: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    animation: fadeInUp 0.8s ease-out 1s both;
+}
+
+.link {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.link:hover {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: underline;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.loading-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Animations */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+        max-width: 100%;
+    }
+    
+    .main-heading {
+        font-size: 28px;
+    }
+    
+    .department-title {
+        font-size: 24px;
+        letter-spacing: 2px;
+    }
+    
+    .login-form {
+        padding: 30px 20px;
+    }
+    
+    .form-group input {
+        padding: 14px 45px 14px 14px;
+    }
+    
+    .login-submit {
+        padding: 14px;
+    }
+    
+    .additional-links {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-heading {
+        font-size: 24px;
+    }
+    
+    .department-title {
+        font-size: 20px;
+    }
+    
+    .subtitle {
+        font-size: 14px;
+    }
+    
+    .tab-button {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+}
+    </style>
 </head>
-<body style="background: #0a3a7e; color: #fff; font-family: 'Montserrat', sans-serif;">
-    <div style="position: absolute; top: 16px; left: 16px; z-index: 10;">
-      <img src="/assets/cnupd.png" alt="CNUPD Badge" style="height: 80px; width: auto;" />
-    </div>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <img src="/assets/cnupd.png" alt="CNUPD Logo" class="login-logo">
-                <h1>Welcome to CNUPD Scheduler</h1>
+<body>
+    <div class="container">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 5L25 15H35L27.5 22.5L30 32.5L20 27.5L10 32.5L12.5 22.5L5 15H15L20 5Z" fill="#1e3c72"/>
+                    </svg>
+                </div>
             </div>
-            <div style="margin: 2rem 0; text-align: center;">
-                <a href="/admin/login.html" class="login-btn" style="margin: 0.5rem;">Admin Login</a>
-                <a href="/officer/login.html" class="login-btn" style="margin: 0.5rem;">Officer Login</a>
+            <div class="university-text">
+                CHRISTOPHER NEWPORT<br>
+                UNIVERSITY<br>
+                <span class="small-text">POLICE DEPARTMENT</span>
             </div>
         </div>
+
+        <!-- Main Header -->
+        <h1 class="department-title">POLICE DEPARTMENT</h1>
+
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <h2 class="main-heading">Streamlined Scheduling for<br>Campus Safety</h2>
+            <p class="subtitle">
+                Efficiently manage police department schedules, leaves, and<br>
+                special events all in one place.
+            </p>
+        </div>
+
+        <!-- Login Options -->
+        <div class="login-tabs">
+            <button class="tab-button active" data-tab="admin" onclick="switchTab('admin')">
+                <span class="tab-icon admin-icon"></span>
+                Admin Login
+            </button>
+            <button class="tab-button" data-tab="employee" onclick="switchTab('employee')">
+                <span class="tab-icon user-icon">👤</span>
+                Employee Login
+            </button>
+        </div>
+
+        <!-- Login Forms -->
+        <div class="login-forms">
+            <!-- Admin Login Form -->
+            <div id="admin-form" class="login-form" style="display:none;">
+                <div class="form-header">
+                    <h3>Administrator Access</h3>
+                    <p>Full system access for department management</p>
+                </div>
+                <form onsubmit="handleAdminLogin(event)">
+                    <div class="form-group">
+                        <label for="admin-email">Email Address</label>
+                        <input type="email" id="admin-email" name="email" required autocomplete="username">
+                        <span class="input-icon">📧</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-password">Password</label>
+                        <input type="password" id="admin-password" name="password" required autocomplete="current-password">
+                        <span class="input-icon">🔒</span>
+                        <button type="button" class="password-toggle" onclick="togglePassword('admin-password')">
+                            <span class="eye-icon">👁️</span>
+                        </button>
+                    </div>
+                    <div class="form-options">
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="remember">
+                            <span class="checkmark"></span>
+                            Remember me
+                        </label>
+                        <a href="#" class="forgot-password">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="login-submit admin-submit">
+                        <span class="submit-text">Sign In as Admin</span>
+                        <span class="submit-icon">→</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Employee Login Form -->
+            <div id="employee-form" class="login-form" style="display:none;">
+                <div class="form-header">
+                    <h3>Employee Access</h3>
+                    <p>Access your schedule and submit requests</p>
+                </div>
+                <form onsubmit="handleEmployeeLogin(event)">
+                    <div class="form-group">
+                        <label for="employee-id">Employee ID</label>
+                        <input type="text" id="employee-id" name="employeeId" required autocomplete="username">
+                        <span class="input-icon">🆔</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="employee-password">Password</label>
+                        <input type="password" id="employee-password" name="password" required autocomplete="current-password">
+                        <span class="input-icon">🔒</span>
+                        <button type="button" class="password-toggle" onclick="togglePassword('employee-password')">
+                            <span class="eye-icon">👁️</span>
+                        </button>
+                    </div>
+                    <div class="form-options">
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="remember">
+                            <span class="checkmark"></span>
+                            Remember me
+                        </label>
+                        <a href="#" class="forgot-password">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="login-submit employee-submit">
+                        <span class="submit-text">Sign In as Employee</span>
+                        <span class="submit-icon">→</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Additional Links -->
+        <div class="additional-links">
+            <a href="#" class="link">Need help? Contact IT Support</a>
+            <a href="#" class="link">System Status</a>
+            <a href="#" class="link">Privacy Policy</a>
+        </div>
     </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Authenticating...</p>
+    </div>
+
+    <script src="public/js/script.js"></script>
 </body>
-</html> 
+</html>

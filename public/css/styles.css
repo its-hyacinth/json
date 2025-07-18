@@ -997,3 +997,26 @@ input[type="month"] {
   border-radius: 6px;
   font-weight: 500;
 }
+
+/* Login Button Styles */
+.login-btn {
+  display: inline-flex;
+  align-items: center;
+  background: #fff;
+  color: #0a3a7e;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  text-decoration: none;
+  margin: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: background 0.2s, color 0.2s;
+  cursor: pointer;
+}
+.login-btn:hover {
+  background: #e6e6e6;
+  color: #0a3a7e;
+  text-decoration: none;
+}
