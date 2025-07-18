@@ -4,99 +4,134 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Training Requests - Admin</title>
-    <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        html, body {
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 25%, #2c5364 50%, #1e3c72 75%, #2a5298 100%);
+            min-height: 100vh;
+            color: white;
             margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
-            background: #f4f6fa;
-            height: 100%;
+            overflow-x: hidden;
         }
         .dashboard-container {
             display: flex;
             min-height: 100vh;
         }
         .sidebar {
-            width: 230px;
-            background: #00398c;
-            color: #fff;
-            min-height: 100vh;
+            width: 270px;
+            background: rgba(32, 58, 67, 0.85);
+            backdrop-filter: blur(12px);
+            box-shadow: 2px 0 24px 0 rgba(0,0,0,0.12);
             display: flex;
             flex-direction: column;
-            padding-top: 24px;
+            align-items: center;
+            padding: 32px 0 0 0;
+            z-index: 2;
         }
-        .sidebar-header {
+        .logo {
+            margin-bottom: 32px;
             text-align: center;
-            margin-bottom: 2rem;
         }
-        .sidebar-logo {
-            width: 60px;
-            margin-bottom: 10px;
+        .logo-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.1);
+            position: relative;
         }
-        .sidebar-header h2 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #fff;
+        .logo-text h1 {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            margin: 0;
+            color: rgba(255,255,255,0.9);
+        }
+        .logo-text h2 {
+            font-size: 11px;
+            font-weight: 500;
+            margin: 0;
+            color: rgba(255,255,255,0.8);
+        }
+        .logo-text h3 {
+            font-size: 12px;
+            font-weight: 400;
+            margin: 8px 0 0 0;
+            color: #b0c4de;
         }
         .sidebar-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            list-style: none;
+            padding: 0;
+            width: 100%;
         }
-        .nav-item {
+        .sidebar-nav a {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 12px 24px;
-            color: #fff;
+            padding: 14px 32px;
+            color: rgba(255,255,255,0.85);
             text-decoration: none;
-            border-radius: 0;
-            font-size: 1rem;
-            transition: background 0.2s, border-left 0.2s;
-            background: #00398c;
+            font-size: 16px;
             border-left: 4px solid transparent;
+            transition: background 0.2s, border-color 0.2s;
         }
-        .nav-item.active, .nav-item:hover {
-            background: #00398c;
+        .sidebar-nav a.active, .sidebar-nav a:hover {
+            background: rgba(255,255,255,0.08);
+            border-left: 4px solid #4facfe;
             color: #fff;
-            border-left: 4px solid #fff;
-            font-weight: 600;
         }
-        .nav-item.logout {
-            margin-top: auto;
+        .sidebar-nav .logout a {
+            color: #ffb3b3;
         }
         .main-content {
             flex: 1;
-            padding: 40px 32px 32px 32px;
-            background: #f4f6fa;
-            min-height: 100vh;
+            padding: 48px 40px 40px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
         }
-        .main-content h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 24px;
-            color: #00398c;
-        }
-        .main-content .table {
-            background: #fff;
-        }
-        .main-content th {
-            background: #f8f9fc;
-            color: #00398c;
-            font-weight: 600;
-        }
-        .main-content td, .main-content th {
-            vertical-align: middle;
-        }
-        .main-content .card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        .card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
             padding: 32px 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+        }
+        .card h1 {
+            font-size: 28px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: #fff;
+            margin-bottom: 24px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #fff;
+        }
+        th, td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #b0c4de;
+        }
+        th {
+            color: #4facfe;
+            font-weight: 600;
+            background: rgba(255,255,255,0.05);
+        }
+        @media (max-width: 900px) {
+            .dashboard-container { flex-direction: column; }
+            .sidebar { width: 100%; flex-direction: row; justify-content: space-between; padding: 16px 0; }
+            .main-content { padding: 24px 8px; }
+        }
+        @media (max-width: 600px) {
+            .card { padding: 10px 2px; }
+            .sidebar { padding: 8px 0; }
         }
     </style>
 </head>
@@ -104,9 +139,17 @@
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <img src="../assets/cnupd-logo.png" alt="CNU Logo" class="sidebar-logo">
-                <h2>Admin Dashboard</h2>
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 5L25 15H35L27.5 22.5L30 32.5L20 27.5L10 32.5L12.5 22.5L5 15H15L20 5Z" fill="#1e3c72"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>CHRISTOPHER NEWPORT UNIVERSITY</h1>
+                    <h2>POLICE DEPARTMENT</h2>
+                    <h3>Admin Dashboard</h3>
+                </div>
             </div>
             <nav class="sidebar-nav">
                 <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Overview</span></a>
@@ -116,7 +159,7 @@
                 <a href="training-requests.html" class="nav-item active"><i class="fas fa-graduation-cap"></i><span>Training Requests</span></a>
                 <a href="court.html" class="nav-item"><i class="fas fa-gavel"></i><span>Court</span></a>
                 <a href="overtime.html" class="nav-item"><i class="fas fa-clock"></i><span>Overtime</span></a>
-                <a href="../html/index.html" class="nav-item logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+                <a href="../index.html" class="nav-item logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
             </nav>
         </aside>
         <!-- Main Content -->
