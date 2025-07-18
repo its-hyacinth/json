@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - CNUPD Employee Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .dashboard-container {
+            margin-top: 0;
+            padding-top: 0;
+        }
+        .notification-bar {
+            background: #00398c;
+            color: #fff;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            padding-left: 16px;
+            font-size: 15px;
+            font-family: 'Montserrat', sans-serif;
+            border-bottom: 2px solid #fff;
+        }
+        .content-header h1 {
+            color: #fff;
+        }
+        .main-content {
+            background: #00398c;
+            min-height: 100vh;
+            padding: 32px;
+        }
+        .calendar-container {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .fc {
+            font-family: 'Montserrat', sans-serif;
+        }
+        .btn-primary {
+            background: #00398c;
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #00398c;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+</head>
+<body>
+    <div id="notificationBar" class="notification-bar"></div>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="../assets/cnupd.png" alt="CNUPD Logo" class="sidebar-logo">
+                <h2>Employee Dashboard</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Overview</span>
+                </a>
+                <a href="schedule.html" class="nav-item active">
+                    <i class="fas fa-calendar"></i>
+                    <span>My Schedule</span>
+                </a>
+                <a href="leave-requests.html" class="nav-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Leave Requests</span>
+                </a>
+                <a href="training-requests.html" class="nav-item">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span>Training Requests</span>
+                </a>
+                <a href="court.html" class="nav-item">
+                    <i class="fas fa-gavel"></i>
+                    <span>Court</span>
+                </a>
+                <a href="accounts.html" class="nav-item">
+                    <i class="fas fa-user"></i>
+                    <span>Accounts</span>
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="../html/index.html" class="nav-item logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>My Schedule</h1>
+                <div class="header-actions">
+                    <button class="btn-secondary" id="printBtn"><i class="fas fa-print"></i> Print</button>
+                    <button class="btn-secondary" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
+                    <button class="btn-secondary" id="notificationBell" style="position: relative;">
+                        <i class="fas fa-bell"></i>
+                        <span id="notificationBadge" style="display:none;position:absolute;top:4px;right:4px;background:#d32f2f;color:#fff;border-radius:50%;font-size:11px;padding:2px 6px;">0</span>
+                    </button>
+                </div>
+            </header>
+            <div class="calendar-container">
+                <div id="calendar"></div>
+            </div>
+        </main>
+    </div>
+    <script>
+        const user = JSON.parse(sessionStorage.getItem('currentUser'));
+        if (!user || user.role === 'admin') {
+            window.location.href = '../officer/login.html';
+        }
+        document.getElementById('printBtn').onclick = function() { window.print(); };
+        document.getElementById('shareBtn').onclick = function() {
+            if (navigator.share) {
+                navigator.share({ title: document.title, url: window.location.href });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Link copied to clipboard!');
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                },
+                height: 700,
+                selectable: true,
+                editable: false,
+                eventClick: function(info) {
+                    alert('Event: ' + info.event.title + '\n' + (info.event.extendedProps.description || ''));
+                },
+                events: [
+                    {
+                        title: 'Day Shift',
+                        start: '2024-06-10T07:00:00',
+                        end: '2024-06-10T19:00:00',
+                        color: '#1976d2',
+                        description: 'Regular day shift.'
+                    },
+                    {
+                        title: 'Night Shift',
+                        start: '2024-06-11T19:00:00',
+                        end: '2024-06-12T07:00:00',
+                        color: '#388e3c',
+                        description: 'Regular night shift.'
+                    },
+                    {
+                        title: 'Court Appearance',
+                        start: '2024-06-13T09:00:00',
+                        color: '#fbc02d',
+                        description: 'Case #12345, Newport News Courthouse, Arrive by 8:30am.'
+                    },
+                    {
+                        title: 'Overtime',
+                        start: '2024-06-15T14:00:00',
+                        end: '2024-06-15T18:00:00',
+                        color: '#d32f2f',
+                        description: 'Concert event overtime.'
+                    },
+                    {
+                        title: 'Training',
+                        start: '2024-06-18',
+                        color: '#1976d2',
+                        description: 'Online training course.'
+                    }
+                ]
+            });
+            calendar.render();
+        });
+    </script>
+</body>
+</html> 
