@@ -129,9 +129,159 @@
             .sidebar { width: 100%; flex-direction: row; justify-content: space-between; padding: 16px 0; }
             .main-content { padding: 24px 8px; }
         }
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-approve {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-approve:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+        
+        .btn-deny {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-deny:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            margin: 15% auto;
+            padding: 32px;
+            width: 90%;
+            max-width: 500px;
+            color: white;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .close:hover {
+            color: #fff;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #fff;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.2);
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+        
+        .btn-cancel {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .btn-cancel:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .btn-submit {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-submit:hover {
+            background: #c82333;
+        }
+        
         @media (max-width: 600px) {
             .card { padding: 10px 2px; }
             .sidebar { padding: 8px 0; }
+            .action-buttons { flex-direction: column; }
+            .modal-content { margin: 10% auto; padding: 20px; }
         }
     </style>
 </head>
@@ -159,6 +309,7 @@
                 <a href="training-requests.html" class="nav-item active"><i class="fas fa-graduation-cap"></i><span>Training Requests</span></a>
                 <a href="court.html" class="nav-item"><i class="fas fa-gavel"></i><span>Court</span></a>
                 <a href="overtime.html" class="nav-item"><i class="fas fa-clock"></i><span>Overtime</span></a>
+                <a href="accounts.html" class="nav-item"><i class="fas fa-user-cog"></i><span>Accounts</span></a>
                 <a href="../index.html" class="nav-item logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
             </nav>
         </aside>
@@ -173,6 +324,7 @@
                             <th>Training Type</th>
                             <th>Date Requested</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="trainingRequestsTableBody">
@@ -182,29 +334,144 @@
             </div>
         </main>
     </div>
+    
+    <!-- Denial Reason Modal -->
+    <div id="denialModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Deny Training Request</h3>
+                <span class="close" onclick="closeDenialModal()">&times;</span>
+            </div>
+            <form id="denialForm">
+                <div class="form-group">
+                    <label for="denialReason">Reason for Denial:</label>
+                    <textarea id="denialReason" name="denialReason" placeholder="Please provide a reason for denying this training request..." required></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeDenialModal()">Cancel</button>
+                    <button type="submit" class="btn btn-submit">Submit Denial</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script>
         const user = JSON.parse(sessionStorage.getItem('currentUser'));
         if (!user || user.role !== 'admin') {
             window.location.href = '../admin/login.html';
         }
-        // Placeholder data - replace with fetch from backend if available
-        const trainingRequests = [
-            { name: 'John Doe', type: 'First Aid', date: '2024-06-10', status: 'Pending' },
-            { name: 'Jane Smith', type: 'Firearms Recertification', date: '2024-06-12', status: 'Approved' },
-            { name: 'Alex Lee', type: 'De-escalation Training', date: '2024-06-15', status: 'Pending' },
-            { name: 'Maria Garcia', type: 'Leadership Seminar', date: '2024-06-18', status: 'Denied' }
+        // Training requests data with IDs for tracking
+        let trainingRequests = [
+            { id: 1, name: 'John Doe', type: 'First Aid', date: '2024-06-10', status: 'Pending' },
+            { id: 2, name: 'Jane Smith', type: 'Firearms Recertification', date: '2024-06-12', status: 'Approved' },
+            { id: 3, name: 'Alex Lee', type: 'De-escalation Training', date: '2024-06-15', status: 'Pending' },
+            { id: 4, name: 'Maria Garcia', type: 'Leadership Seminar', date: '2024-06-18', status: 'Denied' }
         ];
-        const tbody = document.getElementById('trainingRequestsTableBody');
-        trainingRequests.forEach(req => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${req.name}</td>
-                <td>${req.type}</td>
-                <td>${req.date}</td>
-                <td>${req.status}</td>
+        
+        let currentRequestId = null;
+        
+        function renderTrainingRequests() {
+            const tbody = document.getElementById('trainingRequestsTableBody');
+            tbody.innerHTML = '';
+            
+            trainingRequests.forEach(req => {
+                const tr = document.createElement('tr');
+                const actionButtons = req.status === 'Pending' ? 
+                    `<div class="action-buttons">
+                        <button class="btn btn-approve" onclick="approveRequest(${req.id})">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                        <button class="btn btn-deny" onclick="showDenialModal(${req.id})">
+                            <i class="fas fa-times"></i> Deny
+                        </button>
+                    </div>` : 
+                    `<span style="color: ${req.status === 'Approved' ? '#28a745' : '#dc3545'}">${req.status}</span>`;
+                
+                tr.innerHTML = `
+                    <td>${req.name}</td>
+                    <td>${req.type}</td>
+                    <td>${req.date}</td>
+                    <td>${req.status}</td>
+                    <td>${actionButtons}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function approveRequest(requestId) {
+            const request = trainingRequests.find(req => req.id === requestId);
+            if (request) {
+                request.status = 'Approved';
+                renderTrainingRequests();
+                showNotification('Training request approved successfully!', 'success');
+            }
+        }
+        
+        function showDenialModal(requestId) {
+            currentRequestId = requestId;
+            document.getElementById('denialModal').style.display = 'block';
+            document.getElementById('denialReason').value = '';
+        }
+        
+        function closeDenialModal() {
+            document.getElementById('denialModal').style.display = 'none';
+            currentRequestId = null;
+        }
+        
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 24px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 1001;
+                background: ${type === 'success' ? '#28a745' : '#dc3545'};
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease;
             `;
-            tbody.appendChild(tr);
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // Handle denial form submission
+        document.getElementById('denialForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const reason = document.getElementById('denialReason').value.trim();
+            
+            if (!reason) {
+                alert('Please provide a reason for denial.');
+                return;
+            }
+            
+            if (currentRequestId) {
+                const request = trainingRequests.find(req => req.id === currentRequestId);
+                if (request) {
+                    request.status = 'Denied';
+                    request.denialReason = reason;
+                    renderTrainingRequests();
+                    showNotification('Training request denied.', 'error');
+                    closeDenialModal();
+                }
+            }
         });
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('denialModal');
+            if (event.target === modal) {
+                closeDenialModal();
+            }
+        }
+        
+        // Initialize the table
+        renderTrainingRequests();
     </script>
 </body>
 </html> 

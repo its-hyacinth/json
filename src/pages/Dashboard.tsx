@@ -19,11 +19,11 @@ const scheduleImages = [
 ];
 
 const legend = [
-  { color: 'bg-yellow-200', label: 'Leave' },
-  { color: 'bg-green-200', label: 'Training' },
-  { color: 'bg-blue-200', label: 'Military' },
-  { color: 'bg-purple-200', label: 'Court' },
-  { color: 'bg-pink-200', label: 'Overtime' },
+  { color: 'rgba(255, 193, 7, 0.3)', label: 'Leave' },
+  { color: 'rgba(46, 213, 115, 0.3)', label: 'Training' },
+  { color: 'rgba(79, 172, 254, 0.3)', label: 'Military' },
+  { color: 'rgba(147, 51, 234, 0.3)', label: 'Court' },
+  { color: 'rgba(236, 72, 153, 0.3)', label: 'Overtime' },
 ];
 
 const Dashboard: React.FC = () => {
@@ -34,22 +34,22 @@ const Dashboard: React.FC = () => {
   const handleNext = () => setMonthIdx((idx) => (idx === scheduleImages.length - 1 ? 0 : idx + 1));
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-4">
-        <button onClick={handlePrev} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Previous</button>
-        <a href={current.url} target="_blank" rel="noopener noreferrer" className="text-xl font-bold text-blue-800 underline">{current.month}</a>
-        <button onClick={handleNext} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next</button>
+    <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
+      <div className="glass-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', padding: '20px' }}>
+        <button onClick={handlePrev} className="glass-btn">Previous</button>
+        <a href={current.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--text-accent)', textDecoration: 'underline' }}>{current.month}</a>
+        <button onClick={handleNext} className="glass-btn">Next</button>
       </div>
-      <div className="border rounded-lg overflow-hidden shadow mb-4 bg-white">
+      <div className="glass-card" style={{ marginBottom: '16px', overflow: 'hidden' }}>
         {/* Replace with actual schedule table or image */}
-        <img src={current.img} alt={current.month + ' schedule'} className="w-full object-contain" />
-        <div className="p-2 text-center text-gray-500 text-sm">(Schedule preview - interactive version coming soon)</div>
+        <img src={current.img} alt={current.month + ' schedule'} style={{ width: '100%', objectFit: 'contain' }} />
+        <div style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>(Schedule preview - interactive version coming soon)</div>
       </div>
-      <div className="flex gap-4 items-center justify-center mt-2">
+      <div className="glass-card" style={{ display: 'flex', gap: '16px', alignItems: 'center', justifyContent: 'center', marginTop: '8px', padding: '16px' }}>
         {legend.map(item => (
-          <div key={item.label} className="flex items-center gap-1">
-            <span className={`inline-block w-4 h-4 rounded ${item.color} border border-gray-300`}></span>
-            <span className="text-xs text-gray-700">{item.label}</span>
+          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ display: 'inline-block', width: '16px', height: '16px', borderRadius: '4px', backgroundColor: item.color, border: '1px solid var(--glass-border)' }}></span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{item.label}</span>
           </div>
         ))}
       </div>

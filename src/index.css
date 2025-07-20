@@ -1,29 +1,103 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import the glassmorphism theme */
+@import url('/public/css/glassmorphism.css');
 
-:root {
-  --cnu-blue: #003366;
-  --cnu-gray: #8B9DAF;
+/* Base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
 }
 
 body {
-  font-family: 'Montserrat', Arial, Helvetica, sans-serif;
-  background-color: #f8fafc;
-  color: #22223b;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-gradient-primary);
+  min-height: 100vh;
+  color: var(--text-primary);
+  line-height: 1.6;
+  position: relative;
+  overflow-x: hidden;
 }
 
+/* Animated Background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.01) 0%, transparent 50%);
+  animation: backgroundFloat 20s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes backgroundFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+/* Typography */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Montserrat', Arial, Helvetica, sans-serif;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.3;
 }
 
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 2rem;
+  margin-bottom: 0.875rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+/* Links */
+a {
+  color: var(--text-accent);
+  text-decoration: none;
+  transition: var(--glass-transition);
+}
+
+a:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+/* Buttons */
 button {
-  font-family: 'Montserrat', Arial, Helvetica, sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--glass-transition);
+}
+
+/* Focus states */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 2px;
 }
 
 /* Print styles */
@@ -40,23 +114,45 @@ button {
     background: white;
   }
   
-  .MuiPaper-root {
+  .glass-card {
     box-shadow: none !important;
-    border: none !important;
+    border: 1px solid #ccc !important;
+    background: white !important;
   }
-} 
+}
 
-/* Remove custom/orange scrollbar styles if present */
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
-  background: transparent;
 }
-::-webkit-scrollbar-thumb {
-  background: #e0e0e0;
+
+::-webkit-scrollbar-track {
+  background: var(--glass-bg-light);
   border-radius: 4px;
 }
+
+::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--glass-border-dark);
+}
+
 /* For Firefox */
 html {
-  scrollbar-color: #e0e0e0 transparent;
+  scrollbar-color: var(--glass-border) var(--glass-bg-light);
   scrollbar-width: thin;
+}
+
+/* Selection */
+::selection {
+  background: var(--text-accent);
+  color: var(--text-primary);
+}
+
+::-moz-selection {
+  background: var(--text-accent);
+  color: var(--text-primary);
 } 

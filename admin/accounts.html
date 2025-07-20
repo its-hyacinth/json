@@ -3,49 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - CNUPD Employee Dashboard</title>
+    <title>Accounts & Settings - Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/public/css/glassmorphism.css">
     <style>
-        :root {
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-bg-light: rgba(255, 255, 255, 0.05);
-            --glass-bg-dark: rgba(255, 255, 255, 0.15);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --glass-blur: blur(12px);
-            --glass-blur-light: blur(8px);
-            --glass-radius: 16px;
-            --glass-radius-small: 8px;
-            --glass-radius-large: 24px;
-            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            --glass-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            --glass-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
-            --glass-transition: all 0.3s ease;
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.8);
-            --text-muted: rgba(255, 255, 255, 0.6);
-            --text-accent: #4facfe;
-            --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 25%, #2c5364 50%, #1e3c72 75%, #2a5298 100%);
-            --bg-gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            color: white;
-            margin: 0;
-            overflow-x: hidden;
-        }
-
         .dashboard-container {
             display: flex;
             min-height: 100vh;
         }
-
         .sidebar {
             width: 270px;
-            background: rgba(32, 58, 67, 0.85);
+            background: var(--glass-bg);
             backdrop-filter: var(--glass-blur);
+            border-right: 1px solid var(--glass-border);
             box-shadow: 2px 0 24px 0 rgba(0,0,0,0.12);
             display: flex;
             flex-direction: column;
@@ -53,75 +23,58 @@
             padding: 32px 0 0 0;
             z-index: 2;
         }
-
         .logo {
             margin-bottom: 32px;
             text-align: center;
         }
-
         .logo-icon {
             width: 70px;
             height: 70px;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             margin: 0 auto 12px auto;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.1);
-            position: relative;
         }
-
         .logo-text h1 {
             font-size: 13px;
             font-weight: 700;
             letter-spacing: 1.2px;
             margin: 0;
-            color: rgba(255,255,255,0.9);
+            color: var(--text-primary);
         }
-
         .logo-text h2 {
             font-size: 11px;
             font-weight: 500;
             margin: 0;
-            color: rgba(255,255,255,0.8);
+            color: var(--text-secondary);
         }
-
         .logo-text h3 {
             font-size: 12px;
             font-weight: 400;
             margin: 8px 0 0 0;
-            color: #b0c4de;
+            color: var(--text-muted);
         }
-
         .sidebar-nav {
             list-style: none;
             padding: 0;
             width: 100%;
         }
-
         .sidebar-nav a {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 14px 32px;
-            color: rgba(255,255,255,0.85);
+            color: var(--text-secondary);
             text-decoration: none;
             font-size: 16px;
             border-left: 4px solid transparent;
-            transition: background 0.2s, border-color 0.2s;
+            transition: var(--glass-transition);
         }
-
         .sidebar-nav a.active, .sidebar-nav a:hover {
-            background: rgba(255,255,255,0.08);
-            border-left: 4px solid #4facfe;
-            color: #fff;
+            background: var(--glass-bg-light);
+            border-left: 4px solid var(--text-accent);
+            color: var(--text-primary);
         }
-
         .sidebar-nav .logout a {
             color: #ffb3b3;
         }
-
         .main-content {
             flex: 1;
             padding: 48px 40px 40px 40px;
@@ -129,7 +82,6 @@
             flex-direction: column;
             gap: 32px;
         }
-
         .card {
             background: var(--glass-bg);
             border-radius: var(--glass-radius-large);
@@ -139,12 +91,11 @@
             backdrop-filter: var(--glass-blur);
             border: 1px solid var(--glass-border);
         }
-
         .card h1 {
             font-size: 28px;
             font-weight: 400;
             letter-spacing: 2px;
-            color: #fff;
+            color: var(--text-primary);
             margin-bottom: 24px;
             display: flex;
             align-items: center;
@@ -152,14 +103,12 @@
             width: 100%;
             flex-wrap: nowrap;
         }
-
         .header-actions {
             display: flex;
             gap: 8px;
             align-items: center;
             flex-shrink: 0;
         }
-
         .btn {
             padding: 10px 20px;
             border: none;
@@ -175,49 +124,89 @@
             color: var(--text-primary);
             border: 1px solid var(--glass-border);
         }
-
         .btn:hover {
             background: var(--glass-bg-dark);
             transform: translateY(-2px);
             box-shadow: var(--glass-shadow-hover);
         }
-
         .btn-primary {
             background: var(--bg-gradient-accent);
             color: var(--text-primary);
             box-shadow: var(--glass-shadow);
         }
-
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: var(--glass-shadow-hover);
         }
-
-        .btn-danger {
-            background: rgba(220, 53, 69, 0.2);
-            color: #dc3545;
-            border: 1px solid rgba(220, 53, 69, 0.3);
+        .profile-section {
+            background: var(--glass-bg-light);
+            border-radius: var(--glass-radius);
+            padding: 24px;
+            border: 1px solid var(--glass-border);
+            margin-bottom: 32px;
         }
-
-        .btn-danger:hover {
-            background: rgba(220, 53, 69, 0.3);
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 24px;
         }
-
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-gradient-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+        }
+        .profile-info h3 {
+            margin: 0 0 8px 0;
+            color: var(--text-primary);
+            font-size: 24px;
+        }
+        .profile-info p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+        .account-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .stat-item {
+            background: var(--glass-bg);
+            border-radius: var(--glass-radius-small);
+            padding: 16px;
+            border: 1px solid var(--glass-border);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-accent);
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
         .form-group {
             margin-bottom: 24px;
         }
-
         .form-row {
             display: flex;
             gap: 16px;
             margin-bottom: 24px;
         }
-
         .form-row .form-group {
             flex: 1;
             margin-bottom: 0;
         }
-
         .form-group label {
             display: block;
             font-size: 14px;
@@ -225,7 +214,6 @@
             margin-bottom: 8px;
             color: var(--text-primary);
         }
-
         .form-group input,
         .form-group select,
         .form-group textarea {
@@ -239,7 +227,6 @@
             transition: var(--glass-transition);
             backdrop-filter: var(--glass-blur-light);
         }
-
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
@@ -248,19 +235,16 @@
             background: var(--glass-bg);
             box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
         }
-
         .form-group input::placeholder,
         .form-group textarea::placeholder {
             color: var(--text-muted);
         }
-
         .modal-footer {
             display: flex;
             justify-content: flex-end;
             gap: 12px;
             margin-top: 32px;
         }
-
         .settings-section {
             background: var(--glass-bg-light);
             border-radius: var(--glass-radius);
@@ -268,7 +252,6 @@
             border: 1px solid var(--glass-border);
             margin-bottom: 24px;
         }
-
         .settings-item {
             display: flex;
             align-items: center;
@@ -276,36 +259,30 @@
             padding: 16px 0;
             border-bottom: 1px solid var(--glass-border);
         }
-
         .settings-item:last-child {
             border-bottom: none;
         }
-
         .settings-info h4 {
             margin: 0 0 4px 0;
             color: var(--text-primary);
             font-size: 16px;
         }
-
         .settings-info p {
             margin: 0;
             color: var(--text-secondary);
             font-size: 14px;
         }
-
         .toggle-switch {
             position: relative;
             display: inline-block;
             width: 50px;
             height: 24px;
         }
-
         .toggle-switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
-
         .slider {
             position: absolute;
             cursor: pointer;
@@ -318,7 +295,6 @@
             border-radius: 24px;
             border: 1px solid var(--glass-border);
         }
-
         .slider:before {
             position: absolute;
             content: "";
@@ -330,22 +306,18 @@
             transition: var(--glass-transition);
             border-radius: 50%;
         }
-
         input:checked + .slider {
             background-color: var(--text-accent);
         }
-
         input:checked + .slider:before {
             transform: translateX(26px);
             background-color: white;
         }
-
         .theme-options {
             display: flex;
             gap: 12px;
             margin-top: 16px;
         }
-
         .theme-option {
             padding: 8px 16px;
             border-radius: var(--glass-radius-small);
@@ -355,23 +327,48 @@
             cursor: pointer;
             transition: var(--glass-transition);
         }
-
         .theme-option.active {
             background: var(--text-accent);
             border-color: var(--text-accent);
         }
-
         .theme-option:hover {
             background: var(--glass-bg-dark);
         }
-
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .admin-stat {
+            background: var(--glass-bg-light);
+            border-radius: var(--glass-radius-small);
+            padding: 20px;
+            border: 1px solid var(--glass-border);
+            text-align: center;
+        }
+        .admin-stat-icon {
+            font-size: 24px;
+            color: var(--text-accent);
+            margin-bottom: 8px;
+        }
+        .admin-stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .admin-stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
         @media (max-width: 900px) {
             .dashboard-container { flex-direction: column; }
             .sidebar { width: 100%; flex-direction: row; justify-content: space-between; padding: 16px 0; }
             .main-content { padding: 24px 8px; }
             .form-row { flex-direction: column; }
+            .account-stats, .admin-stats { grid-template-columns: 1fr; }
         }
-
         @media (max-width: 600px) {
             .card { padding: 20px 16px; }
             .sidebar { padding: 8px 0; }
@@ -392,49 +389,26 @@
                 <div class="logo-text">
                     <h1>CHRISTOPHER NEWPORT UNIVERSITY</h1>
                     <h2>POLICE DEPARTMENT</h2>
-                    <h3>Employee Dashboard</h3>
+                    <h3>Admin Dashboard</h3>
                 </div>
             </div>
             <nav class="sidebar-nav">
-                <a href="dashboard.html" class="nav-item">
-                    <i class="fas fa-home"></i>
-                    <span>Overview</span>
-                </a>
-                <a href="schedule.html" class="nav-item">
-                    <i class="fas fa-calendar"></i>
-                    <span>My Schedule</span>
-                </a>
-                <a href="leave-requests.html" class="nav-item">
-                    <i class="fas fa-calendar-minus"></i>
-                    <span>Leave Requests</span>
-                </a>
-                <a href="training-requests.html" class="nav-item">
-                    <i class="fas fa-graduation-cap"></i>
-                    <span>Training Requests</span>
-                </a>
-                <a href="court.html" class="nav-item">
-                    <i class="fas fa-gavel"></i>
-                    <span>Court</span>
-                </a>
-                <a href="accounts.html" class="nav-item">
-                    <i class="fas fa-user"></i>
-                    <span>Accounts</span>
-                </a>
-                <a href="settings.html" class="nav-item active">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </a>
-                <a href="../index.html" class="nav-item logout">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
+                <a href="dashboard.html" class="nav-item"><i class="fas fa-home"></i><span>Overview</span></a>
+                <a href="schedule.html" class="nav-item"><i class="fas fa-calendar"></i><span>Schedule</span></a>
+                <a href="employee-manager.html" class="nav-item"><i class="fas fa-users"></i><span>Employees</span></a>
+                <a href="leave-requests.html" class="nav-item"><i class="fas fa-calendar-minus"></i><span>Leave Requests</span></a>
+                <a href="training-requests.html" class="nav-item"><i class="fas fa-graduation-cap"></i><span>Training Requests</span></a>
+                <a href="court.html" class="nav-item"><i class="fas fa-gavel"></i><span>Court</span></a>
+                <a href="overtime.html" class="nav-item"><i class="fas fa-clock"></i><span>Overtime</span></a>
+                <a href="accounts.html" class="nav-item active"><i class="fas fa-user-cog"></i><span>Accounts</span></a>
+                <a href="../index.html" class="nav-item logout"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
             </nav>
         </aside>
         <!-- Main Content -->
         <main class="main-content">
             <div class="card">
                 <h1>
-                    <span><i class="fas fa-cog"></i> Settings</span>
+                    <span><i class="fas fa-user-cog"></i> Accounts & Settings</span>
                     <div class="header-actions">
                         <button class="btn" id="printBtn"><i class="fas fa-print"></i> Print</button>
                         <button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
@@ -445,12 +419,110 @@
                     </div>
                 </h1>
                 
+                <div class="admin-stats">
+                    <div class="admin-stat">
+                        <div class="admin-stat-icon"><i class="fas fa-users"></i></div>
+                        <div class="admin-stat-number">24</div>
+                        <div class="admin-stat-label">Total Employees</div>
+                    </div>
+                    <div class="admin-stat">
+                        <div class="admin-stat-icon"><i class="fas fa-user-shield"></i></div>
+                        <div class="admin-stat-number">3</div>
+                        <div class="admin-stat-label">Admin Users</div>
+                    </div>
+                    <div class="admin-stat">
+                        <div class="admin-stat-icon"><i class="fas fa-clock"></i></div>
+                        <div class="admin-stat-number">156</div>
+                        <div class="admin-stat-label">Total Hours</div>
+                    </div>
+                    <div class="admin-stat">
+                        <div class="admin-stat-icon"><i class="fas fa-calendar-check"></i></div>
+                        <div class="admin-stat-number">8</div>
+                        <div class="admin-stat-label">Pending Requests</div>
+                    </div>
+                </div>
+                
+                <div class="profile-section">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="profile-info">
+                            <h3>Administrator</h3>
+                            <p>System Administrator | CNU Police Department</p>
+                        </div>
+                    </div>
+                    
+                    <div class="account-stats">
+                        <div class="stat-item">
+                            <div class="stat-number">5</div>
+                            <div class="stat-label">Years Admin</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">156</div>
+                            <div class="stat-label">Hours This Month</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">8</div>
+                            <div class="stat-label">Pending Approvals</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">24</div>
+                            <div class="stat-label">Employees Managed</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="accountForm" onsubmit="updateAccount(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" value="Admin" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" value="User" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="adminId">Admin ID</label>
+                            <input type="text" id="adminId" value="ADMIN001" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Role</label>
+                            <input type="text" id="role" value="System Administrator" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" value="admin@cnupd.edu" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input type="tel" id="phone" value="(757) 555-0001" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <input type="text" id="address" value="1 University Place, Newport News, VA 23606" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h1><i class="fas fa-cog"></i> System Settings</h1>
+                
                 <div class="settings-section">
                     <h3 style="margin: 0 0 16px 0; color: var(--text-primary);">Notifications</h3>
                     <div class="settings-item">
                         <div class="settings-info">
                             <h4>Email Notifications</h4>
-                            <p>Receive notifications via email</p>
+                            <p>Receive system notifications via email</p>
                         </div>
                         <label class="toggle-switch">
                             <input type="checkbox" id="emailNotifications" checked>
@@ -469,11 +541,11 @@
                     </div>
                     <div class="settings-item">
                         <div class="settings-info">
-                            <h4>SMS Notifications</h4>
-                            <p>Receive notifications via SMS</p>
+                            <h4>Approval Alerts</h4>
+                            <p>Get notified when requests need approval</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="smsNotifications">
+                            <input type="checkbox" id="approvalAlerts" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -518,11 +590,13 @@
                 </div>
                 
                 <div class="settings-section">
-                    <h3 style="margin: 0 0 16px 0; color: var(--text-primary);">Account</h3>
-                    <div class="modal-footer">
-                        <button class="btn btn-danger" onclick="deleteAccount()">
-                            <i class="fas fa-trash"></i> Delete Account
-                        </button>
+                    <h3 style="margin: 0 0 16px 0; color: var(--text-primary);">Account Management</h3>
+                    <div class="settings-item">
+                        <div class="settings-info">
+                            <h4>Delete Account</h4>
+                            <p>Permanently delete your admin account</p>
+                        </div>
+                        <button class="btn" onclick="deleteAccount()" style="background: #f44336; border-color: #f44336;">Delete Account</button>
                     </div>
                 </div>
             </div>
@@ -530,37 +604,42 @@
     </div>
     <script>
         const user = JSON.parse(sessionStorage.getItem('currentUser'));
-        if (!user || user.role === 'admin') {
-            window.location.href = '../officer/login.html';
+        if (!user || user.role !== 'admin') {
+            window.location.href = '../admin/login.html';
         }
         
+        // Header action buttons
         document.getElementById('printBtn').onclick = function() { window.print(); };
         document.getElementById('shareBtn').onclick = function() {
             if (navigator.share) {
-                navigator.share({ title: document.title, url: window.location.href });
+                navigator.share({ title: 'Admin Accounts & Settings', url: window.location.href });
             } else {
                 navigator.clipboard.writeText(window.location.href);
                 alert('Link copied to clipboard!');
             }
         };
+        document.getElementById('notificationBell').onclick = function() {
+            alert('Notifications: You have 8 pending approvals');
+        };
         
-        // Load saved settings
-        document.getElementById('emailNotifications').checked = localStorage.getItem('emailNotifications') !== 'false';
-        document.getElementById('pushNotifications').checked = localStorage.getItem('pushNotifications') !== 'false';
-        document.getElementById('smsNotifications').checked = localStorage.getItem('smsNotifications') === 'true';
+        function updateAccount(event) {
+            event.preventDefault();
+            alert('Profile updated successfully!');
+        }
         
-        // Save settings when changed
-        document.getElementById('emailNotifications').addEventListener('change', function() {
-            localStorage.setItem('emailNotifications', this.checked);
-        });
-        
-        document.getElementById('pushNotifications').addEventListener('change', function() {
-            localStorage.setItem('pushNotifications', this.checked);
-        });
-        
-        document.getElementById('smsNotifications').addEventListener('change', function() {
-            localStorage.setItem('smsNotifications', this.checked);
-        });
+        function changePassword(event) {
+            event.preventDefault();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match!');
+                return;
+            }
+            
+            alert('Password changed successfully!');
+            document.getElementById('passwordForm').reset();
+        }
         
         function setTheme(theme) {
             // Remove active class from all theme options
@@ -571,46 +650,12 @@
             // Add active class to selected theme
             event.target.classList.add('active');
             
-            // Save theme preference
-            localStorage.setItem('theme', theme);
-            
-            // Apply theme (in a real app, this would change the CSS variables)
             alert(`Theme changed to ${theme}!`);
         }
         
-        function changePassword(event) {
-            event.preventDefault();
-            
-            const currentPassword = document.getElementById('currentPassword').value;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (newPassword !== confirmPassword) {
-                alert('New passwords do not match!');
-                return;
-            }
-            
-            if (newPassword.length < 8) {
-                alert('Password must be at least 8 characters long!');
-                return;
-            }
-            
-            // Simulate API call
-            setTimeout(() => {
-                alert('Password changed successfully!');
-                document.getElementById('passwordForm').reset();
-            }, 1000);
-        }
-        
         function deleteAccount() {
-            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                if (confirm('This will permanently delete your account and all associated data. Are you absolutely sure?')) {
-                    alert('Account deletion request submitted. You will be logged out.');
-                    // In a real app, this would make an API call to delete the account
-                    setTimeout(() => {
-                        window.location.href = '../index.html';
-                    }, 2000);
-                }
+            if (confirm('Are you sure you want to delete your admin account? This action cannot be undone.')) {
+                alert('Account deletion request submitted. Please contact system administrator.');
             }
         }
     </script>

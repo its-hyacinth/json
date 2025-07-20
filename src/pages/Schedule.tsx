@@ -1,28 +1,6 @@
 import { useState } from 'react';
-import {
-  Box,
-  Paper,
-  Typography,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Tooltip,
-  Alert,
-} from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
-import { ArrowBack } from '@mui/icons-material';
-import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 
 interface Shift {
   id: number;
@@ -140,148 +118,155 @@ const Schedule = () => {
   const [docIndex, setDocIndex] = useState(0);
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Box>
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h4">Schedule Management</Typography>
-          <Box>
-            {userRole === 'owner' && (
-              <>
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  onClick={() => setOpenDialog(true)}
-                  sx={{ mr: 2 }}
-                >
-                  Add Shift
-                </Button>
-                <Button 
-                  variant="contained" 
-                  color="secondary" 
-                  onClick={handleAutoGenerate}
-                  sx={{ mr: 2 }}
-                >
-                  Auto-Generate Schedule
-                </Button>
-              </>
-            )}
-            <Button
-              variant="outlined"
-              startIcon={<ArrowBack />}
-              onClick={() => navigate('/')}
-            >
-              Back to Dashboard
-            </Button>
-          </Box>
-        </Box>
+    <div>
+      <div className="glass-card" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px' }}>
+        <h1 style={{ color: 'var(--text-primary)', margin: 0 }}>Schedule Management</h1>
+        <div>
+          {userRole === 'owner' && (
+            <>
+              <button 
+                className="glass-btn"
+                onClick={() => setOpenDialog(true)}
+                style={{ marginRight: '16px' }}
+              >
+                Add Shift
+              </button>
+              <button 
+                className="glass-btn"
+                onClick={handleAutoGenerate}
+                style={{ marginRight: '16px' }}
+              >
+                Auto-Generate Schedule
+              </button>
+            </>
+          )}
+          <button
+            className="glass-btn"
+            onClick={() => navigate('/')}
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
+      </div>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        )}
+      {error && (
+        <div className="glass-card" style={{ marginBottom: '16px', padding: '16px', backgroundColor: 'var(--glass-danger)', color: 'var(--text-primary)' }}>
+          {error}
+          <button onClick={() => setError(null)} style={{ float: 'right', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}>×</button>
+        </div>
+      )}
 
-        <Paper sx={{ p: 2, mb: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Schedule Parameters</Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              label="Minimum Staffing"
+      <div className="glass-card" style={{ padding: '16px', marginBottom: '24px' }}>
+        <h2 style={{ color: 'var(--text-primary)', marginBottom: '16px' }}>Schedule Parameters</h2>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <div>
+            <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Minimum Staffing</label>
+            <input
               type="number"
               value={minStaffing}
               onChange={(e) => setMinStaffing(Number(e.target.value))}
-              sx={{ width: 200 }}
+              className="glass-input"
+              style={{ width: '200px' }}
             />
-            <TextField
-              label="Maximum Hours"
+          </div>
+          <div>
+            <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Maximum Hours</label>
+            <input
               type="number"
               value={maxHours}
               onChange={(e) => setMaxHours(Number(e.target.value))}
-              sx={{ width: 200 }}
+              className="glass-input"
+              style={{ width: '200px' }}
             />
-          </Box>
-        </Paper>
+          </div>
+        </div>
+      </div>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-          <Button onClick={() => setDocIndex((docIndex + scheduleDocs.length - 1) % scheduleDocs.length)}>
-            <ChevronLeft />
-          </Button>
-          <Typography variant="h5" sx={{ mx: 2 }}>{scheduleDocs[docIndex].label} Schedule</Typography>
-          <Button onClick={() => setDocIndex((docIndex + 1) % scheduleDocs.length)}>
-            <ChevronRight />
-          </Button>
-        </Box>
-        <Box sx={{ width: '100%', height: '80vh', bgcolor: 'white', borderRadius: 2, overflow: 'hidden', boxShadow: 2, mb: 2 }}>
-          <iframe
-            title={scheduleDocs[docIndex].label + ' Schedule'}
-            src={scheduleDocs[docIndex].url.replace('/edit', '/preview')}
-            style={{ width: '100%', height: '100%', border: 'none', background: 'white' }}
-            allowFullScreen
-          />
-        </Box>
-        {/* Color Legend */}
-        <Box sx={{ display: 'flex', gap: 2, mt: 3, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 16, height: 16, bgcolor: '#4CAF50', borderRadius: 1, border: '1px solid #ccc' }} />
-            <Typography variant="body2">Leave</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 16, height: 16, bgcolor: '#F44336', borderRadius: 1, border: '1px solid #ccc' }} />
-            <Typography variant="body2">Court</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 16, height: 16, bgcolor: '#2196F3', borderRadius: 1, border: '1px solid #ccc' }} />
-            <Typography variant="body2">Training</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 16, height: 16, bgcolor: '#FFD600', borderRadius: 1, border: '1px solid #ccc' }} />
-            <Typography variant="body2">Overtime</Typography>
-          </Box>
-        </Box>
+      <div className="glass-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', padding: '20px' }}>
+        <button className="glass-btn" onClick={() => setDocIndex((docIndex + scheduleDocs.length - 1) % scheduleDocs.length)}>
+          ←
+        </button>
+        <h2 style={{ margin: '0 16px', color: 'var(--text-primary)' }}>{scheduleDocs[docIndex].label} Schedule</h2>
+        <button className="glass-btn" onClick={() => setDocIndex((docIndex + 1) % scheduleDocs.length)}>
+          →
+        </button>
+      </div>
+      
+      <div className="glass-card" style={{ width: '100%', height: '80vh', overflow: 'hidden', marginBottom: '16px' }}>
+        <iframe
+          title={scheduleDocs[docIndex].label + ' Schedule'}
+          src={scheduleDocs[docIndex].url.replace('/edit', '/preview')}
+          style={{ width: '100%', height: '100%', border: 'none', background: 'white' }}
+          allowFullScreen
+        />
+      </div>
+      
+      {/* Color Legend */}
+      <div className="glass-card" style={{ display: 'flex', gap: '16px', marginTop: '24px', alignItems: 'center', flexWrap: 'wrap', padding: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ width: '16px', height: '16px', backgroundColor: 'rgba(76, 175, 80, 0.3)', borderRadius: '4px', border: '1px solid var(--glass-border)' }} />
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Leave</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ width: '16px', height: '16px', backgroundColor: 'rgba(244, 67, 54, 0.3)', borderRadius: '4px', border: '1px solid var(--glass-border)' }} />
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Court</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ width: '16px', height: '16px', backgroundColor: 'rgba(33, 150, 243, 0.3)', borderRadius: '4px', border: '1px solid var(--glass-border)' }} />
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Training</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ width: '16px', height: '16px', backgroundColor: 'rgba(255, 214, 0, 0.3)', borderRadius: '4px', border: '1px solid var(--glass-border)' }} />
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Overtime</span>
+        </div>
+      </div>
 
-        <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-          <DialogTitle>Add New Shift</DialogTitle>
-          <DialogContent>
-            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <DatePicker
-                label="Shift Date"
-                value={selectedDate}
-                onChange={(newValue) => setSelectedDate(newValue)}
-              />
-              <TextField
-                id="startTime"
-                label="Start Time"
-                type="time"
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ step: 300 }}
-              />
-              <TextField
-                id="endTime"
-                label="End Time"
-                type="time"
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ step: 300 }}
-              />
-              <FormControl>
-                <InputLabel id="shiftType-label">Shift Type</InputLabel>
-                <Select
-                  labelId="shiftType-label"
-                  id="shiftType"
-                  label="Shift Type"
-                  defaultValue="Day Shift"
-                >
-                  <MenuItem value="Day Shift">Day Shift</MenuItem>
-                  <MenuItem value="Night Shift">Night Shift</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-            <Button onClick={handleAddShift} variant="contained">Add</Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </LocalizationProvider>
+      {openDialog && (
+        <div className="glass-modal" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div className="glass-card" style={{ minWidth: '320px', maxWidth: '400px', padding: '32px 24px' }}>
+            <h3 style={{ color: 'var(--text-primary)', marginBottom: '18px' }}>Add New Shift</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Shift Date</label>
+                <input
+                  type="date"
+                  value={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value) : null)}
+                  className="glass-input"
+                />
+              </div>
+              <div>
+                <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Start Time</label>
+                <input
+                  id="startTime"
+                  type="time"
+                  className="glass-input"
+                />
+              </div>
+              <div>
+                <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>End Time</label>
+                <input
+                  id="endTime"
+                  type="time"
+                  className="glass-input"
+                />
+              </div>
+              <div>
+                <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Shift Type</label>
+                <select id="shiftType" className="glass-input" defaultValue="Day Shift">
+                  <option value="Day Shift">Day Shift</option>
+                  <option value="Night Shift">Night Shift</option>
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '18px' }}>
+              <button className="glass-btn" onClick={() => setOpenDialog(false)}>Cancel</button>
+              <button className="glass-btn" onClick={handleAddShift}>Add</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

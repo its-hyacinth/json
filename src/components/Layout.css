@@ -1,0 +1,233 @@
+/* Layout Component Styles with Glassmorphism */
+
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-gradient-primary);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Sidebar Styles */
+.glass-sidebar {
+  width: 280px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--glass-border);
+  box-shadow: 2px 0 24px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  padding: 32px 0;
+  z-index: 2;
+}
+
+.sidebar-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 0 20px;
+}
+
+.glass-logo {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px auto;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  transition: var(--glass-transition);
+}
+
+.glass-logo::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  border-radius: 50%;
+  animation: logoShine 3s ease-in-out infinite;
+  z-index: -1;
+}
+
+.glass-logo:hover {
+  transform: scale(1.05) rotate(5deg);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-title h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.sidebar-title h2 {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 4px 0 0 0;
+  color: var(--text-secondary);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 0 16px;
+}
+
+.glass-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: var(--glass-radius-small);
+  margin: 4px 0;
+  transition: var(--glass-transition);
+  border: 1px solid transparent;
+}
+
+.glass-nav-item:hover {
+  background: var(--glass-bg-light);
+  border-color: var(--glass-border);
+  color: var(--text-primary);
+  transform: translateX(4px);
+}
+
+.glass-nav-item.active {
+  background: var(--glass-bg-dark);
+  border-color: var(--text-accent);
+  color: var(--text-primary);
+  box-shadow: 0 4px 16px rgba(79, 172, 254, 0.2);
+}
+
+/* Main Content Styles */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}
+
+.notification-bar {
+  margin: 20px;
+  padding: 16px 24px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+}
+
+.notification-content {
+  display: flex;
+  gap: 32px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.notification-item {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+.action-bar {
+  margin: 0 20px 20px 20px;
+  padding: 16px 24px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.page-content {
+  flex: 1;
+  padding: 0 20px 20px 20px;
+  overflow-y: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .layout-container {
+    flex-direction: column;
+  }
+  
+  .glass-sidebar {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 16px 20px;
+  }
+  
+  .sidebar-header {
+    margin-bottom: 0;
+    padding: 0;
+  }
+  
+  .sidebar-nav {
+    display: flex;
+    gap: 8px;
+    padding: 0;
+  }
+  
+  .glass-nav-item {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+  
+  .notification-content {
+    gap: 16px;
+  }
+  
+  .action-bar {
+    margin: 10px 20px;
+    padding: 12px 20px;
+  }
+  
+  .page-content {
+    padding: 0 20px 20px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .glass-sidebar {
+    padding: 12px 16px;
+  }
+  
+  .glass-logo {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .sidebar-title h1 {
+    font-size: 16px;
+  }
+  
+  .sidebar-title h2 {
+    font-size: 12px;
+  }
+  
+  .glass-nav-item {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .notification-bar,
+  .action-bar {
+    margin: 10px;
+    padding: 12px 16px;
+  }
+} 

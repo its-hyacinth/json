@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Test - CNU Police Department</title>
+    <link rel="stylesheet" href="/public/css/glassmorphism.css">
+    <style>
+        .test-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--glass-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: var(--glass-radius-small);
+            font-family: monospace;
+        }
+        .test-success {
+            background: rgba(46, 213, 115, 0.2);
+            border: 1px solid rgba(46, 213, 115, 0.3);
+            color: #2ed573;
+        }
+        .test-error {
+            background: rgba(255, 71, 87, 0.2);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            color: #ff4757;
+        }
+        .test-info {
+            background: rgba(79, 172, 254, 0.2);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            color: #4facfe;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-section glass-card">
+            <h2>Login Functionality Test</h2>
+            <p>This page tests the login functionality to ensure it works correctly.</p>
+            
+            <div id="testResults"></div>
+            
+            <div style="margin-top: 20px;">
+                <h3>Test Credentials:</h3>
+                <div class="test-info">
+                    <strong>Admin Login:</strong><br>
+                    Email: jason.richards@cnu.edu<br>
+                    Password: admin123
+                </div>
+                <div class="test-info" style="margin-top: 10px;">
+                    <strong>Officer Login:</strong><br>
+                    Email: sarah.wilson@cnu.edu<br>
+                    Password: officer123
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button class="glass-btn" onclick="runTests()">Run Tests</button>
+                <button class="glass-btn" onclick="clearResults()">Clear Results</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result test-${type}`;
+            resultDiv.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function clearResults() {
+            document.getElementById('testResults').innerHTML = '';
+        }
+
+        function runTests() {
+            clearResults();
+            addResult('Starting login functionality tests...', 'info');
+            
+            // Test 1: Check if auth.js is loaded
+            if (typeof handleAdminLogin === 'function') {
+                addResult('✓ handleAdminLogin function is available', 'success');
+            } else {
+                addResult('✗ handleAdminLogin function is not available', 'error');
+            }
+            
+            if (typeof handleEmployeeLogin === 'function') {
+                addResult('✓ handleEmployeeLogin function is available', 'success');
+            } else {
+                addResult('✗ handleEmployeeLogin function is not available', 'error');
+            }
+            
+            // Test 2: Check if default users are initialized
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            if (users.length > 0) {
+                addResult(`✓ Found ${users.length} users in localStorage`, 'success');
+                users.forEach(user => {
+                    addResult(`  - ${user.email} (${user.role})`, 'info');
+                });
+            } else {
+                addResult('✗ No users found in localStorage', 'error');
+            }
+            
+            // Test 3: Test admin login logic
+            const adminUser = users.find(u => u.email === 'jason.richards@cnu.edu' && u.password === 'admin123');
+            if (adminUser) {
+                addResult('✓ Admin user credentials are valid', 'success');
+            } else {
+                addResult('✗ Admin user credentials are invalid', 'error');
+            }
+            
+            // Test 4: Test officer login logic
+            const officerUser = users.find(u => u.email === 'sarah.wilson@cnu.edu' && u.password === 'officer123');
+            if (officerUser) {
+                addResult('✓ Officer user credentials are valid', 'success');
+            } else {
+                addResult('✗ Officer user credentials are invalid', 'error');
+            }
+            
+            // Test 5: Check if dashboard files exist
+            fetch('/admin/dashboard.html')
+                .then(response => {
+                    if (response.ok) {
+                        addResult('✓ Admin dashboard file exists', 'success');
+                    } else {
+                        addResult('✗ Admin dashboard file not found', 'error');
+                    }
+                })
+                .catch(() => {
+                    addResult('✗ Cannot access admin dashboard file', 'error');
+                });
+            
+            fetch('/officer/dashboard.html')
+                .then(response => {
+                    if (response.ok) {
+                        addResult('✓ Officer dashboard file exists', 'success');
+                    } else {
+                        addResult('✗ Officer dashboard file not found', 'error');
+                    }
+                })
+                .catch(() => {
+                    addResult('✗ Cannot access officer dashboard file', 'error');
+                });
+            
+            addResult('Tests completed!', 'info');
+        }
+
+        // Auto-run tests when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(runTests, 1000);
+        });
+    </script>
+</body>
+</html> 

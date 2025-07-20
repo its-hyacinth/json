@@ -1,23 +1,4 @@
 import { useState } from 'react';
-import {
-  Box,
-  Paper,
-  Typography,
-  Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Alert,
-  Stepper,
-  Step,
-  StepLabel,
-  Grid,
-} from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format } from 'date-fns';
 
 interface LeaveRequest {
@@ -111,177 +92,199 @@ const Leave = () => {
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Box>
-        <Typography variant="h4" sx={{ mb: 3 }}>Leave Request</Typography>
+    <div>
+      <h1 style={{ color: 'var(--text-primary)', marginBottom: '24px' }}>Leave Request</h1>
 
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+      <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+        {/* Stepper */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px' }}>
+          {steps.map((label, index) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
+                backgroundColor: index <= activeStep ? 'var(--text-accent)' : 'var(--glass-bg-light)',
+                color: index <= activeStep ? 'var(--text-primary)' : 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: '8px',
+                fontSize: '14px',
+                fontWeight: 'bold'
+              }}>
+                {index + 1}
+              </div>
+              <span style={{ color: index <= activeStep ? 'var(--text-primary)' : 'var(--text-muted)' }}>{label}</span>
+              {index < steps.length - 1 && (
+                <div style={{
+                  width: '40px',
+                  height: '2px',
+                  backgroundColor: index < activeStep ? 'var(--text-accent)' : 'var(--glass-border)',
+                  margin: '0 16px'
+                }} />
+              )}
+            </div>
+          ))}
+        </div>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+        {error && (
+          <div className="glass-card" style={{ marginBottom: '16px', padding: '16px', backgroundColor: 'var(--glass-danger)', color: 'var(--text-primary)' }}>
+            {error}
+          </div>
+        )}
 
-          {activeStep === 0 && (
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <DatePicker
-                  label="Start Date"
-                  value={startDate}
-                  onChange={setStartDate}
-                  sx={{ width: '100%' }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <DatePicker
-                  label="End Date"
-                  value={endDate}
-                  onChange={setEndDate}
-                  sx={{ width: '100%' }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Leave Type</InputLabel>
-                  <Select
-                    value={leaveType}
-                    onChange={(e) => setLeaveType(e.target.value)}
-                    label="Leave Type"
-                  >
-                    <MenuItem value="annual">Annual Leave</MenuItem>
-                    <MenuItem value="sick">Sick Leave</MenuItem>
-                    <MenuItem value="personal">Personal Leave</MenuItem>
-                    <MenuItem value="bereavement">Bereavement</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Hours Requested"
-                  type="number"
-                  value={hours}
-                  onChange={(e) => setHours(e.target.value)}
-                />
-              </Grid>
-            </Grid>
-          )}
-
-          {activeStep === 1 && (
-            <Box>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>Supporting Documents (PDF)</Typography>
-              <TextField
-                type="file"
-                fullWidth
-                inputProps={{ accept: 'application/pdf' }}
-                onChange={handleFileUpload}
-                sx={{ mb: 2 }}
-                InputLabelProps={{ shrink: true }}
+        {activeStep === 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+            <div>
+              <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Start Date</label>
+              <input
+                type="date"
+                value={startDate ? format(startDate, 'yyyy-MM-dd') : ''}
+                onChange={(e) => setStartDate(e.target.value ? new Date(e.target.value) : null)}
+                className="glass-input"
               />
-              <TextField
-                fullWidth
-                label="Digital Signature"
+            </div>
+            <div>
+              <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>End Date</label>
+              <input
+                type="date"
+                value={endDate ? format(endDate, 'yyyy-MM-dd') : ''}
+                onChange={(e) => setEndDate(e.target.value ? new Date(e.target.value) : null)}
+                className="glass-input"
+              />
+            </div>
+            <div>
+              <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Leave Type</label>
+              <select
+                value={leaveType}
+                onChange={(e) => setLeaveType(e.target.value)}
+                className="glass-input"
+              >
+                <option value="">Select Leave Type</option>
+                <option value="annual">Annual Leave</option>
+                <option value="sick">Sick Leave</option>
+                <option value="personal">Personal Leave</option>
+                <option value="bereavement">Bereavement</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Hours Requested</label>
+              <input
+                type="number"
+                value={hours}
+                onChange={(e) => setHours(e.target.value)}
+                className="glass-input"
+              />
+            </div>
+          </div>
+        )}
+
+        {activeStep === 1 && (
+          <div>
+            <h3 style={{ color: 'var(--text-primary)', marginBottom: '8px' }}>Supporting Documents (PDF)</h3>
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={handleFileUpload}
+              className="glass-input"
+              style={{ marginBottom: '16px' }}
+            />
+            <div>
+              <label style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>Digital Signature</label>
+              <input
+                type="text"
                 value={signature}
                 onChange={(e) => setSignature(e.target.value)}
                 placeholder="Type your full name as signature"
+                className="glass-input"
               />
-            </Box>
-          )}
+            </div>
+          </div>
+        )}
 
-          {activeStep === 2 && (
-            <Box>
-              <Typography variant="h6" sx={{ mb: 2 }}>Review Request</Typography>
-              <Typography>Start Date: {startDate ? format(startDate, 'MMM dd, yyyy') : 'Not set'}</Typography>
-              <Typography>End Date: {endDate ? format(endDate, 'MMM dd, yyyy') : 'Not set'}</Typography>
-              <Typography>Leave Type: {leaveType}</Typography>
-              <Typography>Hours: {hours}</Typography>
-              <Typography>Attachment: {file ? file.name : 'None'}</Typography>
-              <Typography>Signature: {signature}</Typography>
-            </Box>
-          )}
+        {activeStep === 2 && (
+          <div>
+            <h3 style={{ color: 'var(--text-primary)', marginBottom: '16px' }}>Review Request</h3>
+            <div style={{ display: 'grid', gap: '8px', marginBottom: '24px' }}>
+              <div style={{ color: 'var(--text-secondary)' }}>Start Date: {startDate ? format(startDate, 'MMM dd, yyyy') : 'Not set'}</div>
+              <div style={{ color: 'var(--text-secondary)' }}>End Date: {endDate ? format(endDate, 'MMM dd, yyyy') : 'Not set'}</div>
+              <div style={{ color: 'var(--text-secondary)' }}>Leave Type: {leaveType}</div>
+              <div style={{ color: 'var(--text-secondary)' }}>Hours: {hours}</div>
+              <div style={{ color: 'var(--text-secondary)' }}>Attachment: {file ? file.name : 'None'}</div>
+              <div style={{ color: 'var(--text-secondary)' }}>Signature: {signature}</div>
+            </div>
+          </div>
+        )}
 
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
-            <Button
-              disabled={activeStep === 0}
-              onClick={handleBack}
+        <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
+          <button
+            className="glass-btn"
+            disabled={activeStep === 0}
+            onClick={handleBack}
+            style={{ opacity: activeStep === 0 ? 0.5 : 1 }}
+          >
+            Back
+          </button>
+          <div>
+            <button
+              className="glass-btn"
+              onClick={resetForm}
+              style={{ marginRight: '8px' }}
             >
-              Back
-            </Button>
-            <Box>
-              <Button
-                onClick={resetForm}
-                sx={{ mr: 1 }}
+              Reset
+            </button>
+            {activeStep === steps.length - 1 ? (
+              <button
+                className="glass-btn"
+                onClick={handleSubmit}
               >
-                Reset
-              </Button>
-              {activeStep === steps.length - 1 ? (
-                <Button
-                  variant="contained"
-                  onClick={handleSubmit}
-                >
-                  Submit Request
-                </Button>
-              ) : (
-                <Button
-                  variant="contained"
-                  onClick={handleNext}
-                >
-                  Next
-                </Button>
-              )}
-            </Box>
-          </Box>
-        </Paper>
+                Submit Request
+              </button>
+            ) : (
+              <button
+                className="glass-btn"
+                onClick={handleNext}
+              >
+                Next
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Recent Requests</Typography>
-          {requests.map(request => (
-            <Box
-              key={request.id}
-              sx={{
-                p: 2,
-                mb: 1,
-                bgcolor: 'background.default',
-                borderRadius: 1,
-                border: 1,
-                borderColor: 'divider'
+      <div className="glass-card" style={{ padding: '24px' }}>
+        <h2 style={{ color: 'var(--text-primary)', marginBottom: '16px' }}>Recent Requests</h2>
+        {requests.map(request => (
+          <div
+            key={request.id}
+            className="glass-card"
+            style={{
+              padding: '16px',
+              marginBottom: '8px',
+              backgroundColor: 'var(--glass-bg-light)',
+              border: '1px solid var(--glass-border)'
+            }}
+          >
+            <div style={{ color: 'var(--text-primary)', fontWeight: 'bold', marginBottom: '4px' }}>
+              {format(request.startDate, 'MMM dd, yyyy')} - {format(request.endDate, 'MMM dd, yyyy')}
+            </div>
+            <div style={{ color: 'var(--text-secondary)', marginBottom: '4px' }}>
+              {request.type} - {request.hours} hours
+            </div>
+            <div
+              style={{
+                color: request.status === 'approved' ? 'var(--glass-success)' :
+                      request.status === 'rejected' ? 'var(--glass-danger)' :
+                      'var(--glass-warning)'
               }}
             >
-              <Typography variant="subtitle1">
-                {format(request.startDate, 'MMM dd, yyyy')} - {format(request.endDate, 'MMM dd, yyyy')}
-              </Typography>
-              <Typography color="textSecondary">
-                {request.type} - {request.hours} hours
-              </Typography>
-              <Typography
-                sx={{
-                  color: request.status === 'approved' ? 'success.main' :
-                        request.status === 'rejected' ? 'error.main' :
-                        'warning.main'
-                }}
-              >
-                Status: {request.status.toUpperCase()}
-              </Typography>
-            </Box>
-          ))}
-        </Paper>
-      </Box>
-      {/* Color Legend */}
-      <Box sx={{ display: 'flex', gap: 2, mt: 3, alignItems: 'center', flexWrap: 'wrap' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box sx={{ width: 16, height: 16, bgcolor: '#4CAF50', borderRadius: 1, border: '1px solid #ccc' }} />
-          <Typography variant="body2">Leave</Typography>
-        </Box>
-      </Box>
-    </LocalizationProvider>
+              Status: {request.status.toUpperCase()}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 

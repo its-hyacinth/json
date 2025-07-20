@@ -4,52 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Police Department - Streamlined Scheduling</title>
+    <link rel="stylesheet" href="/public/css/glassmorphism.css">
     <style>
-/* Reset and Base Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
-html {
-    font-size: 16px;
-    scroll-behavior: smooth;
-}
-
+/* Additional styles specific to landing page */
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #0f2027 0%, #203a43 25%, #2c5364 50%, #1e3c72 75%, #2a5298 100%);
-    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    position: relative;
-    overflow-x: hidden;
-    line-height: 1.6;
-}
-
-/* Animated Background */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
-        radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.01) 0%, transparent 50%);
-    animation: backgroundFloat 20s ease-in-out infinite;
-    pointer-events: none;
-    z-index: 0;
-}
-
-@keyframes backgroundFloat {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(180deg); }
 }
 
 /* Main Container */
@@ -60,6 +22,11 @@ body::before {
     padding: 40px 20px;
     position: relative;
     z-index: 1;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--glass-radius);
+    box-shadow: var(--glass-shadow), var(--glass-shadow-inset);
 }
 
 /* Logo Section */
@@ -75,42 +42,7 @@ body::before {
 .logo-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     margin: 0 auto;
-    box-shadow: 
-        0 10px 30px rgba(0, 0, 0, 0.2),
-        0 0 0 1px rgba(255, 255, 255, 0.1);
-    position: relative;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.logo-icon::before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    border-radius: 50%;
-    animation: logoShine 3s ease-in-out infinite;
-    z-index: -1;
-}
-
-@keyframes logoShine {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.logo-icon:hover {
-    transform: scale(1.05) rotate(5deg);
-    box-shadow: 
-        0 15px 40px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 .university-text {
@@ -119,13 +51,14 @@ body::before {
     letter-spacing: 1.2px;
     opacity: 0.9;
     line-height: 1.4;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text-primary);
 }
 
 .small-text {
     font-size: 9px;
     opacity: 0.7;
     letter-spacing: 0.8px;
+    color: var(--text-secondary);
 }
 
 /* Department Title */
@@ -135,9 +68,10 @@ body::before {
     letter-spacing: 3px;
     margin-bottom: 50px;
     padding-bottom: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid var(--glass-border);
     position: relative;
     animation: fadeInUp 0.8s ease-out 0.2s both;
+    color: var(--text-primary);
 }
 
 .department-title::after {
@@ -148,7 +82,7 @@ body::before {
     transform: translateX(-50%);
     width: 60px;
     height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    background: linear-gradient(90deg, transparent, var(--text-accent), transparent);
 }
 
 /* Welcome Section */
@@ -174,18 +108,18 @@ body::before {
     font-weight: 400;
     opacity: 0.9;
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-secondary);
 }
 
 /* Login Tabs */
 .login-tabs {
     display: flex;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    background: var(--glass-bg);
+    border-radius: var(--glass-radius-small);
     padding: 4px;
     margin-bottom: 30px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: var(--glass-blur-light);
+    border: 1px solid var(--glass-border);
     animation: fadeInUp 0.8s ease-out 0.6s both;
 }
 
@@ -194,12 +128,12 @@ body::before {
     padding: 12px 20px;
     border: none;
     background: transparent;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-secondary);
     font-size: 14px;
     font-weight: 500;
-    border-radius: 8px;
+    border-radius: var(--glass-radius-small);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: var(--glass-transition);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -224,9 +158,9 @@ body::before {
 }
 
 .tab-button.active {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: var(--glass-bg-dark);
+    color: var(--text-primary);
+    box-shadow: var(--glass-shadow);
 }
 
 .tab-icon {
@@ -266,17 +200,15 @@ body::before {
 }
 
 .login-form {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
+    background: var(--glass-bg);
+    border-radius: var(--glass-radius);
     padding: 40px 30px;
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow), var(--glass-shadow-inset);
     opacity: 0;
     transform: translateY(20px);
-    transition: all 0.5s ease;
+    transition: var(--glass-transition);
     position: absolute;
     top: 0;
     left: 0;
@@ -300,12 +232,12 @@ body::before {
     font-size: 24px;
     font-weight: 600;
     margin-bottom: 8px;
-    color: white;
+    color: var(--text-primary);
 }
 
 .form-header p {
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-secondary);
 }
 
 /* Form Groups */
@@ -319,30 +251,30 @@ body::before {
     font-size: 14px;
     font-weight: 500;
     margin-bottom: 8px;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text-primary);
 }
 
 .form-group input {
     width: 100%;
     padding: 16px 50px 16px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--glass-radius-small);
+    background: var(--glass-bg-light);
+    color: var(--text-primary);
     font-size: 16px;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
+    transition: var(--glass-transition);
+    backdrop-filter: var(--glass-blur-light);
 }
 
 .form-group input:focus {
     outline: none;
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+    border-color: var(--text-accent);
+    background: var(--glass-bg);
+    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
 }
 
 .form-group input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--text-muted);
 }
 
 .input-icon {
@@ -353,6 +285,7 @@ body::before {
     font-size: 16px;
     opacity: 0.7;
     pointer-events: none;
+    color: var(--text-secondary);
 }
 
 .password-toggle {
@@ -362,15 +295,15 @@ body::before {
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-secondary);
     cursor: pointer;
     font-size: 16px;
     padding: 4px;
-    transition: color 0.3s ease;
+    transition: var(--glass-transition);
 }
 
 .password-toggle:hover {
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text-primary);
 }
 
 /* Form Options */
@@ -386,7 +319,7 @@ body::before {
     display: flex;
     align-items: center;
     cursor: pointer;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-secondary);
 }
 
 .checkbox-container input {
@@ -396,17 +329,17 @@ body::before {
 .checkmark {
     width: 18px;
     height: 18px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: var(--glass-bg-light);
+    border: 1px solid var(--glass-border);
     border-radius: 4px;
     margin-right: 8px;
     position: relative;
-    transition: all 0.3s ease;
+    transition: var(--glass-transition);
 }
 
 .checkbox-container input:checked + .checkmark {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: var(--glass-bg-dark);
+    border-color: var(--text-accent);
 }
 
 .checkbox-container input:checked + .checkmark::after {
@@ -415,19 +348,19 @@ body::before {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: white;
+    color: var(--text-primary);
     font-size: 12px;
     font-weight: bold;
 }
 
 .forgot-password {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-secondary);
     text-decoration: none;
-    transition: color 0.3s ease;
+    transition: var(--glass-transition);
 }
 
 .forgot-password:hover {
-    color: white;
+    color: var(--text-primary);
     text-decoration: underline;
 }
 
@@ -436,11 +369,11 @@ body::before {
     width: 100%;
     padding: 16px;
     border: none;
-    border-radius: 12px;
+    border-radius: var(--glass-radius-small);
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: var(--glass-transition);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -465,25 +398,28 @@ body::before {
 }
 
 .admin-submit {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    color: #1e3c72;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    background: var(--glass-bg-dark);
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: var(--glass-blur-light);
+    box-shadow: var(--glass-shadow);
 }
 
 .admin-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--glass-shadow-hover);
+    background: var(--glass-bg);
 }
 
 .employee-submit {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    color: white;
-    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+    background: var(--bg-gradient-accent);
+    color: var(--text-primary);
+    box-shadow: var(--glass-shadow);
 }
 
 .employee-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+    box-shadow: var(--glass-shadow-hover);
 }
 
 .submit-icon {
@@ -506,14 +442,14 @@ body::before {
 }
 
 .link {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-muted);
     text-decoration: none;
     font-size: 14px;
-    transition: color 0.3s ease;
+    transition: var(--glass-transition);
 }
 
 .link:hover {
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text-primary);
     text-decoration: underline;
 }
 
@@ -637,7 +573,7 @@ body::before {
         <!-- Logo Section -->
         <div class="logo-section">
             <div class="logo">
-                <div class="logo-icon">
+                <div class="logo-icon glass-logo">
                     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M20 5L25 15H35L27.5 22.5L30 32.5L20 27.5L10 32.5L12.5 22.5L5 15H15L20 5Z" fill="#1e3c72"/>
                     </svg>
@@ -663,7 +599,7 @@ body::before {
         </div>
 
         <!-- Login Options -->
-        <div class="login-tabs">
+        <div class="login-tabs glass-card">
             <button class="tab-button active" data-tab="admin" onclick="switchTab('admin')">
                 <span class="tab-icon admin-icon"></span>
                 Admin Login
@@ -677,7 +613,7 @@ body::before {
         <!-- Login Forms -->
         <div class="login-forms">
             <!-- Admin Login Form -->
-            <div id="admin-form" class="login-form" style="display:none;">
+            <div id="admin-form" class="login-form glass-form active">
                 <div class="form-header">
                     <h3>Administrator Access</h3>
                     <p>Full system access for department management</p>
@@ -685,12 +621,12 @@ body::before {
                 <form id="adminLoginForm">
                     <div class="form-group">
                         <label for="adminEmail">Email Address</label>
-                        <input type="email" id="adminEmail" name="email" required autocomplete="username">
+                        <input type="email" id="adminEmail" name="email" class="glass-input" required autocomplete="username" placeholder="Enter your email" value="jason.richards@cnu.edu">
                         <span class="input-icon">📧</span>
                     </div>
                     <div class="form-group">
                         <label for="adminPassword">Password</label>
-                        <input type="password" id="adminPassword" name="password" required autocomplete="current-password">
+                        <input type="password" id="adminPassword" name="password" class="glass-input" required autocomplete="current-password" placeholder="Enter your password" value="admin123">
                         <span class="input-icon">🔒</span>
                         <button type="button" class="password-toggle" onclick="togglePassword('adminPassword')">
                             <span class="eye-icon">👁️</span>
@@ -704,7 +640,7 @@ body::before {
                         </label>
                         <a href="#" class="forgot-password">Forgot password?</a>
                     </div>
-                    <button type="submit" class="login-submit admin-submit">
+                    <button type="submit" class="login-submit admin-submit glass-btn">
                         <span class="submit-text">Sign In as Admin</span>
                         <span class="submit-icon">→</span>
                     </button>
@@ -712,7 +648,7 @@ body::before {
             </div>
 
             <!-- Employee Login Form -->
-            <div id="employee-form" class="login-form" style="display:none;">
+            <div id="employee-form" class="login-form glass-form" style="display:none;">
                 <div class="form-header">
                     <h3>Employee Access</h3>
                     <p>Access your schedule and submit requests</p>
@@ -720,12 +656,12 @@ body::before {
                 <form id="officerLoginForm">
                     <div class="form-group">
                         <label for="employeeEmail">Email Address</label>
-                        <input type="email" id="employeeEmail" name="email" required autocomplete="username">
+                        <input type="email" id="employeeEmail" name="email" class="glass-input" required autocomplete="username" placeholder="Enter your email" value="sarah.wilson@cnu.edu">
                         <span class="input-icon">📧</span>
                     </div>
                     <div class="form-group">
                         <label for="employeePassword">Password</label>
-                        <input type="password" id="employeePassword" name="password" required autocomplete="current-password">
+                        <input type="password" id="employeePassword" name="password" class="glass-input" required autocomplete="current-password" placeholder="Enter your password" value="officer123">
                         <span class="input-icon">🔒</span>
                         <button type="button" class="password-toggle" onclick="togglePassword('employeePassword')">
                             <span class="eye-icon">👁️</span>
@@ -739,7 +675,7 @@ body::before {
                         </label>
                         <a href="#" class="forgot-password">Forgot password?</a>
                     </div>
-                    <button type="submit" class="login-submit employee-submit">
+                    <button type="submit" class="login-submit employee-submit glass-btn">
                         <span class="submit-text">Sign In as Employee</span>
                         <span class="submit-icon">→</span>
                     </button>
@@ -749,6 +685,8 @@ body::before {
 
         <!-- Additional Links -->
         <div class="additional-links">
+            <a href="/admin/login.html" class="link">Admin Login</a>
+            <a href="/officer/login.html" class="link">Officer Login</a>
             <a href="#" class="link">Need help? Contact IT Support</a>
             <a href="#" class="link">System Status</a>
             <a href="#" class="link">Privacy Policy</a>
@@ -762,6 +700,7 @@ body::before {
     </div>
 
     <script type="module" src="/js/script.js"></script>
+    <script src="/js/auth.js"></script>
     <script>
         // Hide both forms by default, then show admin form on page load
         window.addEventListener('DOMContentLoaded', function() {
@@ -914,31 +853,96 @@ body::before {
             }, 2000);
         }
 
-        // Form submission handlers
-        document.getElementById('adminLoginForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            showLoading();
-            // Simulate API call
-            setTimeout(() => {
-                hideLoading();
-                showSuccess('Admin login successful!');
-                // Redirect to admin dashboard in a real application
-                // window.location.href = '/admin-dashboard';
-            }, 1500);
-        });
+        // Fallback login functions in case external auth.js doesn't load
+        function fallbackAdminLogin(event) {
+            event.preventDefault();
+            console.log('Using fallback admin login...');
+            
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            
+            // Simple validation
+            if (!email.endsWith('@cnu.edu')) {
+                alert('Please use your CNU email address.');
+                return;
+            }
+            
+            // Check credentials
+            if (email === 'jason.richards@cnu.edu' && password === 'admin123') {
+                console.log('Admin login successful, redirecting...');
+                sessionStorage.setItem('currentUser', JSON.stringify({
+                    email: email,
+                    name: 'Jason Richards',
+                    role: 'admin'
+                }));
+                window.location.href = '/admin/dashboard.html';
+            } else {
+                alert('Invalid credentials. Please use:\nEmail: jason.richards@cnu.edu\nPassword: admin123');
+            }
+        }
+        
+        function fallbackEmployeeLogin(event) {
+            event.preventDefault();
+            console.log('Using fallback employee login...');
+            
+            const email = document.getElementById('employeeEmail').value;
+            const password = document.getElementById('employeePassword').value;
+            
+            // Simple validation
+            if (!email.endsWith('@cnu.edu')) {
+                alert('Please use your CNU email address.');
+                return;
+            }
+            
+            // Check credentials
+            const validEmployees = [
+                { email: 'sarah.wilson@cnu.edu', password: 'officer123', name: 'Sarah Wilson', role: 'officer' },
+                { email: 'michael.thompson@cnu.edu', password: 'sergeant123', name: 'Michael Thompson', role: 'sergeant' },
+                { email: 'emily.parker@cnu.edu', password: 'corporal123', name: 'Emily Parker', role: 'corporal' }
+            ];
+            
+            const employee = validEmployees.find(emp => emp.email === email && emp.password === password);
+            
+            if (employee) {
+                console.log('Employee login successful, redirecting...');
+                sessionStorage.setItem('currentUser', JSON.stringify(employee));
+                window.location.href = '/officer/dashboard.html';
+            } else {
+                alert('Invalid credentials. Please use one of:\n\nSarah Wilson: sarah.wilson@cnu.edu / officer123\nMichael Thompson: michael.thompson@cnu.edu / sergeant123\nEmily Parker: emily.parker@cnu.edu / corporal123');
+            }
+        }
 
-        document.getElementById('officerLoginForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            showLoading();
-            // Simulate API call
-            setTimeout(() => {
-                hideLoading();
-                showSuccess('Employee login successful!');
-                // Redirect to employee dashboard in a real application
-                // window.location.href = '/employee-dashboard';
-            }, 1500);
+        // Form submission handlers - Connect to proper authentication system
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminForm = document.getElementById('adminLoginForm');
+            const officerForm = document.getElementById('officerLoginForm');
+            
+            if (adminForm) {
+                adminForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    console.log('Admin form submitted');
+                    if (typeof handleAdminLogin === 'function') {
+                        handleAdminLogin(e);
+                    } else {
+                        console.log('Using fallback admin login');
+                        fallbackAdminLogin(e);
+                    }
+                });
+            }
+            
+            if (officerForm) {
+                officerForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    console.log('Officer form submitted');
+                    if (typeof handleEmployeeLogin === 'function') {
+                        handleEmployeeLogin(e);
+                    } else {
+                        console.log('Using fallback employee login');
+                        fallbackEmployeeLogin(e);
+                    }
+                });
+            }
         });
     </script>
-    <script type="module" src="/js/auth.js"></script>
 </body>
 </html>

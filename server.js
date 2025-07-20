@@ -7,6 +7,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve static files
+app.use(express.static('.'));
+app.use('/public', express.static('public'));
+app.use('/admin', express.static('admin'));
+app.use('/officer', express.static('officer'));
+app.use('/js', express.static('public/js'));
+app.use('/css', express.static('public/css'));
+app.use('/assets', express.static('assets'));
+
 // MongoDB connection
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/cnupd_scheduler';
 mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -34,6 +43,16 @@ const Schedule = mongoose.model('Schedule', scheduleSchema);
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Serve index.html for root route
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
+// Serve test-login.html
+app.get('/test-login', (req, res) => {
+  res.sendFile(__dirname + '/test-login.html');
 });
 
 // TODO: Add CRUD endpoints for users, schedules, requests, etc.

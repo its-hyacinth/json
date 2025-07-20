@@ -7,18 +7,115 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="/css/glassmorphism.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        
+        .login-card {
+            padding: 40px 30px;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .glass-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px auto;
+        }
+        
+        .login-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .login-header h1 {
+            color: var(--text-primary);
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .input-group {
+            position: relative;
+        }
+        
+        .input-group i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            z-index: 1;
+        }
+        
+        .glass-input {
+            padding-left: 50px;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .login-footer {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+    </style>
 </head>
 <body>
     <div style="position: absolute; top: 16px; left: 16px; z-index: 10;">
       <img src="/assets/cnupd.png" alt="CNUPD Badge" style="height: 80px; width: auto;" />
     </div>
     <div class="login-container">
-        <div class="login-card">
+        <div class="login-card glass-card glass-form">
             <div class="login-header">
-                <img src="/assets/cnupd.png" alt="CNUPD Logo" class="login-logo">
+                <div class="glass-logo">
+                    <img src="/assets/cnupd.png" alt="CNUPD Logo" class="login-logo">
+                </div>
                 <h1>Admin Login</h1>
             </div>
             <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
@@ -26,7 +123,7 @@
                     <label for="adminEmail">CNU Email</label>
                     <div class="input-group">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" id="adminEmail" name="email" required 
+                        <input type="email" id="adminEmail" name="email" class="glass-input" required 
                                placeholder="username@cnu.edu"
                                pattern=".+@cnu\.edu$"
                                title="Please use your CNU email address">
@@ -36,16 +133,16 @@
                     <label for="adminPassword">Password</label>
                     <div class="input-group">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="adminPassword" name="password" required>
+                        <input type="password" id="adminPassword" name="password" class="glass-input" required>
                     </div>
                 </div>
-                <button type="submit" class="login-btn">
+                <button type="submit" class="login-btn glass-btn">
                     <i class="fas fa-sign-in-alt"></i>
                     Login
                 </button>
             </form>
             <div class="login-footer">
-                <a href="../html/index.html" class="back-link">
+                <a href="../html/index.html" class="back-link glass-btn">
                     <i class="fas fa-arrow-left"></i>
                     Back to Home
                 </a>

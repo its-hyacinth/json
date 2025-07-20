@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accounts - CNUPD Employee Dashboard</title>
+    <title>Dashboard - CNUPD Employee Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -146,6 +146,105 @@
             letter-spacing: 2px;
             color: #fff;
             margin-bottom: 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--glass-bg-light);
+            border-radius: var(--glass-radius);
+            padding: 24px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: var(--glass-blur-light);
+            transition: var(--glass-transition);
+        }
+
+        .stat-card:hover {
+            background: var(--glass-bg-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--glass-shadow-hover);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--bg-gradient-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 20px;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .recent-activity {
+            background: var(--glass-bg-light);
+            border-radius: var(--glass-radius);
+            padding: 24px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--glass-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--text-accent);
+        }
+
+        .activity-content h4 {
+            margin: 0 0 4px 0;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .activity-content p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .card h1 {
+            font-size: 28px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: #fff;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -161,180 +260,35 @@
         }
 
         .btn {
-            padding: 10px 20px;
-            border: none;
+            background: var(--glass-bg-light);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 8px 16px;
             border-radius: var(--glass-radius-small);
-            font-size: 14px;
-            font-weight: 500;
             cursor: pointer;
             transition: var(--glass-transition);
+            font-size: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
-            background: var(--glass-bg-light);
-            color: var(--text-primary);
-            border: 1px solid var(--glass-border);
         }
 
         .btn:hover {
             background: var(--glass-bg-dark);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
             box-shadow: var(--glass-shadow-hover);
-        }
-
-        .btn-primary {
-            background: var(--bg-gradient-accent);
-            color: var(--text-primary);
-            box-shadow: var(--glass-shadow);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--glass-shadow-hover);
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-            margin-bottom: 0;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--glass-border);
-            border-radius: var(--glass-radius-small);
-            background: var(--glass-bg-light);
-            color: var(--text-primary);
-            font-size: 16px;
-            transition: var(--glass-transition);
-            backdrop-filter: var(--glass-blur-light);
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--text-accent);
-            background: var(--glass-bg);
-            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-        }
-
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: var(--text-muted);
-        }
-
-        .form-group input[readonly] {
-            background: var(--glass-bg);
-            color: var(--text-muted);
-        }
-
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 32px;
-        }
-
-        .profile-section {
-            background: var(--glass-bg-light);
-            border-radius: var(--glass-radius);
-            padding: 24px;
-            border: 1px solid var(--glass-border);
-            margin-bottom: 24px;
-        }
-
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            background: var(--bg-gradient-accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            color: white;
-            box-shadow: var(--glass-shadow);
-        }
-
-        .profile-info h3 {
-            margin: 0 0 8px 0;
-            color: var(--text-primary);
-            font-size: 20px;
-        }
-
-        .profile-info p {
-            margin: 0;
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .account-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-top: 24px;
-        }
-
-        .stat-item {
-            background: var(--glass-bg);
-            border-radius: var(--glass-radius-small);
-            padding: 16px;
-            border: 1px solid var(--glass-border);
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-accent);
-            margin-bottom: 4px;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: var(--text-secondary);
         }
 
         @media (max-width: 900px) {
             .dashboard-container { flex-direction: column; }
             .sidebar { width: 100%; flex-direction: row; justify-content: space-between; padding: 16px 0; }
             .main-content { padding: 24px 8px; }
-            .form-row { flex-direction: column; }
-            .account-stats { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 600px) {
             .card { padding: 20px 16px; }
             .sidebar { padding: 8px 0; }
-            .header-actions { flex-wrap: wrap; }
         }
     </style>
 </head>
@@ -355,7 +309,7 @@
                 </div>
             </div>
             <nav class="sidebar-nav">
-                <a href="dashboard.html" class="nav-item">
+                <a href="dashboard.html" class="nav-item active">
                     <i class="fas fa-home"></i>
                     <span>Overview</span>
                 </a>
@@ -375,7 +329,7 @@
                     <i class="fas fa-gavel"></i>
                     <span>Court</span>
                 </a>
-                <a href="accounts.html" class="nav-item active">
+                <a href="accounts.html" class="nav-item">
                     <i class="fas fa-user"></i>
                     <span>Accounts</span>
                 </a>
@@ -393,7 +347,7 @@
         <main class="main-content">
             <div class="card">
                 <h1>
-                    <span><i class="fas fa-user"></i> My Account</span>
+                    <span><i class="fas fa-home"></i> Overview</span>
                     <div class="header-actions">
                         <button class="btn" id="printBtn"><i class="fas fa-print"></i> Print</button>
                         <button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
@@ -403,77 +357,79 @@
                         </button>
                     </div>
                 </h1>
-                
-                <div class="profile-section">
-                    <div class="profile-header">
-                        <div class="profile-avatar">
-                            <i class="fas fa-user"></i>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar"></i>
                         </div>
-                        <div class="profile-info">
-                            <h3>Officer John Smith</h3>
-                            <p>Badge #12345 | Patrol Division</p>
+                        <div class="stat-number">15</div>
+                        <div class="stat-label">Days This Month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-number">120</div>
+                        <div class="stat-label">Hours Worked</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-minus"></i>
+                        </div>
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Leave Requests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">Training Sessions</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h1>
+                    <span><i class="fas fa-history"></i> Recent Activity</span>
+                    <div class="header-actions">
+                        <button class="btn" id="printActivityBtn"><i class="fas fa-print"></i> Print</button>
+                        <button class="btn" id="shareActivityBtn"><i class="fas fa-share-alt"></i> Share</button>
+                        <button class="btn" id="notificationActivityBell" style="position: relative;">
+                            <i class="fas fa-bell"></i>
+                            <span id="notificationActivityBadge" style="display:none;position:absolute;top:4px;right:4px;background:#d32f2f;color:#fff;border-radius:50%;font-size:11px;padding:2px 6px;">0</span>
+                        </button>
+                    </div>
+                </h1>
+                <div class="recent-activity">
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>Leave Request Approved</h4>
+                            <p>Your vacation request for July 15-20 has been approved</p>
                         </div>
                     </div>
-                    
-                    <div class="account-stats">
-                        <div class="stat-item">
-                            <div class="stat-number">25</div>
-                            <div class="stat-label">Leave Days</div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-graduation-cap"></i>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-number">120</div>
-                            <div class="stat-label">Hours This Month</div>
+                        <div class="activity-content">
+                            <h4>Training Scheduled</h4>
+                            <p>Firearms recertification training scheduled for June 25</p>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-number">3</div>
-                            <div class="stat-label">Pending Requests</div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-gavel"></i>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-number">15</div>
-                            <div class="stat-label">Years of Service</div>
+                        <div class="activity-content">
+                            <h4>Court Appearance</h4>
+                            <p>Court appearance scheduled for Case #12345 on June 18</p>
                         </div>
                     </div>
                 </div>
-                
-                <form id="accountForm" onsubmit="updateAccount(event)">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="firstName">First Name</label>
-                            <input type="text" id="firstName" value="John" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="lastName">Last Name</label>
-                            <input type="text" id="lastName" value="Smith" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="badgeNumber">Badge Number</label>
-                            <input type="text" id="badgeNumber" value="12345" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="division">Division</label>
-                            <input type="text" id="division" value="Patrol Division" readonly>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" value="john.smith@cnupd.edu" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="phone">Phone</label>
-                            <input type="tel" id="phone" value="(757) 555-0123" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="address">Address</label>
-                        <input type="text" id="address" value="123 Main St, Newport News, VA 23606" required>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Update Profile</button>
-                    </div>
-                </form>
             </div>
         </main>
     </div>
@@ -482,33 +438,38 @@
         if (!user || user.role === 'admin') {
             window.location.href = '../officer/login.html';
         }
-        
-        document.getElementById('printBtn').onclick = function() { window.print(); };
+
+        // Overview section buttons
+        document.getElementById('printBtn').onclick = function() { 
+            window.print(); 
+        };
         document.getElementById('shareBtn').onclick = function() {
             if (navigator.share) {
-                navigator.share({ title: document.title, url: window.location.href });
+                navigator.share({ title: 'Dashboard Overview', url: window.location.href });
             } else {
                 navigator.clipboard.writeText(window.location.href);
-                alert('Link copied to clipboard!');
+                alert('Dashboard link copied to clipboard!');
             }
         };
-        
-        function updateAccount(event) {
-            event.preventDefault();
-            
-            const firstName = document.getElementById('firstName').value;
-            const lastName = document.getElementById('lastName').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
-            const address = document.getElementById('address').value;
-            
-            // Simulate API call
-            setTimeout(() => {
-                alert('Profile updated successfully!');
-                // Update the profile header
-                document.querySelector('.profile-info h3').textContent = `${firstName} ${lastName}`;
-            }, 1000);
-        }
+        document.getElementById('notificationBell').onclick = function() {
+            alert('Notifications: You have 2 new updates');
+        };
+
+        // Recent Activity section buttons
+        document.getElementById('printActivityBtn').onclick = function() { 
+            window.print(); 
+        };
+        document.getElementById('shareActivityBtn').onclick = function() {
+            if (navigator.share) {
+                navigator.share({ title: 'Recent Activity', url: window.location.href });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Activity link copied to clipboard!');
+            }
+        };
+        document.getElementById('notificationActivityBell').onclick = function() {
+            alert('Activity Notifications: You have 1 new activity update');
+        };
     </script>
 </body>
 </html> 
