@@ -3,28 +3,28 @@
 /* CSS Variables for Glassmorphism */
 :root {
   /* Glassmorphism Colors */
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-bg-light: rgba(255, 255, 255, 0.05);
-  --glass-bg-dark: rgba(255, 255, 255, 0.15);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-border-light: rgba(255, 255, 255, 0.1);
-  --glass-border-dark: rgba(255, 255, 255, 0.3);
+  --glass-bg: rgba(0, 51, 128, 0.13); /* #003380 tint */
+  --glass-bg-light: rgba(0, 51, 128, 0.07);
+  --glass-bg-dark: rgba(0, 51, 128, 0.18);
+  --glass-border: rgba(0, 51, 128, 0.22); /* #003380 border */
+  --glass-border-light: rgba(0, 51, 128, 0.12);
+  --glass-border-dark: rgba(0, 51, 128, 0.32);
   
   /* Background Gradients */
-  --bg-gradient-primary: linear-gradient(135deg, #191970 0%, #23315c 100%);
-  --bg-gradient-secondary: linear-gradient(135deg, #23315c 0%, #191970 100%);
-  --bg-gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --bg-gradient-primary: linear-gradient(135deg, #003380 0%, #003380 100%);
+  --bg-gradient-secondary: linear-gradient(135deg, #003380 0%, #00275a 100%);
+  --bg-gradient-accent: linear-gradient(135deg, #4facfe 0%, #003380 100%);
   
   /* Text Colors */
-  --text-primary: rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.8);
-  --text-muted: rgba(255, 255, 255, 0.6);
-  --text-accent: #6a7ba2;
+  --text-primary: rgba(255, 255, 255, 0.97);
+  --text-secondary: rgba(200, 220, 255, 0.85);
+  --text-muted: rgba(180, 200, 230, 0.65);
+  --text-accent: #4facfe;
   
   /* Shadows */
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  --glass-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
-  --glass-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px rgba(0, 51, 128, 0.13);
+  --glass-shadow-hover: 0 12px 40px rgba(0, 51, 128, 0.18);
+  --glass-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.10);
   
   /* Blur Effects */
   --glass-blur: blur(20px);

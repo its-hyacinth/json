@@ -3,568 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Police Department - Streamlined Scheduling</title>
+    <title>CNU Police Department</title>
     <link rel="stylesheet" href="/public/css/glassmorphism.css">
     <style>
-
-/* Additional styles specific to landing page */
 body {
+            min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-/* Main Container */
-.container {
-    text-align: center;
-    max-width: 480px;
+            background: var(--bg-gradient-primary);
+        }
+        .main-glass-container {
+    background: rgba(60, 70, 140, 0.85); /* More visible, deep blue glass */
+    backdrop-filter: blur(24px) saturate(1.2);
+    border: 2px solid rgba(255,255,255,0.22);
+    border-radius: 32px;
+    box-shadow: 0 16px 48px 0 rgba(31, 38, 135, 0.25), 0 0 0 2px rgba(255,255,255,0.10);
+    padding: 56px 40px 40px 40px;
+    max-width: 500px;
     width: 100%;
-    padding: 40px 20px;
-    position: relative;
-    z-index: 1;
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--glass-radius);
-    box-shadow: var(--glass-shadow), var(--glass-shadow-inset);
-}
-
-/* Logo Section */
-.logo-section {
-    margin-bottom: 40px;
-    animation: fadeInDown 0.8s ease-out;
-}
-
-.logo {
-    margin-bottom: 20px;
-}
-
-.logo-icon {
-    width: 80px;
-    height: 80px;
     margin: 0 auto;
-}
-
-.university-text {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 1.2px;
-    opacity: 0.9;
-    line-height: 1.4;
-    color: var(--text-primary);
-}
-
-.small-text {
-    font-size: 9px;
-    opacity: 0.7;
-    letter-spacing: 0.8px;
-    color: var(--text-secondary);
-}
-
-/* Department Title */
-.department-title {
-    font-size: 28px;
-    font-weight: 300;
-    letter-spacing: 3px;
-    margin-bottom: 50px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--glass-border);
-    position: relative;
-    animation: fadeInUp 0.8s ease-out 0.2s both;
-    color: var(--text-primary);
-}
-
-.department-title::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--text-accent), transparent);
-}
-
-/* Welcome Section */
-.welcome-section {
-    margin-bottom: 40px;
-    animation: fadeInUp 0.8s ease-out 0.4s both;
-}
-
-.main-heading {
-    font-size: 36px;
-    font-weight: 300;
-    line-height: 1.2;
-    margin-bottom: 20px;
-    background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.subtitle {
-    font-size: 16px;
-    font-weight: 400;
-    opacity: 0.9;
-    line-height: 1.6;
-    color: var(--text-secondary);
-}
-
-/* Login Tabs */
-.login-tabs {
-    display: flex;
-    background: var(--glass-bg);
-    border-radius: var(--glass-radius-small);
-    padding: 4px;
-    margin-bottom: 30px;
-    backdrop-filter: var(--glass-blur-light);
-    border: 1px solid var(--glass-border);
-    animation: fadeInUp 0.8s ease-out 0.6s both;
-}
-
-.tab-button {
-    flex: 1;
-    padding: 12px 20px;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    font-size: 14px;
-    font-weight: 500;
-    border-radius: var(--glass-radius-small);
-    cursor: pointer;
-    transition: var(--glass-transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    position: relative;
-    overflow: hidden;
-}
-
-.tab-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s ease;
-}
-
-.tab-button:hover::before {
-    left: 100%;
-}
-
-.tab-button.active {
-    background: var(--glass-bg-dark);
-    color: var(--text-primary);
-    box-shadow: var(--glass-shadow);
-}
-
-.tab-icon {
-    font-size: 16px;
-}
-
-.admin-icon {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.8);
-    position: relative;
-}
-
-.admin-icon::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: #1e3c72;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.tab-button.active .admin-icon::after {
-    opacity: 1;
-}
-
-/* Login Forms */
-.login-forms {
-    position: relative;
-    animation: fadeInUp 0.8s ease-out 0.8s both;
-}
-
-.login-form {
-    background: var(--glass-bg);
-    border-radius: var(--glass-radius);
-    padding: 40px 30px;
-    backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow), var(--glass-shadow-inset);
-    opacity: 0;
-    transform: translateY(20px);
-    transition: var(--glass-transition);
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    pointer-events: none;
-}
-
-.login-form.active {
-    opacity: 1;
-    transform: translateY(0);
-    position: relative;
-    pointer-events: auto;
-}
-
-.form-header {
-    margin-bottom: 30px;
-    text-align: center;
-}
-
-.form-header h3 {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--text-primary);
-}
-
-.form-header p {
-    font-size: 14px;
-    color: var(--text-secondary);
-}
-
-/* Form Groups */
-.form-group {
-    margin-bottom: 24px;
-    position: relative;
-}
-
-.form-group label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 8px;
-    color: var(--text-primary);
-}
-
-.form-group input {
-    width: 100%;
-    padding: 16px 50px 16px 16px;
-    border: 1px solid var(--glass-border);
-    border-radius: var(--glass-radius-small);
-    background: var(--glass-bg-light);
-    color: var(--text-primary);
-    font-size: 16px;
-    transition: var(--glass-transition);
-    backdrop-filter: var(--glass-blur-light);
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: var(--text-accent);
-    background: var(--glass-bg);
-    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
-}
-
-.form-group input::placeholder {
-    color: var(--text-muted);
-}
-
-.input-icon {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 16px;
-    opacity: 0.7;
-    pointer-events: none;
-    color: var(--text-secondary);
-}
-
-.password-toggle {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: 16px;
-    padding: 4px;
-    transition: var(--glass-transition);
-}
-
-.password-toggle:hover {
-    color: var(--text-primary);
-}
-
-/* Form Options */
-.form-options {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    font-size: 14px;
-}
-
-.checkbox-container {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    color: var(--text-secondary);
-}
-
-.checkbox-container input {
-    display: none;
-}
-
-.checkmark {
-    width: 18px;
-    height: 18px;
-    background: var(--glass-bg-light);
-    border: 1px solid var(--glass-border);
-    border-radius: 4px;
-    margin-right: 8px;
-    position: relative;
-    transition: var(--glass-transition);
-}
-
-.checkbox-container input:checked + .checkmark {
-    background: var(--glass-bg-dark);
-    border-color: var(--text-accent);
-}
-
-.checkbox-container input:checked + .checkmark::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: var(--text-primary);
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.forgot-password {
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: var(--glass-transition);
-}
-
-.forgot-password:hover {
-    color: var(--text-primary);
-    text-decoration: underline;
-}
-
-/* Submit Buttons */
-.login-submit {
-    width: 100%;
-    padding: 16px;
-    border: none;
-    border-radius: var(--glass-radius-small);
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--glass-transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    position: relative;
-    overflow: hidden;
-}
-
-.login-submit::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s ease;
-}
-
-.login-submit:hover::before {
-    left: 100%;
-}
-
-.admin-submit {
-    background: var(--glass-bg-dark);
-    color: var(--text-primary);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: var(--glass-blur-light);
-    box-shadow: var(--glass-shadow);
-}
-
-.admin-submit:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--glass-shadow-hover);
-    background: var(--glass-bg);
-}
-
-.employee-submit {
-    background: var(--bg-gradient-accent);
-    color: var(--text-primary);
-    box-shadow: var(--glass-shadow);
-}
-
-.employee-submit:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--glass-shadow-hover);
-}
-
-.submit-icon {
-    font-size: 18px;
-    transition: transform 0.3s ease;
-}
-
-.login-submit:hover .submit-icon {
-    transform: translateX(4px);
-}
-
-/* Additional Links */
-.additional-links {
-    margin-top: 40px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-    animation: fadeInUp 0.8s ease-out 1s both;
-}
-
-.link {
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 14px;
-    transition: var(--glass-transition);
-}
-
-.link:hover {
-    color: var(--text-primary);
-    text-decoration: underline;
-}
-
-/* Loading Overlay */
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
-
-.loading-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top: 3px solid white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 20px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Animations */
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .container {
-        padding: 20px;
-        max-width: 100%;
-    }
-    
-    .main-heading {
-        font-size: 28px;
-    }
-    
-    .department-title {
-        font-size: 24px;
-        letter-spacing: 2px;
-    }
-    
-    .login-form {
-        padding: 30px 20px;
-    }
-    
-    .form-group input {
-        padding: 14px 45px 14px 14px;
-    }
-    
-    .login-submit {
-        padding: 14px;
-    }
-    
-    .additional-links {
-        flex-direction: column;
-        gap: 15px;
-    }
-}
-
-@media (max-width: 480px) {
-    .main-heading {
-        font-size: 24px;
-    }
-    
-    .department-title {
-        font-size: 20px;
-    }
-    
-    .subtitle {
-        font-size: 14px;
-    }
-    
-    .tab-button {
-        padding: 10px 16px;
-        font-size: 13px;
-    }
 }
     .badge-container {
         display: flex;
@@ -583,377 +44,315 @@ body {
         box-shadow: none;
         margin-bottom: 18px;
     }
+        .university-text {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 2.2rem;
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            color: var(--text-primary);
+            text-align: center;
+            width: 100%;
+            margin-bottom: 38px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-transform: uppercase;
+        }
+        .department-title {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 2.2rem;
+            font-weight: 500;
+            letter-spacing: 1.5px;
+            color: var(--text-primary);
+            text-align: center;
+            width: 100%;
+            margin-bottom: 32px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-transform: uppercase;
+        }
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18) 40%, rgba(255,255,255,0.25) 60%, transparent);
+            margin: 18px 0 32px 0;
+            border: none;
+        }
+        .login-tabs {
+            display: flex;
+            background: linear-gradient(135deg, rgba(255,255,255,0.13) 0%, rgba(106,123,162,0.10) 100%);
+            border-radius: 24px;
+            padding: 10px 8px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(18px);
+            border: 1.5px solid var(--glass-border-dark);
+            box-shadow: 0 4px 32px 0 rgba(31, 38, 135, 0.10);
+            min-width: 380px;
+            max-width: 600px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            gap: 18px;
+            transition: box-shadow 0.3s cubic-bezier(.4,2,.6,1), background 0.3s;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 12px 0 12px 0;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(.4,2,.6,1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+            min-width: 0;
+            letter-spacing: 0.2px;
+            box-shadow: none;
+        }
+        .tab-button .tab-icon {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            margin-right: 7px;
+            filter: drop-shadow(0 2px 6px rgba(106,123,162,0.10));
+        }
+        .tab-button.active {
+            background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(106,123,162,0.18) 100%);
+            color: var(--text-primary);
+            box-shadow: 0 6px 24px 0 rgba(106,123,162,0.13), 0 0 0 2px var(--text-accent);
+            z-index: 1;
+            transform: translateY(-2px) scale(1.04);
+        }
+        .tab-button:hover:not(.active) {
+            background: rgba(255,255,255,0.10);
+            color: var(--text-primary);
+            box-shadow: 0 2px 12px 0 rgba(106,123,162,0.10);
+            transform: translateY(-1px) scale(1.02);
+        }
+        .tab-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--text-accent);
+        }
+        .additional-links {
+            margin-top: 8px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 18px 32px;
+        }
+        .additional-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.2s;
+            font-weight: 400;
+            letter-spacing: 0.2px;
+        }
+        .additional-link:hover {
+            color: var(--text-primary);
+            text-decoration: underline;
+        }
+        .glass-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: var(--glass-blur-heavy);
+            align-items: center;
+            justify-content: center;
+        }
+        .glass-modal.active {
+            display: flex;
+        }
+        .glass-modal-content {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--glass-radius);
+            padding: 40px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: var(--glass-shadow-hover);
+            position: relative;
+            animation: fadeInUp 0.8s;
+        }
+        .close {
+            color: var(--text-muted);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            top: 18px;
+            right: 28px;
+            z-index: 2;
+        }
+        .close:hover {
+            color: var(--text-primary);
+        }
+        @media (max-width: 600px) {
+            .main-glass-container {
+                padding: 24px 4px 16px 4px;
+            }
+            .glass-modal-content {
+                padding: 24px 8px;
+            }
+            .badge-img {
+                width: 120px;
+                height: 120px;
+            }
+            .login-tabs {
+                min-width: 0;
+                max-width: 100%;
+                width: 100%;
+                flex-direction: column;
+                gap: 10px;
+                padding: 6px 2px;
+            }
+            .tab-button {
+                padding: 10px 0;
+                font-size: 15px;
+            }
+            .tab-button .tab-icon {
+                font-size: 16px;
+                margin-right: 5px;
+            }
+            .additional-links {
+                gap: 10px 8px;
+                font-size: 15px;
+            }
+        }
     </style>
+    <!-- Use Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
 </head>
 <body>
-    <div class="container">
-        <!-- Logo Section -->
-        <div class="logo-section">
-            <div class="badge-container">
-                <img src="/assets/badge.png" alt="CNU Police Badge" class="badge-img" />
-            </div>
+    <div class="main-glass-container glass-card">
+        <div class="badge-container">
+            <img src="/assets/Badge.png" alt="CNU Police Badge" class="badge-img" />
         </div>
-        <!-- University/Department Title moved below badge -->
-        <div class="university-text" style="margin-top: 0; margin-bottom: 12px; font-size: 18px; font-weight: 600; letter-spacing: 1.2px; color: var(--text-primary); text-align: center; width: 100%; display: flex; justify-content: center;">
-            CHRISTOPHER NEWPORT UNIVERSITY
-        </div>
-
-        <!-- Main Header -->
-        <h1 class="department-title" style="text-align: center;">POLICE DEPARTMENT</h1>
-
-        <!-- Welcome Section -->
-        <div class="welcome-section">
-            <h2 class="main-heading">Streamlined Scheduling for<br>Campus Safety</h2>
-            <p class="subtitle">
-                Efficiently manage police department schedules, leaves, and<br>
-                special events all in one place.
-            </p>
-        </div>
-
-        <!-- Login Options -->
+        <div class="university-text">CHRISTOPHER NEWPORT UNIVERSITY</div>
+        <div class="department-title">POLICE DEPARTMENT</div>
+        <div class="divider"></div>
         <div class="login-tabs glass-card">
-            <button class="tab-button active" data-tab="admin" onclick="switchTab('admin')">
-                <span class="tab-icon admin-icon"></span>
-                Admin Login
+            <button class="tab-button active" id="adminTab" type="button">
+                <span class="tab-icon"><i class="fas fa-user-shield"></i></span> Admin Login
             </button>
-            <button class="tab-button" data-tab="employee" onclick="switchTab('employee')">
-                <span class="tab-icon user-icon">👤</span>
-                Employee Login
+            <button class="tab-button" id="employeeTab" type="button">
+                <span class="tab-icon"><i class="fas fa-users"></i></span> Employee Login
             </button>
         </div>
-
-        <!-- Login Forms -->
-        <div class="login-forms">
-            <!-- Admin Login Form -->
-            <div id="admin-form" class="login-form glass-form active">
-                <div class="form-header">
-                    <h3>Administrator Access</h3>
-                    <p>Full system access for department management</p>
-                </div>
-                <form id="adminLoginForm">
-                    <div class="form-group">
-                        <label for="adminEmail">Email Address</label>
-                        <input type="email" id="adminEmail" name="email" class="glass-input" required autocomplete="username" placeholder="Enter your email" value="jason.richards@cnu.edu">
-                        <span class="input-icon">📧</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="adminPassword">Password</label>
-                        <input type="password" id="adminPassword" name="password" class="glass-input" required autocomplete="current-password" placeholder="Enter your password" value="admin123">
-                        <span class="input-icon">🔒</span>
-                        <button type="button" class="password-toggle" onclick="togglePassword('adminPassword')">
-                            <span class="eye-icon">👁️</span>
-                        </button>
-                    </div>
-                    <div class="form-options">
-                        <label class="checkbox-container">
-                            <input type="checkbox" name="remember">
-                            <span class="checkmark"></span>
-                            Remember me
-                        </label>
-                        <a href="#" class="forgot-password">Forgot password?</a>
-                    </div>
-                    <button type="submit" class="login-submit admin-submit glass-btn">
-                        <span class="submit-text">Sign In as Admin</span>
-                        <span class="submit-icon">→</span>
-                    </button>
-                </form>
-            </div>
-
-            <!-- Employee Login Form -->
-            <div id="employee-form" class="login-form glass-form" style="display:none;">
-                <div class="form-header">
-                    <h3>Employee Access</h3>
-                    <p>Access your schedule and submit requests</p>
-                </div>
-                <form id="officerLoginForm">
-                    <div class="form-group">
-                        <label for="employeeEmail">Email Address</label>
-                        <input type="email" id="employeeEmail" name="email" class="glass-input" required autocomplete="username" placeholder="Enter your email" value="sarah.wilson@cnu.edu">
-                        <span class="input-icon">📧</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="employeePassword">Password</label>
-                        <input type="password" id="employeePassword" name="password" class="glass-input" required autocomplete="current-password" placeholder="Enter your password" value="officer123">
-                        <span class="input-icon">🔒</span>
-                        <button type="button" class="password-toggle" onclick="togglePassword('employeePassword')">
-                            <span class="eye-icon">👁️</span>
-                        </button>
-                    </div>
-                    <div class="form-options">
-                        <label class="checkbox-container">
-                            <input type="checkbox" name="remember">
-                            <span class="checkmark"></span>
-                            Remember me
-                        </label>
-                        <a href="#" class="forgot-password">Forgot password?</a>
-                    </div>
-                    <button type="submit" class="login-submit employee-submit glass-btn">
-                        <span class="submit-text">Sign In as Employee</span>
-                        <span class="submit-icon">→</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Additional Links -->
         <div class="additional-links">
-            <a href="/admin/login.html" class="link">Admin Login</a>
-            <a href="/officer/login.html" class="link">Officer Login</a>
-            <a href="#" class="link">Need help? Contact IT Support</a>
-            <a href="#" class="link">System Status</a>
-            <a href="#" class="link">Privacy Policy</a>
+            <a href="#" class="additional-link">Need help? Contact IT Support</a>
         </div>
     </div>
-
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay">
-        <div class="loading-spinner"></div>
-        <p>Authenticating...</p>
+    <!-- Admin Modal -->
+    <div class="glass-modal" id="adminModal">
+        <div class="glass-modal-content">
+            <span class="close" id="closeAdmin">&times;</span>
+            <h2 style="text-align:center; color:var(--text-primary); font-size:2rem; font-weight:600; margin-bottom:8px;">Administrator Access</h2>
+            <p style="text-align:center; color:var(--text-secondary); margin-bottom:32px;">Full system access for department management</p>
+            <form>
+                <div class="form-group" style="margin-bottom:24px;">
+                    <label style="color:var(--text-primary); font-weight:500; margin-bottom:8px; display:block;">Email Address</label>
+                    <input type="email" class="glass-input" placeholder="jason.richards@cnu.edu" value="jason.richards@cnu.edu" style="margin-bottom:0;">
+                </div>
+                <div class="form-group" style="margin-bottom:24px;">
+                    <label style="color:var(--text-primary); font-weight:500; margin-bottom:8px; display:block;">Password</label>
+                    <input type="password" class="glass-input" placeholder="Password" value="admin123" style="margin-bottom:0;">
+                    </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+                    <label style="display:flex; align-items:center; color:var(--text-secondary); font-size:14px;">
+                        <input type="checkbox" style="margin-right:8px;"> Remember me
+                        </label>
+                    <a href="#" style="color:var(--text-secondary); text-decoration:none; font-size:14px;">Forgot password?</a>
+                    </div>
+                <button type="submit" class="glass-btn" style="width:100%; background:var(--bg-gradient-accent); color:var(--text-primary); font-size:18px; font-weight:600;">Sign In as Admin &rarr;</button>
+                </form>
+            </div>
     </div>
-
-    <script type="module" src="/js/script.js"></script>
-    <script src="/js/auth.js"></script>
+    <!-- Employee Modal -->
+    <div class="glass-modal" id="employeeModal">
+        <div class="glass-modal-content">
+            <span class="close" id="closeEmployee">&times;</span>
+            <h2 style="text-align:center; color:var(--text-primary); font-size:2rem; font-weight:600; margin-bottom:8px;">Employee Access</h2>
+            <p style="text-align:center; color:var(--text-secondary); margin-bottom:32px;">Access your schedule and submit requests</p>
+            <form>
+                <div class="form-group" style="margin-bottom:24px;">
+                    <label style="color:var(--text-primary); font-weight:500; margin-bottom:8px; display:block;">Email Address</label>
+                    <input type="email" class="glass-input" placeholder="sarah.wilson@cnu.edu" value="sarah.wilson@cnu.edu" style="margin-bottom:0;">
+                </div>
+                <div class="form-group" style="margin-bottom:24px;">
+                    <label style="color:var(--text-primary); font-weight:500; margin-bottom:8px; display:block;">Password</label>
+                    <input type="password" class="glass-input" placeholder="Password" value="officer123" style="margin-bottom:0;">
+                    </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+                    <label style="display:flex; align-items:center; color:var(--text-secondary); font-size:14px;">
+                        <input type="checkbox" style="margin-right:8px;"> Remember me
+                        </label>
+                    <a href="#" style="color:var(--text-secondary); text-decoration:none; font-size:14px;">Forgot password?</a>
+                    </div>
+                <button type="submit" class="glass-btn" style="width:100%; background:var(--bg-gradient-accent); color:var(--text-primary); font-size:18px; font-weight:600;">Sign In as Employee &rarr;</button>
+                </form>
+        </div>
+    </div>
     <script>
-        // Hide both forms by default, then show admin form on page load
-        window.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.login-form').forEach(form => {
-                form.classList.remove('active');
-                form.style.display = 'none';
-            });
-            // Show admin form by default
-            const adminForm = document.getElementById('admin-form');
-            if (adminForm) {
-                adminForm.classList.add('active');
-                adminForm.style.display = '';
+        // Tab and modal logic
+        const adminTab = document.getElementById('adminTab');
+        const employeeTab = document.getElementById('employeeTab');
+        const adminModal = document.getElementById('adminModal');
+        const employeeModal = document.getElementById('employeeModal');
+        const closeAdmin = document.getElementById('closeAdmin');
+        const closeEmployee = document.getElementById('closeEmployee');
+
+        function showModal(modal) {
+            adminModal.classList.remove('active');
+            employeeModal.classList.remove('active');
+            modal.classList.add('active');
+        }
+        adminTab.onclick = function() {
+            adminTab.classList.add('active');
+            employeeTab.classList.remove('active');
+            showModal(adminModal);
+        };
+        employeeTab.onclick = function() {
+            employeeTab.classList.add('active');
+            adminTab.classList.remove('active');
+            showModal(employeeModal);
+        };
+        closeAdmin.onclick = function() {
+            adminModal.classList.remove('active');
+            adminTab.classList.remove('active');
+        };
+        closeEmployee.onclick = function() {
+            employeeModal.classList.remove('active');
+            employeeTab.classList.remove('active');
+        };
+        window.onclick = function(event) {
+            if (event.target === adminModal) {
+                adminModal.classList.remove('active');
+                adminTab.classList.remove('active');
             }
-        });
-
-        // Tab switching functionality
-        function switchTab(tabName) {
-            // Remove active class and hide all forms
-            document.querySelectorAll('.tab-button').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.login-form').forEach(form => {
-                form.classList.remove('active');
-                form.style.display = 'none';
-            });
-            // Add active class to selected tab and show its form
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-            const form = document.getElementById(`${tabName}-form`);
-            if (form) {
-                form.classList.add('active');
-                form.style.display = '';
+            if (event.target === employeeModal) {
+                employeeModal.classList.remove('active');
+                employeeTab.classList.remove('active');
             }
-            // Add subtle animation feedback
-            const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
-            activeTab.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                activeTab.style.transform = '';
-            }, 150);
-        }
-
-        // Password visibility toggle
-        function togglePassword(inputId) {
-            const passwordInput = document.getElementById(inputId);
-            const toggleButton = passwordInput.nextElementSibling.nextElementSibling;
-            const eyeIcon = toggleButton.querySelector('.eye-icon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.textContent = '🙈';
-                toggleButton.setAttribute('aria-label', 'Hide password');
-            } else {
-                passwordInput.type = 'password';
-                eyeIcon.textContent = '👁️';
-                toggleButton.setAttribute('aria-label', 'Show password');
-            }
-        }
-
-        // Loading overlay control
-        function showLoading() {
-            const overlay = document.getElementById('loading-overlay');
-            overlay.classList.add('active');
-        }
-
-        function hideLoading() {
-            const overlay = document.getElementById('loading-overlay');
-            overlay.classList.remove('active');
-        }
-
-        // Form validation
-        function validateEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
-
-        function validateEmployeeId(employeeId) {
-            // Assuming employee ID should be alphanumeric and 4-8 characters
-            const idRegex = /^[a-zA-Z0-9]{4,8}$/;
-            return idRegex.test(employeeId);
-        }
-
-        function validatePassword(password) {
-            // Password should be at least 8 characters
-            return password.length >= 8;
-        }
-
-        // Show form errors
-        function showError(inputId, message) {
-            const input = document.getElementById(inputId);
-            const formGroup = input.parentElement;
-            
-            // Remove existing error
-            const existingError = formGroup.querySelector('.error-message');
-            if (existingError) {
-                existingError.remove();
-            }
-            
-            // Add error styling
-            input.style.borderColor = '#ff4757';
-            input.style.boxShadow = '0 0 0 3px rgba(255, 71, 87, 0.1)';
-            
-            // Add error message
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.textContent = message;
-            errorDiv.style.cssText = `
-                color: #ff4757;
-                font-size: 12px;
-                margin-top: 5px;
-                animation: fadeInUp 0.3s ease;
-            `;
-            
-            formGroup.appendChild(errorDiv);
-            
-            // Remove error after user starts typing
-            input.addEventListener('input', function clearError() {
-                input.style.borderColor = '';
-                input.style.boxShadow = '';
-                if (errorDiv.parentElement) {
-                    errorDiv.remove();
-                }
-                input.removeEventListener('input', clearError);
-            });
-        }
-
-        // Success notification
-        function showSuccess(message) {
-            const successDiv = document.createElement('div');
-            successDiv.className = 'success-notification';
-            successDiv.textContent = message;
-            successDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: linear-gradient(135deg, #2ed573, #7bed9f);
-                color: white;
-                padding: 15px 20px;
-                border-radius: 10px;
-                box-shadow: 0 10px 30px rgba(46, 213, 115, 0.15);
-                z-index: 99999;
-                font-size: 15px;
-                font-weight: 600;
-                animation: fadeInDown 0.5s;
-            `;
-            document.body.appendChild(successDiv);
-            setTimeout(() => {
-                successDiv.style.opacity = '0';
-                setTimeout(() => {
-                    if (successDiv.parentElement) successDiv.remove();
-                }, 400);
-            }, 2000);
-        }
-
-        // Fallback login functions in case external auth.js doesn't load
-        function fallbackAdminLogin(event) {
-            event.preventDefault();
-            console.log('Using fallback admin login...');
-            
-            const email = document.getElementById('adminEmail').value;
-            const password = document.getElementById('adminPassword').value;
-            
-            // Simple validation
-            if (!email.endsWith('@cnu.edu')) {
-                alert('Please use your CNU email address.');
-                return;
-            }
-            
-            // Check credentials
-            if (email === 'jason.richards@cnu.edu' && password === 'admin123') {
-                console.log('Admin login successful, redirecting...');
-                sessionStorage.setItem('currentUser', JSON.stringify({
-                    email: email,
-                    name: 'Jason Richards',
-                    role: 'admin'
-                }));
-                window.location.href = '/admin/dashboard.html';
-            } else {
-                alert('Invalid credentials. Please use:\nEmail: jason.richards@cnu.edu\nPassword: admin123');
-            }
-        }
-        
-        function fallbackEmployeeLogin(event) {
-            event.preventDefault();
-            console.log('Using fallback employee login...');
-            
-            const email = document.getElementById('employeeEmail').value;
-            const password = document.getElementById('employeePassword').value;
-            
-            // Simple validation
-            if (!email.endsWith('@cnu.edu')) {
-                alert('Please use your CNU email address.');
-                return;
-            }
-            
-            // Check credentials
-            const validEmployees = [
-                { email: 'sarah.wilson@cnu.edu', password: 'officer123', name: 'Sarah Wilson', role: 'officer' },
-                { email: 'michael.thompson@cnu.edu', password: 'sergeant123', name: 'Michael Thompson', role: 'sergeant' },
-                { email: 'emily.parker@cnu.edu', password: 'corporal123', name: 'Emily Parker', role: 'corporal' }
-            ];
-            
-            const employee = validEmployees.find(emp => emp.email === email && emp.password === password);
-            
-            if (employee) {
-                console.log('Employee login successful, redirecting...');
-                sessionStorage.setItem('currentUser', JSON.stringify(employee));
-                window.location.href = '/officer/dashboard.html';
-            } else {
-                alert('Invalid credentials. Please use one of:\n\nSarah Wilson: sarah.wilson@cnu.edu / officer123\nMichael Thompson: michael.thompson@cnu.edu / sergeant123\nEmily Parker: emily.parker@cnu.edu / corporal123');
-            }
-        }
-
-        // Form submission handlers - Connect to proper authentication system
-        document.addEventListener('DOMContentLoaded', function() {
-            const adminForm = document.getElementById('adminLoginForm');
-            const officerForm = document.getElementById('officerLoginForm');
-            
-            if (adminForm) {
-                adminForm.addEventListener('submit', function(e) {
+        };
+        // Prevent form submission for demo
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    console.log('Admin form submitted');
-                    if (typeof handleAdminLogin === 'function') {
-                        handleAdminLogin(e);
-                    } else {
-                        console.log('Using fallback admin login');
-                        fallbackAdminLogin(e);
-                    }
-                });
-            }
-            
-            if (officerForm) {
-                officerForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    console.log('Officer form submitted');
-                    if (typeof handleEmployeeLogin === 'function') {
-                        handleEmployeeLogin(e);
-                    } else {
-                        console.log('Using fallback employee login');
-                        fallbackEmployeeLogin(e);
-                    }
-                });
-            }
+                alert('Login functionality would be implemented here');
+            });
         });
     </script>
 </body>
