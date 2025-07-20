@@ -55,6 +55,30 @@ app.get('/test-login', (req, res) => {
   res.sendFile(__dirname + '/test-login.html');
 });
 
+// Login endpoint (demo only, hardcoded credentials)
+app.post('/login', (req, res) => {
+  const { email, password, role } = req.body;
+  // Demo credentials
+  const admin = { email: 'jason.richards@cnu.edu', password: 'admin123' };
+  const employee = { email: 'sarah.wilson@cnu.edu', password: 'officer123' };
+
+  if (
+    role === 'admin' &&
+    email === admin.email &&
+    password === admin.password
+  ) {
+    return res.json({ success: true, role: 'admin' });
+  }
+  if (
+    role === 'employee' &&
+    email === employee.email &&
+    password === employee.password
+  ) {
+    return res.json({ success: true, role: 'employee' });
+  }
+  return res.status(401).json({ success: false, message: 'Invalid credentials' });
+});
+
 // TODO: Add CRUD endpoints for users, schedules, requests, etc.
 
 const PORT = process.env.PORT || 5000;

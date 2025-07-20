@@ -31,13 +31,13 @@
     // Authentication check
     const user = JSON.parse(sessionStorage.getItem('currentUser'));
     if (!user || user.role !== 'admin') {
-        window.location.href = '/admin/login.html';
+        window.location.href = '/admin/dashboard.html';
     } else {
         document.getElementById('adminName').textContent = user.name || 'Admin';
     }
     document.getElementById('logoutBtn').onclick = function() {
         sessionStorage.clear();
-        window.location.href = '/admin/login.html';
+        window.location.href = '/admin/dashboard.html';
     };
     </script>
 </body>

@@ -261,24 +261,25 @@ body {
             <span class="close" id="closeAdmin">&times;</span>
             <h2 style="text-align:center; color:var(--text-primary); font-size:2rem; font-weight:600; margin-bottom:8px;">Administrator Access</h2>
             <p style="text-align:center; color:var(--text-secondary); margin-bottom:32px;">Full system access for department management</p>
-            <form>
+            <form id="adminLoginForm">
                 <div class="form-group" style="margin-bottom:24px;">
                     <label style="color:var(--text-primary); font-weight:500; margin-bottom:8px; display:block;">Email Address</label>
-                    <input type="email" class="glass-input" placeholder="jason.richards@cnu.edu" value="jason.richards@cnu.edu" style="margin-bottom:0;">
+                    <input type="email" class="glass-input" id="adminEmail" placeholder="jason.richards@cnu.edu" value="jason.richards@cnu.edu" style="margin-bottom:0;">
                 </div>
                 <div class="form-group" style="margin-bottom:24px;">
                     <label style="color:var(--text-primary); font-weight:500; margin-bottom:8px; display:block;">Password</label>
-                    <input type="password" class="glass-input" placeholder="Password" value="admin123" style="margin-bottom:0;">
-                    </div>
+                    <input type="password" class="glass-input" id="adminPassword" placeholder="Password" style="margin-bottom:0;">
+                </div>
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
                     <label style="display:flex; align-items:center; color:var(--text-secondary); font-size:14px;">
                         <input type="checkbox" style="margin-right:8px;"> Remember me
-                        </label>
+                    </label>
                     <a href="#" style="color:var(--text-secondary); text-decoration:none; font-size:14px;">Forgot password?</a>
-                    </div>
+                </div>
                 <button type="submit" class="glass-btn" style="width:100%; background:var(--bg-gradient-accent); color:var(--text-primary); font-size:18px; font-weight:600;">Sign In as Admin &rarr;</button>
-                </form>
-            </div>
+                <div id="adminLoginError" style="color:#e74c3c; text-align:center; margin-top:12px; display:none;"></div>
+            </form>
+        </div>
     </div>
     <!-- Employee Modal -->
     <div class="glass-modal" id="employeeModal">
@@ -286,23 +287,24 @@ body {
             <span class="close" id="closeEmployee">&times;</span>
             <h2 style="text-align:center; color:var(--text-primary); font-size:2rem; font-weight:600; margin-bottom:8px;">Employee Access</h2>
             <p style="text-align:center; color:var(--text-secondary); margin-bottom:32px;">Access your schedule and submit requests</p>
-            <form>
+            <form id="employeeLoginForm">
                 <div class="form-group" style="margin-bottom:24px;">
                     <label style="color:var(--text-primary); font-weight:500; margin-bottom:8px; display:block;">Email Address</label>
-                    <input type="email" class="glass-input" placeholder="sarah.wilson@cnu.edu" value="sarah.wilson@cnu.edu" style="margin-bottom:0;">
+                    <input type="email" class="glass-input" id="employeeEmail" placeholder="sarah.wilson@cnu.edu" value="sarah.wilson@cnu.edu" style="margin-bottom:0;">
                 </div>
                 <div class="form-group" style="margin-bottom:24px;">
                     <label style="color:var(--text-primary); font-weight:500; margin-bottom:8px; display:block;">Password</label>
-                    <input type="password" class="glass-input" placeholder="Password" value="officer123" style="margin-bottom:0;">
-                    </div>
+                    <input type="password" class="glass-input" id="employeePassword" placeholder="Password" style="margin-bottom:0;">
+                </div>
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
                     <label style="display:flex; align-items:center; color:var(--text-secondary); font-size:14px;">
                         <input type="checkbox" style="margin-right:8px;"> Remember me
-                        </label>
+                    </label>
                     <a href="#" style="color:var(--text-secondary); text-decoration:none; font-size:14px;">Forgot password?</a>
-                    </div>
+                </div>
                 <button type="submit" class="glass-btn" style="width:100%; background:var(--bg-gradient-accent); color:var(--text-primary); font-size:18px; font-weight:600;">Sign In as Employee &rarr;</button>
-                </form>
+                <div id="employeeLoginError" style="color:#e74c3c; text-align:center; margin-top:12px; display:none;"></div>
+            </form>
         </div>
     </div>
     <script>
@@ -347,13 +349,42 @@ body {
                 employeeTab.classList.remove('active');
             }
         };
-        // Prevent form submission for demo
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                alert('Login functionality would be implemented here');
-            });
+        // Remove demo form handler, add real login logic
+        // Admin login
+        const adminLoginForm = document.getElementById('adminLoginForm');
+        const adminLoginError = document.getElementById('adminLoginError');
+        adminLoginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            adminLoginError.style.display = 'none';
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            if (email === 'jason.richards@cnu.edu' && password === 'admin123') {
+                sessionStorage.setItem('currentUser', JSON.stringify({ email, role: 'admin', name: 'Admin' }));
+                window.location.href = '/admin/dashboard.html';
+            } else {
+                adminLoginError.textContent = 'Invalid credentials';
+                adminLoginError.style.display = 'block';
+            }
         });
+        // Employee login
+        const employeeLoginForm = document.getElementById('employeeLoginForm');
+        const employeeLoginError = document.getElementById('employeeLoginError');
+        employeeLoginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            employeeLoginError.style.display = 'none';
+            const email = document.getElementById('employeeEmail').value;
+            const password = document.getElementById('employeePassword').value;
+            if (email === 'sarah.wilson@cnu.edu' && password === 'officer123') {
+                sessionStorage.setItem('currentUser', JSON.stringify({ email, role: 'employee', name: 'Sarah Wilson' }));
+                window.location.href = '/officer/dashboard.html';
+            } else {
+                employeeLoginError.textContent = 'Invalid credentials';
+                employeeLoginError.style.display = 'block';
+            }
+        });
+        // Make login handlers available globally for testing
+        window.handleAdminLogin = adminLoginForm.onsubmit;
+        window.handleEmployeeLogin = employeeLoginForm.onsubmit;
     </script>
 </body>
 </html>
