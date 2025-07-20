@@ -11,15 +11,15 @@
   --glass-border-dark: rgba(255, 255, 255, 0.3);
   
   /* Background Gradients */
-  --bg-gradient-primary: linear-gradient(135deg, #0f2027 0%, #203a43 25%, #2c5364 50%, #1e3c72 75%, #2a5298 100%);
-  --bg-gradient-secondary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bg-gradient-primary: linear-gradient(135deg, #191970 0%, #23315c 100%);
+  --bg-gradient-secondary: linear-gradient(135deg, #23315c 0%, #191970 100%);
   --bg-gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   
   /* Text Colors */
   --text-primary: rgba(255, 255, 255, 0.95);
   --text-secondary: rgba(255, 255, 255, 0.8);
   --text-muted: rgba(255, 255, 255, 0.6);
-  --text-accent: #4facfe;
+  --text-accent: #6a7ba2;
   
   /* Shadows */
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);

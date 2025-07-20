@@ -1,10 +1,10 @@
 /* Variables */
 :root {
-    --primary-color: #003087;
-    --secondary-color: #004db3;
-    --text-dark: #2c3e50;
-    --text-light: #666;
-    --border-color: #e1e4e8;
+    --primary-color: #191970; /* Midnight Blue */
+    --secondary-color: #23315c; /* Slightly lighter Midnight Blue */
+    --text-dark: #e0e6f6;
+    --text-light: #fff;
+    --border-color: #2c3e50;
     --success-color: #28a745;
     --danger-color: #dc3545;
     --warning-color: #ffc107;

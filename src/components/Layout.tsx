@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import './Layout.css';
+import { useState } from 'react';
 
 const sidebarTabs = [
   { name: 'Dashboard', path: '/dashboard' },
@@ -15,6 +16,7 @@ const sidebarTabs = [
 
 const Layout: React.FC = () => {
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Placeholder notifications
   const notifications = [
@@ -42,21 +44,35 @@ const Layout: React.FC = () => {
       <aside className="glass-sidebar">
         <div className="sidebar-header">
           <div className="glass-logo">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 5L25 15H35L27.5 22.5L30 32.5L20 27.5L10 32.5L12.5 22.5L5 15H15L20 5Z" fill="#1e3c72"/>
-            </svg>
+            <img src="/assets/badge.png" alt="CNU Police Badge" style={{ width: 40, height: 40, objectFit: 'contain' }} />
           </div>
           <div className="sidebar-title">
             <h1>CNU POLICE</h1>
             <h2>Scheduler App</h2>
           </div>
+          {/* Hamburger Icon */}
+          <button
+            className="sidebar-hamburger"
+            aria-label="Open navigation menu"
+            aria-controls="sidebar-nav"
+            aria-expanded={sidebarOpen}
+            onClick={() => setSidebarOpen((open) => !open)}
+            style={{ display: 'none' }}
+          >
+            <span style={{ fontSize: 28, lineHeight: 1 }}>&#9776;</span>
+          </button>
         </div>
-        <nav className="sidebar-nav">
+        <nav
+          id="sidebar-nav"
+          className={`sidebar-nav${sidebarOpen ? ' open' : ''}`}
+          aria-label="Main navigation"
+        >
           {sidebarTabs.map(tab => (
             <Link
               key={tab.name}
               to={tab.path}
               className={`glass-nav-item ${location.pathname.startsWith(tab.path) ? 'active' : ''}`}
+              onClick={() => setSidebarOpen(false)}
             >
               {tab.name}
             </Link>
