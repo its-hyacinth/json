@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - CNUPD Employee Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/public/css/glassmorphism.css">
     <style>
         :root {
             --glass-bg: rgba(255, 255, 255, 0.1);
@@ -28,176 +29,160 @@
             --bg-gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            color: white;
-            margin: 0;
-            overflow-x: hidden;
+        body, html, .glass-card, .sidebar, .sidebar-nav, .sidebar-nav a, h1, h2, h3, h4, h5, h6, p, td, th, caption, div, span, button {
+            font-family: 'Times New Roman', Times, serif !important;
         }
-
+        html {
+            font-size: 18px;
+        }
         .dashboard-container {
             display: flex;
             min-height: 100vh;
         }
-
         .sidebar {
             width: 270px;
-            background: rgba(32, 58, 67, 0.85);
+            background: var(--glass-bg);
             backdrop-filter: var(--glass-blur);
+            border-right: 1px solid var(--glass-border);
             box-shadow: 2px 0 24px 0 rgba(0,0,0,0.12);
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 32px 0 0 0;
             z-index: 2;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
         }
-
+        .dashboard-container > main, .dashboard-container > .main-content {
+            margin-left: 270px;
+            width: calc(100% - 270px);
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .main-content {
+            background: #E9F1FA;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            overflow-y: auto;
+            flex-direction: column;
+            gap: 32px;
+            padding: 48px 40px 40px 40px;
+        }
         .logo {
             margin-bottom: 32px;
             text-align: center;
         }
-
-        .logo-icon {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border-radius: 50%;
+        .logo-icon, .glass-logo, .logo-icon img {
+            background: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            width: auto !important;
+            height: 110px !important;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 12px auto;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.1);
-            position: relative;
         }
-
         .logo-text h1 {
             font-size: 13px;
             font-weight: 700;
             letter-spacing: 1.2px;
             margin: 0;
-            color: rgba(255,255,255,0.9);
+            color: var(--text-primary);
         }
-
         .logo-text h2 {
             font-size: 11px;
             font-weight: 500;
             margin: 0;
-            color: rgba(255,255,255,0.8);
+            color: var(--text-secondary);
         }
-
         .logo-text h3 {
             font-size: 12px;
             font-weight: 400;
             margin: 8px 0 0 0;
-            color: #b0c4de;
+            color: var(--text-muted);
         }
-
+        .sidebar, .sidebar * {
+            font-size: 20px !important;
+        }
         .sidebar-nav {
             list-style: none;
             padding: 0;
             width: 100%;
         }
-
         .sidebar-nav a {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 14px 32px;
-            color: rgba(255,255,255,0.85);
+            color: var(--text-secondary);
             text-decoration: none;
             font-size: 16px;
             border-left: 4px solid transparent;
-            transition: background 0.2s, border-color 0.2s;
+            transition: var(--glass-transition);
         }
-
         .sidebar-nav a.active, .sidebar-nav a:hover {
-            background: rgba(255,255,255,0.08);
-            border-left: 4px solid #4facfe;
-            color: #fff;
+            background: var(--glass-bg-light);
+            border-left: 4px solid var(--text-accent);
+            color: var(--text-primary);
         }
-
         .sidebar-nav .logout a {
             color: #ffb3b3;
         }
-
-        .main-content {
-            flex: 1;
-            padding: 48px 40px 40px 40px;
+        .glass-card {
+            background: #76ABDF !important;
+            width: 98%;
+            margin-top: 24px;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.10);
+            padding: 24px;
             display: flex;
             flex-direction: column;
-            gap: 32px;
+            align-items: stretch;
         }
-
-        .card {
-            background: var(--glass-bg);
-            border-radius: var(--glass-radius-large);
-            box-shadow: var(--glass-shadow);
-            padding: 32px 24px;
-            margin-bottom: 24px;
-            backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--glass-border);
-        }
-
-        .card h1 {
-            font-size: 28px;
-            font-weight: 400;
-            letter-spacing: 2px;
-            color: #fff;
-            margin-bottom: 24px;
-        }
-
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 28px;
         }
-
         .stat-card {
-            background: var(--glass-bg-light);
+            background: #fff !important;
             border-radius: var(--glass-radius);
-            padding: 24px;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: var(--glass-blur-light);
-            transition: var(--glass-transition);
-        }
-
-        .stat-card:hover {
-            background: var(--glass-bg-dark);
-            transform: translateY(-2px);
-            box-shadow: var(--glass-shadow-hover);
-        }
-
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            background: var(--bg-gradient-accent);
-            border-radius: 50%;
+            padding: 28px 18px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            font-size: 20px;
-            color: white;
+            gap: 18px;
+            box-shadow: var(--glass-shadow);
+            transition: var(--glass-transition);
+            border: 1px solid var(--glass-border);
         }
-
-        .stat-number {
+        .stat-card:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: var(--glass-shadow-hover);
+        }
+        .stat-icon {
             font-size: 32px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 8px;
+            color: var(--text-accent);
         }
-
-        .stat-label {
-            font-size: 14px;
+        .stat-number {
+            font-size: 22px;
+            font-weight: 700;
             color: var(--text-secondary);
+        }
+        .stat-label {
+            font-size: 18px;
+            color: var(--text-primary);
             font-weight: 500;
         }
-
         .recent-activity {
-            background: var(--glass-bg-light);
+            background: #fff !important;
             border-radius: var(--glass-radius);
             padding: 24px;
             border: 1px solid var(--glass-border);
@@ -254,43 +239,48 @@
 
         .header-actions {
             display: flex;
-            gap: 8px;
+            gap: 12px;
             align-items: center;
-            flex-shrink: 0;
+            margin-left: auto;
         }
-
         .btn {
-            background: var(--glass-bg-light);
-            border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            padding: 8px 16px;
-            border-radius: var(--glass-radius-small);
+            background: linear-gradient(135deg, #233a7d 0%, #4facfe 100%) !important;
+            color: #fff !important;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 20px;
+            font-size: 1.125rem !important;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(79, 172, 254, 0.15);
             cursor: pointer;
-            transition: var(--glass-transition);
-            font-size: 14px;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+            outline: none;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-
-        .btn:hover {
-            background: var(--glass-bg-dark);
-            transform: translateY(-1px);
-            box-shadow: var(--glass-shadow-hover);
+        .btn:hover, .btn:focus {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 16px rgba(79, 172, 254, 0.25);
+        }
+        .glass-card h1 {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            flex-wrap: nowrap;
         }
 
         @media (max-width: 900px) {
             .dashboard-container { flex-direction: column; }
             .sidebar { width: 100%; flex-direction: row; justify-content: space-between; padding: 16px 0; }
             .main-content { padding: 24px 8px; }
-            .stats-grid { grid-template-columns: 1fr; }
         }
-
         @media (max-width: 600px) {
-            .card { padding: 20px 16px; }
+            .glass-card { padding: 16px 4px; }
             .sidebar { padding: 8px 0; }
         }
-
         @media (max-width: 768px) {
             .sidebar {
                 width: 100vw;
@@ -300,7 +290,6 @@
                 flex-direction: row;
                 align-items: center;
                 justify-content: flex-start;
-                background: #191970 !important;
             }
             .sidebar-hamburger {
                 display: block;
@@ -327,7 +316,7 @@
             .sidebar-nav {
                 display: none;
                 flex-direction: column;
-                background: #191970;
+                background: rgba(32, 58, 67, 0.98);
                 position: absolute;
                 top: 90px;
                 left: 0;
@@ -346,6 +335,31 @@
             .sidebar-hamburger {
                 display: none !important;
             }
+        }
+        .glass-card h1, .glass-card h2, .glass-card h4, .glass-card h3 {
+            color: #233a7d !important;
+            font-size: 2.25rem !important;
+        }
+        .stat-number, .stat-label, .recent-activity h4, .recent-activity p, .activity-content h4, .activity-content p {
+            color: #222 !important;
+            font-size: 1.25rem !important;
+        }
+        .stat-icon, .activity-icon {
+            color: #4facfe !important;
+        }
+        .btn {
+            color: #233a7d !important;
+            background: #e0e7ff !important;
+            border: 1px solid #b6c0e6 !important;
+        }
+        .btn:hover {
+            background: #d6e4ff !important;
+        }
+        .header-actions i {
+            color: #233a7d !important;
+        }
+        .glass-card {
+            box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.10);
         }
     </style>
 </head>
@@ -369,7 +383,7 @@
             <nav class="sidebar-nav" id="sidebar-nav">
                 <a href="dashboard.html" class="nav-item active">
                     <i class="fas fa-home"></i>
-                    <span>Overview</span>
+                    <span>Home</span>
                 </a>
                 <a href="schedule.html" class="nav-item">
                     <i class="fas fa-calendar"></i>
@@ -403,9 +417,9 @@
         </aside>
         <!-- Main Content -->
         <main class="main-content">
-            <div class="card">
+            <div class="glass-card">
                 <h1>
-                    <span><i class="fas fa-home"></i> Overview</span>
+                    <span><i class="fas fa-home"></i> Home</span>
                     <div class="header-actions">
                         <button class="btn" id="printBtn"><i class="fas fa-print"></i> Print</button>
                         <button class="btn" id="shareBtn"><i class="fas fa-share-alt"></i> Share</button>
@@ -446,8 +460,7 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="card">
+            <div class="glass-card">
                 <h1>
                     <span><i class="fas fa-history"></i> Recent Activity</span>
                     <div class="header-actions">

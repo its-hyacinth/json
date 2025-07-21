@@ -242,6 +242,67 @@
             .action-buttons { flex-direction: column; }
             .modal-content { margin: 10% auto; padding: 20px; }
         }
+        .main-card-container, .main-table-section {
+            background: #E9F1FA !important;
+        }
+        .main-header h2, .main-header h1, .main-header h3, .main-header h4 {
+            color: #233a7d !important;
+        }
+        .main-table-section th, .main-table-section td {
+            color: #222 !important;
+        }
+        .main-table-section th {
+            background: #e0e7ff !important;
+        }
+        .main-table-section td {
+            background: #fff !important;
+        }
+        .main-header i, .action-buttons i {
+            color: #4facfe !important;
+        }
+        .btn, .btn-approve, .btn-deny, .btn-cancel, .btn-submit {
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 8px 18px;
+        }
+        .btn-approve {
+            background: #28a745 !important;
+            color: #fff !important;
+        }
+        .btn-deny, .btn-submit {
+            background: #dc3545 !important;
+            color: #fff !important;
+        }
+        .print-btn {
+            background: linear-gradient(135deg, #233a7d 0%, #4facfe 100%) !important;
+            color: #fff !important;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(79, 172, 254, 0.15);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .print-btn:hover, .print-btn:focus {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 16px rgba(79, 172, 254, 0.25);
+        }
+        .denial-modal-content {
+            background: #fff !important;
+        }
+        .denial-modal-header {
+            background: #233a7d !important;
+            color: #fff !important;
+        }
+        .btn-secondary.glass-btn {
+            background: #e0e7ff !important;
+            color: #233a7d !important;
+        }
     </style>
 </head>
 <body>
@@ -258,7 +319,7 @@
                 </div>
             </div>
             <ul class="nav-links">
-                <li><a href="dashboard.html"><i class="fas fa-home"></i>Overview</a></li>
+                <li><a href="dashboard.html"><i class="fas fa-home"></i>Home</a></li>
                 <li><a href="schedule.html"><i class="fas fa-calendar"></i>Schedule</a></li>
                 <li><a href="employee-manager.html"><i class="fas fa-users"></i>Employees</a></li>
                 <li><a href="leave-requests.html"><i class="fas fa-calendar-minus"></i>Leave Requests</a></li>
