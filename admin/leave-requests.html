@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/public/css/glassmorphism.css">
     <style>
+        body, html, .glass-card, .sidebar, .nav-links, .nav-links a, h1, h2, h3, h4, h5, h6, p, td, th, caption, div, span, button {
+            font-family: 'Times New Roman', Times, serif !important;
+        }
         .dashboard {
             display: flex;
             min-height: 100vh;
@@ -22,15 +25,42 @@
             align-items: center;
             padding: 32px 0 0 0;
             z-index: 2;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+        }
+        .dashboard > main, .dashboard > .content {
+            margin-left: 270px;
+            width: calc(100% - 270px);
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .content {
+            background: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            overflow-y: auto;
         }
         .logo {
             margin-bottom: 32px;
             text-align: center;
         }
-        .logo-icon {
-            width: 70px;
-            height: 70px;
-            margin: 0 auto 12px auto;
+        .logo-icon, .glass-logo, .logo-icon img {
+            background: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            width: auto !important;
+            height: 110px !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .logo-text h1 {
             font-size: 13px;
@@ -78,12 +108,8 @@
         .nav-links .logout a {
             color: #ffb3b3;
         }
-        .content {
-            flex: 1;
-            padding: 48px 40px 40px 40px;
-            display: flex;
-            flex-direction: column;
-            gap: 32px;
+        .sidebar, .sidebar * {
+            font-size: 18px !important;
         }
         .leave-requests-container {
             background: var(--glass-bg);
@@ -146,16 +172,20 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            color: var(--text-primary);
-        }
-        th, td {
-            padding: 10px 8px;
-            border-bottom: 1px solid var(--glass-border);
+            background: #fff !important;
+            color: #111 !important;
         }
         th {
-            color: var(--text-accent);
-            font-weight: 600;
-            background: var(--glass-bg-light);
+            color: #233a7d !important;
+            background: #f5faff !important;
+            font-size: 1.05rem;
+            font-weight: 700;
+            padding: 14px 10px;
+        }
+        td {
+            font-size: 1rem;
+            padding: 12px 10px;
+            color: #111 !important; /* Ensure table data text is black */
         }
         .modal {
             position: fixed;
@@ -231,6 +261,279 @@
             .leave-requests-container { padding: 10px 2px; }
             .sidebar { padding: 8px 0; }
         }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100vw;
+                min-width: 0;
+                padding: 16px 0 0 0;
+                position: relative;
+                flex-direction: row;
+                align-items: center;
+                justify-content: flex-start;
+            }
+            .sidebar-hamburger {
+                display: block;
+                background: none;
+                border: none;
+                color: #fff;
+                cursor: pointer;
+                margin: 0 12px 0 8px;
+                padding: 8px;
+                border-radius: 8px;
+                font-size: 28px;
+                z-index: 10;
+                align-self: flex-start;
+            }
+            .logo {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 0;
+                text-align: center;
+            }
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                background: rgba(32, 58, 67, 0.98);
+                position: absolute;
+                top: 90px;
+                left: 0;
+                width: 100vw;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+                z-index: 9;
+                padding: 16px 0;
+                border-radius: 0 0 16px 16px;
+            }
+            .nav-links.open {
+                display: flex;
+            }
+        }
+        .glass-card, .leave-requests-container, .page-header, .filters, .requests-table, table, th, td, label, select, input, button {
+            color: #111 !important;
+        }
+        th {
+            color: #233a7d !important;
+            background: #f5faff !important;
+        }
+        .filters input::placeholder, .filters select, .filters input[type="date"] {
+            color: #222 !important;
+            opacity: 1;
+        }
+        .requests-table table {
+            background-color: transparent !important;
+        }
+        .btn-secondary, .btn-danger, .btn-success {
+            color: #fff !important;
+        }
+        .btn-success {
+            background: #28a745 !important; /* Green */
+            color: #fff !important;
+        }
+        .btn-danger {
+            background: #dc3545 !important; /* Red */
+            color: #fff !important;
+        }
+        .btn-success:disabled, .btn-danger:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .denial-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+        }
+        .denial-modal-content {
+            background: #233a7d; /* Navy Blue */
+            color: #fff;
+            border-radius: 16px;
+            padding: 32px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .denial-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .denial-modal-header h3 {
+            margin: 0;
+            font-size: 22px;
+        }
+        .denial-modal-content textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #76ABDF;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+            resize: vertical;
+        }
+        .denial-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .leave-container {
+            background: #76ABDF;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            padding: 32px 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            width: 100%;
+            max-width: 98vw;
+            min-height: 80vh;
+        }
+        .leave-table-section {
+            background: #76ABDF;
+            border-radius: 18px;
+            padding: 28px 18px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+            margin-bottom: 24px;
+            overflow-x: auto;
+            backdrop-filter: blur(8px);
+            width: 100%;
+        }
+        .leave-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            width: 100%;
+        }
+        .leave-header h2 {
+            color: #233a7d;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .print-btn {
+            background: linear-gradient(135deg, #233a7d 0%, #4facfe 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(79, 172, 254, 0.15);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .print-btn:hover, .print-btn:focus {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 16px rgba(79, 172, 254, 0.25);
+        }
+        .main-card-container {
+            background: #76ABDF;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            padding: 32px 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 98vw;
+            min-height: 80vh;
+        }
+        .main-table-section {
+            flex: 2 1 480px;
+            background: #76ABDF;
+            border-radius: 18px;
+            padding: 28px 18px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+            margin-bottom: 24px;
+            overflow-x: auto;
+            backdrop-filter: blur(8px);
+            width: 100%;
+        }
+        .main-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            width: 100%;
+        }
+        .main-header h2 {
+            color: #233a7d;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .leave-table-section table {
+            background-color: transparent !important;
+        }
+        .leave-container {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 24px;
+        }
+        .main-table-section table {
+            background: #fff !important;
+            border-radius: 12px;
+            border-collapse: separate;
+            border-spacing: 0;
+            box-shadow: 0 2px 12px rgba(31, 38, 135, 0.08);
+            overflow: hidden;
+        }
+        .main-table-section th, .main-table-section td {
+            border-bottom: 1px solid #d0d8e4;
+            border-right: 1px solid #d0d8e4;
+            padding: 14px 10px;
+            text-align: left;
+        }
+        .main-table-section th:last-child, .main-table-section td:last-child {
+            border-right: none;
+        }
+        .main-table-section tr:last-child td {
+            border-bottom: none;
+        }
+        .main-table-section th {
+            background: #f5faff !important;
+            color: #233a7d !important;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+        .main-table-section td {
+            font-size: 1rem;
+            color: #111 !important;
+            background: #fff !important;
+        }
+        .main-table-section th {
+            font-size: 1.25rem;
+        }
+        .main-table-section td {
+            font-size: 1.15rem;
+        }
     </style>
 </head>
 <body>
@@ -238,9 +541,7 @@
         <nav class="sidebar glass-sidebar">
             <div class="logo">
                 <div class="logo-icon glass-logo">
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 5L25 15H35L27.5 22.5L30 32.5L20 27.5L10 32.5L12.5 22.5L5 15H15L20 5Z" fill="#1e3c72"/>
-                    </svg>
+                    <img src="/assets/badge.png" alt="CNU Police Badge" style="width: 70px; height: 70px; object-fit: contain; background: none; border-radius: 0; box-shadow: none;" />
                 </div>
                 <div class="logo-text">
                     <h1>CHRISTOPHER NEWPORT UNIVERSITY</h1>
@@ -260,51 +561,53 @@
                 <li class="logout"><a href="../index.html"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
             </ul>
         </nav>
-        <main class="content">
-            <div class="leave-requests-container glass-card">
-                <div class="page-header">
-                    <h2>Leave Requests</h2>
-                    <div class="header-actions">
-                        <button class="btn-secondary glass-btn" id="exportBtn">
-                            <i class="fas fa-download"></i> Export
-                        </button>
+        <main class="content" style="background: #E9F1FA; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; overflow: hidden;">
+            <div class="glass-card" style="background: #E9F1FA; width: 98%; height: 90vh; margin-top: 24px; border-radius: 18px; box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.10); padding: 24px; display: flex; flex-direction: column; align-items: stretch;">
+                <div class="leave-container">
+                    <div class="main-card-container">
+                        <div class="main-table-section">
+                            <div class="main-header">
+                                <h2 style="color: #233a7d; font-size: 2rem; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;"><i class='fas fa-calendar-minus'></i> Leave Requests</h2>
+                                <button class="print-btn"><i class="fas fa-print"></i> Print</button>
+                            </div>
+                            <div class="filters">
+                                <div class="filter-group">
+                                    <label>Status:</label>
+                                    <select id="statusFilter">
+                                        <option value="all">All Status</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="approved">Approved</option>
+                                        <option value="rejected">Rejected</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Date Range:</label>
+                                    <input type="date" id="dateFrom">
+                                    <span>to</span>
+                                    <input type="date" id="dateTo">
+                                </div>
+                            </div>
+                            <div class="requests-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Request ID</th>
+                                            <th>Employee</th>
+                                            <th>Type</th>
+                                            <th>Start Date</th>
+                                            <th>End Date</th>
+                                            <th>Duration</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="requestsTableBody">
+                                        <!-- Table rows will be populated by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="filters">
-                    <div class="filter-group">
-                        <label>Status:</label>
-                        <select id="statusFilter">
-                            <option value="all">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Date Range:</label>
-                        <input type="date" id="dateFrom">
-                        <span>to</span>
-                        <input type="date" id="dateTo">
-                    </div>
-                </div>
-                <div class="requests-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Request ID</th>
-                                <th>Employee</th>
-                                <th>Type</th>
-                                <th>Start Date</th>
-                                <th>End Date</th>
-                                <th>Duration</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="requestsTableBody">
-                            <!-- Table rows will be populated by JavaScript -->
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </main>
@@ -350,12 +653,101 @@
             </div>
         </div>
     </div>
+    <!-- Denial Reason Modal -->
+    <div id="denialModal" class="denial-modal">
+        <div class="denial-modal-content">
+            <div class="denial-modal-header">
+                <h3>Reason for Denial</h3>
+            </div>
+            <form id="denialForm">
+                <textarea id="denialReason" placeholder="Please provide a reason..." required></textarea>
+                <div class="denial-modal-footer">
+                    <button type="button" class="btn-secondary glass-btn" id="cancelDenial">Cancel</button>
+                    <button type="submit" class="btn-danger glass-btn">Submit Denial</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script>
       const user = JSON.parse(sessionStorage.getItem('currentUser'));
       if (!user || user.role !== 'admin') {
         window.location.href = '../admin/login.html';
       }
+
+      // Mock leave requests
+      let leaveRequests = [
+        { id: 1, employee: 'Jay Richards', type: 'Vacation', start: '2024-07-10', end: '2024-07-15', duration: '6', status: 'Pending', reason: 'Family trip' },
+        { id: 2, employee: 'Mike Smith', type: 'Sick', start: '2024-07-18', end: '2024-07-20', duration: '3', status: 'Pending', reason: 'Flu' },
+        { id: 3, employee: 'Jones Stepher', type: 'Personal', start: '2024-07-22', end: '2024-07-23', duration: '2', status: 'Pending', reason: 'Personal matters' },
+        { id: 4, employee: 'Lesley Dane', type: 'Vacation', start: '2024-08-01', end: '2024-08-05', duration: '5', status: 'Pending', reason: 'Travel' }
+      ];
+
+      function renderLeaveRequests() {
+        const tbody = document.getElementById('requestsTableBody');
+        tbody.innerHTML = '';
+        leaveRequests.forEach(req => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${req.id}</td>
+            <td>${req.employee}</td>
+            <td>${req.type}</td>
+            <td>${req.start}</td>
+            <td>${req.end}</td>
+            <td>${req.duration}</td>
+            <td>${req.status}${req.status === 'Denied' && req.denyReason ? `<br><span style='color:#dc3545;font-size:12px;'>Reason: ${req.denyReason}</span>` : ''}</td>
+            <td>
+              ${req.status === 'Pending' ? `
+                <button class='btn-success glass-btn' onclick='approveRequest(${req.id})'>Approve</button>
+                <button class='btn-danger glass-btn' onclick='denyRequest(${req.id})'>Deny</button>
+              ` : ''}
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      window.approveRequest = function(id) {
+        const req = leaveRequests.find(r => r.id === id);
+        if (req) {
+          req.status = 'Approved';
+          delete req.denyReason;
+          renderLeaveRequests();
+        }
+      }
+
+      let currentRequestId = null;
+
+      window.denyRequest = function(id) {
+        currentRequestId = id;
+        const modal = document.getElementById('denialModal');
+        modal.style.display = 'flex';
+        document.getElementById('denialReason').value = '';
+        document.getElementById('denialReason').focus();
+      }
+      
+      function closeDenialModal() {
+        const modal = document.getElementById('denialModal');
+        modal.style.display = 'none';
+        currentRequestId = null;
+      }
+
+      document.getElementById('denialForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+          const reason = document.getElementById('denialReason').value.trim();
+          if (reason && currentRequestId !== null) {
+              const req = leaveRequests.find(r => r.id === currentRequestId);
+              if (req) {
+                  req.status = 'Denied';
+                  req.denyReason = reason;
+                  renderLeaveRequests();
+              }
+              closeDenialModal();
+          }
+      });
+
+      document.getElementById('cancelDenial').onclick = closeDenialModal;
+
+      document.addEventListener('DOMContentLoaded', renderLeaveRequests);
     </script>
-    <script src="../js/leave-requests.js"></script>
 </body>
 </html> 
