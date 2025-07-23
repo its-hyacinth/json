@@ -85,50 +85,140 @@ class ScheduleService
     }
 
     /**
-     * Copy a week pattern to multiple target weeks
+     * Generate schedules for multiple employees using a template week
      */
-    public function copyWeekPattern(User $user, string $sourceStartDate, array $targetWeekStarts)
+    public function generateSchedulesWithTemplate(string $templateWeekStart, int $month, int $year, array $employeeIds)
     {
-        $sourceStart = Carbon::parse($sourceStartDate)->startOfWeek();
-        $sourceEnd = $sourceStart->copy()->endOfWeek();
+        $templateStart = Carbon::parse($templateWeekStart)->startOfWeek(Carbon::MONDAY);
+        $templateEnd = $templateStart->copy()->endOfWeek(Carbon::SUNDAY);
         
-        // Get source week schedules (only working days, no leave)
+        $generatedCount = 0;
+        $defaultTimeIn = '08:00:00';
+        
+        // Get all weeks in the target month
+        $monthStart = Carbon::create($year, $month, 1);
+        $monthEnd = $monthStart->copy()->endOfMonth();
+        
+        $weeks = [];
+        $current = $monthStart->copy()->startOfWeek(Carbon::MONDAY);
+        
+        while ($current <= $monthEnd) {
+            // Only include weeks that have days in the target month
+            $weekEnd = $current->copy()->endOfWeek(Carbon::SUNDAY);
+            if ($current <= $monthEnd && $weekEnd >= $monthStart) {
+                $weeks[] = $current->copy();
+            }
+            $current->addWeek();
+        }
+        
+        foreach ($employeeIds as $employeeId) {
+            // Get template week schedules for this employee
+            $templateSchedules = Schedule::where('user_id', $employeeId)
+                ->whereBetween('date', [$templateStart->toDateString(), $templateEnd->toDateString()])
+                ->get()
+                ->keyBy(function ($schedule) {
+                    return Carbon::parse($schedule->date)->format('N'); // Use ISO-8601 day of week (1-7, Monday to Sunday)
+                });
+            
+            // Apply template to each week in the month
+            foreach ($weeks as $weekStart) {
+                for ($isoDay = 1; $isoDay <= 7; $isoDay++) {
+                    $targetDate = $weekStart->copy()->addDays($isoDay - 1); // Adjust for ISO day numbering
+                    
+                    // Skip if date is outside the target month
+                    if ($targetDate->month !== $month || $targetDate->year !== $year) {
+                        continue;
+                    }
+                    
+                    $templateSchedule = $templateSchedules->get($isoDay);
+                    
+                    // Determine time and status based on template
+                    if ($templateSchedule) {
+                        // If template has leave (C or SD), use default working time instead
+                        if ($templateSchedule->status === 'C' || $templateSchedule->status === 'SD') {
+                            $timeIn = $defaultTimeIn;
+                            $status = 'working';
+                        } else {
+                            $timeIn = $templateSchedule->time_in ?: $defaultTimeIn;
+                            $status = 'working';
+                        }
+                    } else {
+                        // No template for this day, use default
+                        $timeIn = $defaultTimeIn;
+                        $status = 'working';
+                    }
+                    
+                    Schedule::updateOrCreate([
+                        'user_id' => $employeeId,
+                        'date' => $targetDate->toDateString()
+                    ], [
+                        'time_in' => $timeIn,
+                        'status' => $status
+                    ]);
+                    
+                    $generatedCount++;
+                }
+            }
+        }
+        
+        return [
+            'generated_count' => $generatedCount
+        ];
+    }
+
+    /**
+     * Copy a week pattern to multiple target weeks (Fixed parameter name)
+     */
+    public function copyWeekPattern(User $user, string $sourceWeekStart, array $targetWeekStarts)
+    {
+        $sourceStart = Carbon::parse($sourceWeekStart)->startOfWeek(Carbon::MONDAY);
+        $sourceEnd = $sourceStart->copy()->endOfWeek(Carbon::SUNDAY);
+        $defaultTimeIn = '08:00:00';
+        
+        // Get source week schedules (including leave days) using ISO day format
         $sourceSchedules = Schedule::where('user_id', $user->id)
             ->whereBetween('date', [$sourceStart->toDateString(), $sourceEnd->toDateString()])
-            ->where('status', 'working')
-            ->whereNotNull('time_in')
             ->get()
             ->keyBy(function ($schedule) {
-                return Carbon::parse($schedule->date)->dayOfWeek;
+                return Carbon::parse($schedule->date)->format('N'); // ISO-8601 day (1=Monday, 7=Sunday)
             });
 
         if ($sourceSchedules->isEmpty()) {
-            throw new \Exception('No working schedules found in source week');
+            throw new \Exception('No schedules found in source week');
         }
 
         $copiedCount = 0;
 
         foreach ($targetWeekStarts as $targetWeekStart) {
-            $targetStart = Carbon::parse($targetWeekStart)->startOfWeek();
+            $targetStart = Carbon::parse($targetWeekStart)->startOfWeek(Carbon::MONDAY);
             
-            // Copy each day of the week
-            for ($dayOfWeek = 0; $dayOfWeek < 7; $dayOfWeek++) {
-                $targetDate = $targetStart->copy()->addDays($dayOfWeek);
+            // Copy each day of the week (1-7, Monday to Sunday)
+            for ($isoDay = 1; $isoDay <= 7; $isoDay++) {
+                $targetDate = $targetStart->copy()->addDays($isoDay - 1);
+                $sourceSchedule = $sourceSchedules->get($isoDay);
                 
-                // Skip if source doesn't have this day or if it's a leave day
-                if (!$sourceSchedules->has($dayOfWeek)) {
-                    continue;
+                if ($sourceSchedule) {
+                    // If source has leave (C or SD), use default working time instead
+                    if ($sourceSchedule->status === 'C' || $sourceSchedule->status === 'SD') {
+                        $timeIn = $defaultTimeIn;
+                        $status = 'working';
+                    } else {
+                        $timeIn = $sourceSchedule->time_in ?: $defaultTimeIn;
+                        $status = 'working';
+                    }
+                } else {
+                    // No source schedule for this day, use default
+                    $timeIn = $defaultTimeIn;
+                    $status = 'working';
                 }
-                
-                $sourceSchedule = $sourceSchedules->get($dayOfWeek);
                 
                 // Update or create target schedule
                 Schedule::updateOrCreate([
                     'user_id' => $user->id,
                     'date' => $targetDate->toDateString()
                 ], [
-                    'time_in' => $sourceSchedule->time_in,
-                    'status' => 'working'
+                    'time_in' => $timeIn,
+                    'status' => $status
                 ]);
                 
                 $copiedCount++;

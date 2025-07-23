@@ -33,8 +33,15 @@ export interface BulkUpdateChanges {
 
 export interface WeekPattern {
   user_id: number
-  start_date: string
+  source_week_start: string
   target_weeks: string[]
+}
+
+export interface GenerateWithTemplate {
+  template_week_start: string
+  month: number
+  year: number
+  employee_ids: number[]
 }
 
 class ScheduleService {
@@ -152,6 +159,23 @@ class ScheduleService {
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: "Failed to copy week pattern" }))
       throw new Error(error.message || "Failed to copy week pattern")
+    }
+
+    return response.json()
+  }
+
+  async generateSchedulesWithTemplate(
+    data: GenerateWithTemplate,
+  ): Promise<{ message: string; generated_count: number }> {
+    const response = await fetch(`${API_BASE_URL}/schedules/generate-with-template`, {
+      method: "POST",
+      headers: authService.getAuthHeaders(),
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Failed to generate schedules with template" }))
+      throw new Error(error.message || "Failed to generate schedules with template")
     }
 
     return response.json()

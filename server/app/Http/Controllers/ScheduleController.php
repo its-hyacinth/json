@@ -144,13 +144,13 @@ class ScheduleController extends Controller
     }
     
     /**
-     * Copy week schedule pattern (Admin only)
+     * Copy week schedule pattern (Admin only) - Fixed validation
      */
     public function copyWeekPattern(Request $request)
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'start_date' => 'required|date',
+            'source_week_start' => 'required|date',
             'target_weeks' => 'required|array|min:1',
             'target_weeks.*' => 'date'
         ]);
@@ -158,7 +158,7 @@ class ScheduleController extends Controller
         $user = User::find($request->user_id);
         $result = $this->scheduleService->copyWeekPattern(
             $user,
-            $request->start_date,
+            $request->source_week_start,
             $request->target_weeks
         );
         
@@ -180,5 +180,31 @@ class ScheduleController extends Controller
         $this->scheduleService->generateSchedulesForMonth($user);
         
         return $this->index($request);
+    }
+    
+    /**
+     * Generate schedules with template (Admin only)
+     */
+    public function generateWithTemplate(Request $request)
+    {
+        $request->validate([
+            'template_week_start' => 'required|date',
+            'month' => 'required|integer|between:1,12',
+            'year' => 'required|integer|min:2020',
+            'employee_ids' => 'required|array|min:1',
+            'employee_ids.*' => 'exists:users,id'
+        ]);
+        
+        $result = $this->scheduleService->generateSchedulesWithTemplate(
+            $request->template_week_start,
+            $request->month,
+            $request->year,
+            $request->employee_ids
+        );
+        
+        return response()->json([
+            'message' => 'Schedules generated with template successfully',
+            'generated_count' => $result['generated_count']
+        ]);
     }
 }

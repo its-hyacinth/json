@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/schedules/generate', [ScheduleController::class, 'generateForMonth']);
         Route::post('/schedules/bulk-update-future', [ScheduleController::class, 'bulkUpdateFuture']);
         Route::post('/schedules/copy-week-pattern', [ScheduleController::class, 'copyWeekPattern']);
+        Route::post('/schedules/generate-with-template', [ScheduleController::class, 'generateWithTemplate']);
         Route::get('/admin/schedules', [ScheduleController::class, 'adminIndex']);
         
         // Admin leave request management
@@ -43,6 +44,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/employees/search', [EmployeeController::class, 'search']);
         Route::get('/employees/{user}', [EmployeeController::class, 'show']);
         Route::put('/employees/{user}', [EmployeeController::class, 'update']);
-        Route::delete('/employees/{user}', [EmployeeController::class, 'destroy']);
+        Route::delete('/employees/{user}', [ScheduleController::class, 'destroy']);
     });
 });
