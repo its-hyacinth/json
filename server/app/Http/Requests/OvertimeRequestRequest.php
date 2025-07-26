@@ -11,7 +11,7 @@ class OvertimeRequestRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user() && $this->user()->is_admin;
+        return true;
     }
 
     /**

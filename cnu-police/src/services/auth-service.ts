@@ -2,7 +2,11 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/a
 
 export interface User {
   id: number
-  name: string
+  first_name: string
+  last_name: string
+  phone: string
+  address: string
+  division: string
   email: string
   role: "admin" | "employee"
   badge_number?: string

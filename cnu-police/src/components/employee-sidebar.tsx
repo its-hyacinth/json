@@ -22,13 +22,15 @@ import { EmployeeSchedule } from "./employee-schedule"
 import { EmployeeLeaveRequest } from "./employee-leave-request"
 import { EmployeeTrainingRequests } from "./employee-training-requests"
 import { EmployeeOvertime } from "./employee-overtime"
+import { ProfileSettings } from "./profile-settings"
 import { ThemeToggle } from "./theme-toggle"
+import { NotificationBell } from "./notification-bell"
 
 export function EmployeeSidebar() {
   const { user, logout } = useAuth()
-  const [activeView, setActiveView] = useState<"schedule" | "leave-request" | "training-requests" | "overtime">(
-    "schedule",
-  )
+  const [activeView, setActiveView] = useState<
+    "schedule" | "leave-request" | "training-requests" | "overtime" | "profile"
+  >("schedule")
 
   const menuItems = [
     {
@@ -51,7 +53,29 @@ export function EmployeeSidebar() {
       icon: Clock,
       key: "overtime" as const,
     },
+    {
+      title: "Profile",
+      icon: User,
+      key: "profile" as const,
+    },
   ]
+
+  const getPageTitle = () => {
+    switch (activeView) {
+      case "schedule":
+        return "My Schedule"
+      case "leave-request":
+        return "Leave Request"
+      case "training-requests":
+        return "Training Requests"
+      case "overtime":
+        return "Overtime"
+      case "profile":
+        return "Profile Settings"
+      default:
+        return "Dashboard"
+    }
+  }
 
   return (
     <>
@@ -90,7 +114,7 @@ export function EmployeeSidebar() {
               <div className="flex items-center space-x-2 p-2">
                 <User className="h-4 w-4" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium">{user?.name}</p>
+                  <p className="text-sm font-medium">{user?.first_name} {user?.last_name}</p>
                   <p className="text-xs text-muted-foreground">Employee</p>
                 </div>
               </div>
@@ -112,18 +136,9 @@ export function EmployeeSidebar() {
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="flex-1">
-            <h1 className="text-lg font-semibold">
-              {activeView === "schedule"
-                ? "My Schedule"
-                : activeView === "leave-request"
-                  ? "Leave Request"
-                  : activeView === "training-requests"
-                    ? "Training Requests"
-                    : activeView === "overtime"
-                      ? "Overtime"
-                      : "Dashboard"}
-            </h1>
+            <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
           </div>
+          <NotificationBell />
           <ThemeToggle />
         </header>
         <div className="flex-1 p-6">
@@ -131,6 +146,7 @@ export function EmployeeSidebar() {
           {activeView === "leave-request" && <EmployeeLeaveRequest />}
           {activeView === "training-requests" && <EmployeeTrainingRequests />}
           {activeView === "overtime" && <EmployeeOvertime />}
+          {activeView === "profile" && <ProfileSettings />}
         </div>
       </SidebarInset>
     </>

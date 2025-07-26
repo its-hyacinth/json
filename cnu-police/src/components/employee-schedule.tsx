@@ -69,11 +69,17 @@ export function EmployeeSchedule() {
   }
 
   const getEventsForDate = (date: Date): Event[] => {
+    const dateOnly = new Date(date.setHours(0, 0, 0, 0));
+    
     return events.filter((event) => {
-      const eventStart = new Date(event.start_date)
-      const eventEnd = new Date(event.end_date)
-      return date >= eventStart && date <= eventEnd
-    })
+      const eventStart = new Date(event.start_date);
+      eventStart.setHours(0, 0, 0, 0);
+      
+      const eventEnd = new Date(event.end_date);
+      eventEnd.setHours(23, 59, 59, 999); 
+      
+      return dateOnly >= eventStart && dateOnly <= eventEnd;
+    });
   }
 
   const handleEventClick = (event: Event) => {
