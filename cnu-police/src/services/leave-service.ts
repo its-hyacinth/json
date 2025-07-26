@@ -14,7 +14,9 @@ export interface LeaveRequest {
   updated_at: string
   user?: {
     id: number
-    name: string
+    first_name: string
+    last_name: string
+    division: string
     email: string
     badge_number?: string
   }

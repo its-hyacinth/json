@@ -17,13 +17,18 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Calendar, FileText, LogOut, Shield, User } from "lucide-react"
+import { Calendar, FileText, LogOut, Shield, User, GraduationCap, Clock } from "lucide-react"
 import { EmployeeSchedule } from "./employee-schedule"
 import { EmployeeLeaveRequest } from "./employee-leave-request"
+import { EmployeeTrainingRequests } from "./employee-training-requests"
+import { EmployeeOvertime } from "./employee-overtime"
+import { ThemeToggle } from "./theme-toggle"
 
 export function EmployeeSidebar() {
   const { user, logout } = useAuth()
-  const [activeView, setActiveView] = useState<"schedule" | "leave-request">("schedule")
+  const [activeView, setActiveView] = useState<"schedule" | "leave-request" | "training-requests" | "overtime">(
+    "schedule",
+  )
 
   const menuItems = [
     {
@@ -35,6 +40,16 @@ export function EmployeeSidebar() {
       title: "Leave Request",
       icon: FileText,
       key: "leave-request" as const,
+    },
+    {
+      title: "Training Requests",
+      icon: GraduationCap,
+      key: "training-requests" as const,
+    },
+    {
+      title: "Overtime",
+      icon: Clock,
+      key: "overtime" as const,
     },
   ]
 
@@ -81,10 +96,13 @@ export function EmployeeSidebar() {
               </div>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <Button variant="ghost" className="w-full justify-start" onClick={logout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
+              <div className="flex items-center gap-2 p-2">
+                <ThemeToggle />
+                <Button variant="ghost" className="flex-1 justify-start" onClick={logout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
@@ -94,12 +112,25 @@ export function EmployeeSidebar() {
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="flex-1">
-            <h1 className="text-lg font-semibold">{activeView === "schedule" ? "My Schedule" : "Leave Request"}</h1>
+            <h1 className="text-lg font-semibold">
+              {activeView === "schedule"
+                ? "My Schedule"
+                : activeView === "leave-request"
+                  ? "Leave Request"
+                  : activeView === "training-requests"
+                    ? "Training Requests"
+                    : activeView === "overtime"
+                      ? "Overtime"
+                      : "Dashboard"}
+            </h1>
           </div>
+          <ThemeToggle />
         </header>
         <div className="flex-1 p-6">
           {activeView === "schedule" && <EmployeeSchedule />}
           {activeView === "leave-request" && <EmployeeLeaveRequest />}
+          {activeView === "training-requests" && <EmployeeTrainingRequests />}
+          {activeView === "overtime" && <EmployeeOvertime />}
         </div>
       </SidebarInset>
     </>

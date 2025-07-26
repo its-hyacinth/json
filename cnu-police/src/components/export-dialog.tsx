@@ -94,6 +94,10 @@ export function ExportDialog({ open, onOpenChange, currentMonth }: ExportDialogP
           row.push("C (Leave)")
         } else if (schedule.status === "SD") {
           row.push("SD (Sick)")
+        } else if (schedule.status === "S") {
+          row.push("S (School/Training)")
+        } else if (schedule.status === "M") {
+          row.push("M (Military Attachment)")
         } else if (schedule.time_in) {
           row.push(format(new Date(`2000-01-01T${schedule.time_in}`), "HH:mm"))
         } else {
@@ -212,6 +216,16 @@ export function ExportDialog({ open, onOpenChange, currentMonth }: ExportDialogP
             color: #166534;
             font-weight: bold;
           }
+          .school { 
+            background-color: #f0fdf4; 
+            color: #166534;
+            font-weight: bold;
+          }
+          .military { 
+            background-color: #faf5ff; 
+            color: #7c3aed;
+            font-weight: bold;
+          }
           .legend {
             margin-top: 20px;
             display: flex;
@@ -299,6 +313,12 @@ export function ExportDialog({ open, onOpenChange, currentMonth }: ExportDialogP
           } else if (schedule.status === "SD") {
             cellClass += " sick"
             cellContent = "SD"
+          } else if (schedule.status === "S") {
+            cellClass += " school"
+            cellContent = "S"
+          } else if (schedule.status === "M") {
+            cellClass += " military"
+            cellContent = "M"
           } else if (schedule.time_in) {
             cellClass += " working"
             cellContent = format(new Date(`2000-01-01T${schedule.time_in}`), "HH:mm")
@@ -330,6 +350,14 @@ export function ExportDialog({ open, onOpenChange, currentMonth }: ExportDialogP
           <div class="legend-item">
             <div class="legend-color sick"></div>
             <span>Sick Leave (SD)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color school"></div>
+            <span>School/Training (S)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color military"></div>
+            <span>Military Attachment (M)</span>
           </div>
           <div class="legend-item">
             <div class="legend-color weekend"></div>

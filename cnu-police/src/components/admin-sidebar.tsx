@@ -18,14 +18,18 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Calendar, FileText, LogOut, Shield, Users } from "lucide-react"
+import { Calendar, FileText, LogOut, Shield, Users, GraduationCap, Clock } from "lucide-react"
 import { AdminSchedules } from "./admin-schedules"
 import { AdminLeaveRequests } from "./admin-leave-requests"
 import { ThemeToggle } from "./theme-toggle"
+import { AdminTrainingRequests } from "./admin-training-requests"
+import { AdminOvertime } from "./admin-overtime"
 
 export function AdminSidebar() {
   const { user, logout } = useAuth()
-  const [activeView, setActiveView] = useState<"schedules" | "leave-requests">("schedules")
+  const [activeView, setActiveView] = useState<"schedules" | "leave-requests" | "training-requests" | "overtime">(
+    "schedules",
+  )
 
   const menuItems = [
     {
@@ -37,6 +41,16 @@ export function AdminSidebar() {
       title: "Leave Requests",
       icon: FileText,
       key: "leave-requests" as const,
+    },
+    {
+      title: "Training Requests",
+      icon: GraduationCap,
+      key: "training-requests" as const,
+    },
+    {
+      title: "Overtime",
+      icon: Clock,
+      key: "overtime" as const,
     },
   ]
 
@@ -100,7 +114,15 @@ export function AdminSidebar() {
           <SidebarTrigger className="-ml-1" />
           <div className="flex-1">
             <h1 className="text-lg font-semibold">
-              {activeView === "schedules" ? "Employee Schedules" : "Leave Requests"}
+              {activeView === "schedules"
+                ? "Employee Schedules"
+                : activeView === "leave-requests"
+                  ? "Leave Requests"
+                  : activeView === "training-requests"
+                    ? "Training Requests"
+                    : activeView === "overtime"
+                      ? "Overtime Management"
+                      : "Dashboard"}
             </h1>
           </div>
           <ThemeToggle />
@@ -108,6 +130,8 @@ export function AdminSidebar() {
         <div className="flex-1 p-6">
           {activeView === "schedules" && <AdminSchedules />}
           {activeView === "leave-requests" && <AdminLeaveRequests />}
+          {activeView === "training-requests" && <AdminTrainingRequests />}
+          {activeView === "overtime" && <AdminOvertime />}
         </div>
       </SidebarInset>
     </>

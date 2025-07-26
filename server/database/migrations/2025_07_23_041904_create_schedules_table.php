@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->date('date');
             $table->time('time_in')->nullable();
-            $table->enum('status', ['working', 'C', 'SD', 'pending_C', 'pending_SD'])->default('working');
+            $table->enum('status', ['working', 'C', 'SD', 'S', 'M', 'pending_C', 'pending_SD'])->default('working');
             $table->timestamps();
             
             $table->unique(['user_id', 'date']);

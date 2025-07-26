@@ -4,7 +4,7 @@ import { useLeaveRequests } from "@/hooks/use-leave-requests"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Check, X, Clock, User } from "lucide-react"
+import { Check, X, Clock, User, FileText } from "lucide-react"
 import { format } from "date-fns"
 
 export function AdminLeaveRequests() {
@@ -57,7 +57,10 @@ export function AdminLeaveRequests() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Leave Requests</h2>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <FileText className="h-6 w-6" />
+            Leave Requests
+          </h2>
           <p className="text-muted-foreground">Manage employee leave requests and approvals</p>
         </div>
       </div>
@@ -76,12 +79,17 @@ export function AdminLeaveRequests() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <User className="h-4 w-4" />
-                    <CardTitle className="text-lg">{request.user?.name || "Unknown Employee"}</CardTitle>
+                    <CardTitle className="text-lg">
+                      {request.user?.first_name} {request.user?.last_name}
+                      <span className="text-sm text-muted-foreground ml-2">({request.user?.badge_number})</span>
+                    </CardTitle>
                     {getLeaveTypeBadge(request.type)}
                   </div>
                   {getStatusBadge(request.status)}
                 </div>
-                <CardDescription>Submitted on {format(new Date(request.created_at), "PPP")}</CardDescription>
+                <CardDescription>
+                  Submitted on {format(new Date(request.created_at), "PPP")} • {request.user?.division}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
@@ -98,15 +106,17 @@ export function AdminLeaveRequests() {
                         <span className="font-medium">Type:</span>{" "}
                         {request.type === "C" ? "Ordinary Leave" : "Sick Leave"}
                       </p>
+                      <p>
+                        <span className="font-medium">Status:</span>{" "}
+                        {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                      </p>
                     </div>
                   </div>
 
-                  {request.reason && (
-                    <div>
-                      <h4 className="font-medium mb-2">Reason</h4>
-                      <p className="text-sm text-muted-foreground">{request.reason}</p>
-                    </div>
-                  )}
+                  <div>
+                    <h4 className="font-medium mb-2">Reason</h4>
+                    <p className="text-sm text-muted-foreground">{request.reason || "No reason provided"}</p>
+                  </div>
                 </div>
 
                 {request.status === "pending" && (

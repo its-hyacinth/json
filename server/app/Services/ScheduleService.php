@@ -134,8 +134,8 @@ class ScheduleService
                     
                     // Determine time and status based on template
                     if ($templateSchedule) {
-                        // If template has leave (C or SD), use default working time instead
-                        if ($templateSchedule->status === 'C' || $templateSchedule->status === 'SD') {
+                        // If template has non-working status (C, SD, S, M), use default working time instead
+                        if (in_array($templateSchedule->status, ['C', 'SD', 'S', 'M'])) {
                             $timeIn = $defaultTimeIn;
                             $status = 'working';
                         } else {
@@ -175,7 +175,7 @@ class ScheduleService
         $sourceEnd = $sourceStart->copy()->endOfWeek(Carbon::SUNDAY);
         $defaultTimeIn = '08:00:00';
         
-        // Get source week schedules (including leave days) using ISO day format
+        // Get source week schedules (including all status types) using ISO day format
         $sourceSchedules = Schedule::where('user_id', $user->id)
             ->whereBetween('date', [$sourceStart->toDateString(), $sourceEnd->toDateString()])
             ->get()
@@ -198,8 +198,8 @@ class ScheduleService
                 $sourceSchedule = $sourceSchedules->get($isoDay);
                 
                 if ($sourceSchedule) {
-                    // If source has leave (C or SD), use default working time instead
-                    if ($sourceSchedule->status === 'C' || $sourceSchedule->status === 'SD') {
+                    // If source has non-working status (C, SD, S, M), use default working time instead
+                    if (in_array($sourceSchedule->status, ['C', 'SD', 'S', 'M'])) {
                         $timeIn = $defaultTimeIn;
                         $status = 'working';
                     } else {

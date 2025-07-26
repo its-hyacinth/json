@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Plus, Clock, Check, X } from "lucide-react"
+import { Plus, Clock, Check, X, FileText } from "lucide-react"
 import { format } from "date-fns"
 
 export function EmployeeLeaveRequest() {
@@ -89,7 +89,10 @@ export function EmployeeLeaveRequest() {
       {/* Header with New Request Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Leave Requests</h2>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <FileText className="h-6 w-6" />
+            Leave Requests
+          </h2>          
           <p className="text-muted-foreground">Submit and track your leave requests</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

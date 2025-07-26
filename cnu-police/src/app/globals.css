@@ -42,13 +42,13 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 210 30% 8%;
     --foreground: 210 40% 98%;
-    --card: 217.2 32.6% 17.5%;
+    --card: 210 25% 12%;
     --card-foreground: 210 40% 98%;
     --popover: 217.2 32.6% 17.5%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
+    --primary: 210 80% 45%;
     --primary-foreground: 210 40% 98%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -58,18 +58,18 @@
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
+    --border: 210 15% 25%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 217.2 91.2% 59.8%;
-    --chart-1: 217 91% 60%;
-    --chart-2: 201 96% 32%;
-    --chart-3: 199 89% 48%;
+    --ring: 210 80% 45%;
+    --chart-1: 210 80% 45%;
+    --chart-2: 210 70% 55%;
+    --chart-3: 210 60% 65%;
     --chart-4: 195 100% 39%;
     --chart-5: 210 100% 40%;
 
-    --sidebar-background: 217.2 32.6% 17.5%;
+    --sidebar-background: 210 20% 15%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217.2 91.2% 59.8%;
+    --sidebar-primary: 210 80% 45%;
     --sidebar-primary-foreground: 210 40% 98%;
     --sidebar-accent: 222.2 84% 4.9%;
     --sidebar-accent-foreground: 210 40% 98%;
@@ -195,10 +195,22 @@
 }
 
 @layer base {
+  @font-face {
+    font-family: 'Times New Roman';
+    src: local('Times New Roman'), local('TimesNewRomanPSMT');
+    font-weight: normal;
+    font-style: normal;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Times New Roman', serif;
+  }
+
+  .font-sans {
+    font-family: var(--font-geist-sans), sans-serif;
   }
 }

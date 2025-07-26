@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useEmployees } from "@/hooks/use-employees"
+import { useEvents } from "@/hooks/use-events"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Dialog,
   DialogContent,
@@ -35,6 +37,11 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  GraduationCap,
+  Shield,
+  Star,
+  Edit,
+  Trash2,
 } from "lucide-react"
 import {
   format,
@@ -51,6 +58,7 @@ import {
 } from "date-fns"
 import type { Schedule } from "@/services/schedule-service"
 import { scheduleService } from "@/services/schedule-service"
+import { EVENT_TYPES, type Event, type CreateEventData } from "@/services/event-service"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { ExportDialog } from "./export-dialog"
@@ -69,6 +77,18 @@ interface CopiedWeek {
   employeeName: string
   startDate: string
   schedules: Schedule[]
+}
+
+interface EditingEvent {
+  id?: number
+  title: string
+  description: string
+  event_type: string
+  start_date: string
+  end_date: string
+  start_time: string
+  end_time: string
+  location: string
 }
 
 export function AdminSchedules() {
@@ -91,14 +111,31 @@ export function AdminSchedules() {
   const [selectedPasteDates, setSelectedPasteDates] = useState<Date[]>([])
   const [pasting, setPasting] = useState(false)
 
-  // Add new state for template generation
+  // Template generation states
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [selectedTemplateDate, setSelectedTemplateDate] = useState<Date | undefined>(undefined)
   const [generatingWithTemplate, setGeneratingWithTemplate] = useState(false)
 
+  // Event states
+  const [showEventModal, setShowEventModal] = useState(false)
+  const [editingEvent, setEditingEvent] = useState<EditingEvent | null>(null)
+  const [savingEvent, setSavingEvent] = useState(false)
+  const [showEventsPanel, setShowEventsPanel] = useState(false)
+
   const [showExportDialog, setShowExportDialog] = useState(false)
 
   const { employees, loading: employeesLoading } = useEmployees()
+  const {
+    events,
+    loading: eventsLoading,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    fetchEvents,
+  } = useEvents({
+    month: selectedMonth.getMonth() + 1,
+    year: selectedMonth.getFullYear(),
+  })
   const { toast } = useToast()
 
   const monthDays = eachDayOfInterval({
@@ -111,6 +148,8 @@ export function AdminSchedules() {
   const workingDays = allSchedules.filter((s) => s.status === "working").length
   const leaveDays = allSchedules.filter((s) => s.status === "C").length
   const sickDays = allSchedules.filter((s) => s.status === "SD").length
+  const schoolDays = allSchedules.filter((s) => s.status === "S").length
+  const militaryDays = allSchedules.filter((s) => s.status === "M").length
 
   // Fetch schedules for all employees
   const fetchAllSchedules = async () => {
@@ -153,6 +192,14 @@ export function AdminSchedules() {
 
   const getScheduleForEmployeeAndDate = (employeeId: number, date: Date): Schedule | undefined => {
     return allSchedules.find((schedule) => schedule.user_id === employeeId && isSameDay(new Date(schedule.date), date))
+  }
+
+  const getEventsForDate = (date: Date): Event[] => {
+    return events.filter((event) => {
+      const eventStart = new Date(event.start_date)
+      const eventEnd = new Date(event.end_date)
+      return date >= eventStart && date <= eventEnd
+    })
   }
 
   // Soft update local state after successful backend operation
@@ -198,7 +245,7 @@ export function AdminSchedules() {
     try {
       const updateData = {
         time_in: editingSchedule.status === "working" ? editingSchedule.value : null,
-        status: editingSchedule.status as "working" | "C" | "SD",
+        status: editingSchedule.status as "working" | "C" | "SD" | "S" | "M",
       }
 
       let updatedSchedule: Schedule
@@ -245,6 +292,73 @@ export function AdminSchedules() {
       })
     } finally {
       setSavingSchedule(false)
+    }
+  }
+
+  // Event handling functions
+  const handleCreateEvent = () => {
+    setEditingEvent({
+      title: "",
+      description: "",
+      event_type: "1",
+      start_date: format(new Date(), "yyyy-MM-dd"),
+      end_date: format(new Date(), "yyyy-MM-dd"),
+      start_time: "09:00",
+      end_time: "17:00",
+      location: "",
+    })
+    setShowEventModal(true)
+  }
+
+  const handleEditEvent = (event: Event) => {
+    setEditingEvent({
+      id: event.id,
+      title: event.title,
+      description: event.description || "",
+      event_type: event.event_type,
+      start_date: event.start_date,
+      end_date: event.end_date,
+      start_time: event.start_time || "09:00",
+      end_time: event.end_time || "17:00",
+      location: event.location || "",
+    })
+    setShowEventModal(true)
+  }
+
+  const handleSaveEvent = async () => {
+    if (!editingEvent) return
+
+    setSavingEvent(true)
+    try {
+      const eventData: CreateEventData = {
+        title: editingEvent.title,
+        description: editingEvent.description,
+        event_type: editingEvent.event_type,
+        start_date: editingEvent.start_date,
+        end_date: editingEvent.end_date,
+        start_time: editingEvent.start_time,
+        end_time: editingEvent.end_time,
+        location: editingEvent.location,
+      }
+
+      if (editingEvent.id) {
+        await updateEvent(editingEvent.id, eventData)
+      } else {
+        await createEvent(eventData)
+      }
+
+      setShowEventModal(false)
+      setEditingEvent(null)
+    } catch (error) {
+      // Error handling is done in the hook
+    } finally {
+      setSavingEvent(false)
+    }
+  }
+
+  const handleDeleteEvent = async (eventId: number) => {
+    if (confirm("Are you sure you want to delete this event?")) {
+      await deleteEvent(eventId)
     }
   }
 
@@ -408,6 +522,32 @@ export function AdminSchedules() {
       )
     }
 
+    if (schedule.status === "S") {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <Badge
+            variant="outline"
+            className="text-xs font-bold bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300 border-green-300"
+          >
+            S
+          </Badge>
+        </div>
+      )
+    }
+
+    if (schedule.status === "M") {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <Badge
+            variant="outline"
+            className="text-xs font-bold bg-purple-100 text-purple-700 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-300 border-purple-300"
+          >
+            M
+          </Badge>
+        </div>
+      )
+    }
+
     if (schedule.time_in) {
       const timeIn = format(new Date(`2000-01-01T${schedule.time_in}`), "HH:mm")
       return (
@@ -428,9 +568,14 @@ export function AdminSchedules() {
     const dayOfWeek = getDay(date)
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
     const isTodayDate = isToday(date)
+    const hasEvents = getEventsForDate(date).length > 0
 
     if (isTodayDate) {
       return "bg-primary/10 border-primary/30"
+    }
+
+    if (hasEvents) {
+      return "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800"
     }
 
     if (isWeekend) {
@@ -513,6 +658,10 @@ export function AdminSchedules() {
               <Users className="h-3 w-3" />
               {employees.length} Employees
             </Badge>
+            <Badge variant="outline" className="gap-1 border-yellow-300">
+              <Star className="h-3 w-3" />
+              {events.length} Events
+            </Badge>
           </div>
         </div>
 
@@ -550,17 +699,20 @@ export function AdminSchedules() {
             </Button>
           </div>
 
-          {/* Update the controls section to include template generation */}
+          {/* Update the controls section to include event management */}
           <div className="flex gap-2">
+            <Button onClick={handleCreateEvent} variant="outline" size="sm" className="gap-2 bg-transparent">
+              <Star className="h-4 w-4" />
+              Add Event
+            </Button>
             <Button
-              onClick={fetchAllSchedules}
-              disabled={loading || generatingSchedules}
+              onClick={() => setShowEventsPanel(!showEventsPanel)}
               variant="outline"
               size="sm"
               className="gap-2 bg-transparent"
             >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-              Refresh
+              <Calendar className="h-4 w-4" />
+              {showEventsPanel ? "Hide Events" : "Show Events"}
             </Button>
             <Button
               onClick={() => setShowTemplateModal(true)}
@@ -599,9 +751,69 @@ export function AdminSchedules() {
           </div>
         </div>
 
+        {/* Events Panel */}
+        {showEventsPanel && (
+          <Card className="border-yellow-200">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Star className="h-5 w-5 text-yellow-600" />
+                Events for {format(selectedMonth, "MMMM yyyy")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {eventsLoading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : events.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">No events scheduled for this month</p>
+              ) : (
+                <div className="space-y-3">
+                  {events.map((event) => (
+                    <div
+                      key={event.id}
+                      className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            {EVENT_TYPES[event.event_type as keyof typeof EVENT_TYPES]}
+                          </Badge>
+                          <h4 className="font-semibold">{event.title}</h4>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {format(new Date(event.start_date), "MMM d")} -{" "}
+                          {format(new Date(event.end_date), "MMM d, yyyy")}
+                          {event.start_time && event.end_time && (
+                            <span className="ml-2">
+                              {event.start_time} - {event.end_time}
+                            </span>
+                          )}
+                        </p>
+                        {event.location && <p className="text-sm text-muted-foreground">📍 {event.location}</p>}
+                        {event.description && <p className="text-sm text-muted-foreground mt-1">{event.description}</p>}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="ghost" onClick={() => handleEditEvent(event)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleDeleteEvent(event.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Statistics */}
         {totalSchedules > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             <Card className="p-4 border-primary/10">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-primary" />
@@ -629,12 +841,30 @@ export function AdminSchedules() {
                 </div>
               </div>
             </Card>
+            <Card className="p-4 border-green-200">
+              <div className="flex items-center gap-2">
+                <GraduationCap className="h-4 w-4 text-green-600" />
+                <div>
+                  <p className="text-sm font-medium">School/Training</p>
+                  <p className="text-2xl font-bold text-green-600">{schoolDays}</p>
+                </div>
+              </div>
+            </Card>
             <Card className="p-4 border-purple-200">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-purple-600" />
+                <Shield className="h-4 w-4 text-purple-600" />
+                <div>
+                  <p className="text-sm font-medium">Military</p>
+                  <p className="text-2xl font-bold text-purple-600">{militaryDays}</p>
+                </div>
+              </div>
+            </Card>
+            <Card className="p-4 border-gray-200">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-gray-600" />
                 <div>
                   <p className="text-sm font-medium">Total Entries</p>
-                  <p className="text-2xl font-bold text-purple-600">{totalSchedules}</p>
+                  <p className="text-2xl font-bold text-gray-600">{totalSchedules}</p>
                 </div>
               </div>
             </Card>
@@ -651,7 +881,7 @@ export function AdminSchedules() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-6 bg-background border-2 border-primary/20 rounded flex items-center justify-center text-xs font-mono font-semibold">
                 08:00
@@ -677,16 +907,150 @@ export function AdminSchedules() {
               <span className="text-sm">Sick Leave</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-6 bg-primary/10 border-2 border-primary/30 rounded"></div>
-              <span className="text-sm">Today</span>
+              <Badge
+                variant="outline"
+                className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300 border-green-300"
+              >
+                S
+              </Badge>
+              <span className="text-sm">School/Training</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="outline"
+                className="bg-purple-100 text-purple-700 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-300 border-purple-300"
+              >
+                M
+              </Badge>
+              <span className="text-sm">Military</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-6 bg-yellow-50 border-2 border-yellow-200 rounded"></div>
+              <span className="text-sm">Event Day</span>
             </div>
             <div className="flex items-center gap-3">
               <Copy className="h-4 w-4 text-primary" />
-              <span className="text-sm">Click copy button to select week</span>
+              <span className="text-sm">Click copy button</span>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Event Modal */}
+      <Dialog open={showEventModal} onOpenChange={setShowEventModal}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingEvent?.id ? "Edit Event" : "Create New Event"}</DialogTitle>
+            <DialogDescription>
+              {editingEvent?.id ? "Update event details" : "Create a new event for the schedule"}
+            </DialogDescription>
+          </DialogHeader>
+          {editingEvent && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="event-title">Event Title</Label>
+                <Input
+                  id="event-title"
+                  value={editingEvent.title}
+                  onChange={(e) => setEditingEvent({ ...editingEvent, title: e.target.value })}
+                  placeholder="Enter event title"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="event-type">Event Type</Label>
+                <Select
+                  value={editingEvent.event_type}
+                  onValueChange={(value) => setEditingEvent({ ...editingEvent, event_type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(EVENT_TYPES).map(([key, value]) => (
+                      <SelectItem key={key} value={key}>
+                        {key} - {value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start-date">Start Date</Label>
+                  <Input
+                    id="start-date"
+                    type="date"
+                    value={editingEvent.start_date}
+                    onChange={(e) => setEditingEvent({ ...editingEvent, start_date: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end-date">End Date</Label>
+                  <Input
+                    id="end-date"
+                    type="date"
+                    value={editingEvent.end_date}
+                    onChange={(e) => setEditingEvent({ ...editingEvent, end_date: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start-time">Start Time</Label>
+                  <Input
+                    id="start-time"
+                    type="time"
+                    value={editingEvent.start_time}
+                    onChange={(e) => setEditingEvent({ ...editingEvent, start_time: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end-time">End Time</Label>
+                  <Input
+                    id="end-time"
+                    type="time"
+                    value={editingEvent.end_time}
+                    onChange={(e) => setEditingEvent({ ...editingEvent, end_time: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  value={editingEvent.location}
+                  onChange={(e) => setEditingEvent({ ...editingEvent, location: e.target.value })}
+                  placeholder="Enter event location"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={editingEvent.description}
+                  onChange={(e) => setEditingEvent({ ...editingEvent, description: e.target.value })}
+                  placeholder="Enter event description"
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEventModal(false)} disabled={savingEvent}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEvent} disabled={savingEvent || !editingEvent?.title}>
+              {savingEvent ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+              {editingEvent?.id ? "Update Event" : "Create Event"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Schedule Modal */}
       <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
@@ -713,6 +1077,8 @@ export function AdminSchedules() {
                     <SelectItem value="working">Working</SelectItem>
                     <SelectItem value="C">Ordinary Leave (C)</SelectItem>
                     <SelectItem value="SD">Sick Leave (SD)</SelectItem>
+                    <SelectItem value="S">School/Training (S)</SelectItem>
+                    <SelectItem value="M">Military (M)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -781,7 +1147,6 @@ export function AdminSchedules() {
                   />
                 </PopoverContent>
               </Popover>
-              {/* Update the week display in copy modal to show Monday-Sunday */}
               {selectedCopyDate && (
                 <p className="text-sm text-muted-foreground">
                   Week of {format(startOfWeek(selectedCopyDate, { weekStartsOn: 1 }), "MMM d")} -{" "}
@@ -849,7 +1214,6 @@ export function AdminSchedules() {
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Selected weeks:</p>
                   <div className="max-h-32 overflow-y-auto space-y-1">
-                    {/* Update the paste modal week display */}
                     {[
                       ...new Set(
                         selectedPasteDates.map((date) => format(startOfWeek(date, { weekStartsOn: 1 }), "yyyy-MM-dd")),
@@ -957,7 +1321,7 @@ export function AdminSchedules() {
           <CardTitle className="text-xl text-primary">Schedule Grid</CardTitle>
           <CardDescription>
             Click on any cell to edit schedule. Click the copy button next to employee names to copy week patterns.
-            Times are displayed in 24-hour format.
+            Times are displayed in 24-hour format. Yellow highlighted cells indicate event days.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -982,18 +1346,30 @@ export function AdminSchedules() {
                     <div className="p-3 text-sm font-semibold text-center border-r border-primary/20 bg-primary/10">
                       EMPLOYEE
                     </div>
-                    {monthDays.map((date) => (
-                      <div
-                        key={date.toISOString()}
-                        className={cn(
-                          "p-2 text-xs font-semibold text-center border-r border-primary/10 last:border-r-0",
-                          isToday(date) ? "bg-primary/20 text-primary" : "bg-primary/5",
-                        )}
-                      >
-                        <div className="font-bold">{format(date, "d")}</div>
-                        <div className="text-[10px] text-muted-foreground uppercase">{format(date, "EEE")}</div>
-                      </div>
-                    ))}
+                    {monthDays.map((date) => {
+                      const dayEvents = getEventsForDate(date)
+                      return (
+                        <div
+                          key={date.toISOString()}
+                          className={cn(
+                            "p-2 text-xs font-semibold text-center border-r border-primary/10 last:border-r-0 relative",
+                            isToday(date) ? "bg-primary/20 text-primary" : "bg-primary/5",
+                            dayEvents.length > 0 && "bg-yellow-100 dark:bg-yellow-900/30",
+                          )}
+                          title={
+                            dayEvents.length > 0 ? `Events: ${dayEvents.map((e) => e.title).join(", ")}` : undefined
+                          }
+                        >
+                          <div className="font-bold">{format(date, "d")}</div>
+                          <div className="text-[10px] text-muted-foreground uppercase">{format(date, "EEE")}</div>
+                          {dayEvents.length > 0 && (
+                            <div className="absolute top-1 right-1">
+                              <Star className="h-2 w-2 text-yellow-600" />
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
 
                   {/* Employee Rows */}
