@@ -432,7 +432,7 @@ export function EmployeeTrainingRequests() {
                       </div>
                       {request.estimated_cost && (
                         <div className="flex items-center gap-1">
-                          <DollarSign className="h-4 w-4" />${request.estimated_cost.toFixed(2)}
+                          <DollarSign className="h-4 w-4" />${request.estimated_cost}
                         </div>
                       )}
                     </div>

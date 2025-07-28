@@ -299,7 +299,7 @@ export function AdminTrainingRequests() {
                       {request.estimated_cost && (
                         <div className="flex items-center gap-1">
                           <DollarSign className="h-4 w-4" />
-                          ${request.estimated_cost.toFixed(2)}
+                          ${request.estimated_cost}
                         </div>
                       )}
                     </div>
@@ -419,7 +419,7 @@ export function AdminTrainingRequests() {
                     {selectedRequest.estimated_cost && (
                       <div>
                         <span className="font-medium">Estimated Cost:</span> $
-                        {selectedRequest.estimated_cost.toFixed(2)}
+                        {selectedRequest.estimated_cost}
                       </div>
                     )}
                   </div>
