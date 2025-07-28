@@ -238,10 +238,10 @@ export function EmployeeOvertime() {
                     <div>
                       <h4 className="font-medium mb-2">Compensation</h4>
                       <p className="text-sm text-muted-foreground">
-                        Rate: ${request.overtime_rate.toFixed(2)}/hour
+                        Rate: ${request.overtime_rate}/hour
                         {request.overtime_hours && (
                           <span className="ml-2">
-                            • Total: ${(request.overtime_rate * request.overtime_hours).toFixed(2)}
+                            • Total: ${(request.overtime_rate * request.overtime_hours)}
                           </span>
                         )}
                       </p>
