@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { useAccounts } from "@/hooks/use-accounts"
 import type { User, CreateUserData } from "@/services/account-service"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog"
 
 export function AdminAccounts() {
   const { users, loading, createUser, updateUser, deleteUser, resetPassword, fetchUsers } = useAccounts()
@@ -22,6 +23,7 @@ export function AdminAccounts() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [formData, setFormData] = useState<CreateUserData>({
     first_name: "",
@@ -97,6 +99,18 @@ export function AdminAccounts() {
     }
   }
 
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return
+
+    try {
+      await deleteUser(selectedUser.id)
+      setIsDeleteDialogOpen(false)
+      setSelectedUser(null)
+    } catch (error) {
+      // Error handled in hook
+    }
+  }
+
   const openEditDialog = (user: User) => {
     setSelectedUser(user)
     setFormData({
@@ -116,6 +130,11 @@ export function AdminAccounts() {
   const openPasswordDialog = (user: User) => {
     setSelectedUser(user)
     setIsPasswordDialogOpen(true)
+  }
+
+  const openDeleteDialog = (user: User) => {
+    setSelectedUser(user)
+    setIsDeleteDialogOpen(true)
   }
 
   return (
@@ -302,7 +321,7 @@ export function AdminAccounts() {
                       <Button variant="ghost" size="sm" onClick={() => openPasswordDialog(user)}>
                         <Key className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => deleteUser(user.id)}>
+                      <Button variant="ghost" size="sm" onClick={() => openDeleteDialog(user)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -434,6 +453,25 @@ export function AdminAccounts() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the user account
+              for {selectedUser?.first_name} {selectedUser?.last_name}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteUser} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

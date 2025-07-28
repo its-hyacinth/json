@@ -1,7 +1,6 @@
 "use client"
 
 import { SidebarInset } from "@/components/ui/sidebar"
-
 import { useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import {
@@ -27,12 +26,23 @@ import { AdminOvertime } from "./admin-overtime"
 import { AdminAccounts } from "./admin-accounts"
 import { ProfileSettings } from "./profile-settings"
 import { NotificationBell } from "./notification-bell"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export function AdminSidebar() {
   const { user, logout } = useAuth()
   const [activeView, setActiveView] = useState<
     "schedules" | "leave-requests" | "training-requests" | "overtime" | "accounts" | "profile"
   >("schedules")
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const menuItems = [
     {
@@ -86,6 +96,15 @@ export function AdminSidebar() {
     }
   }
 
+  const handleLogout = () => {
+    setShowLogoutConfirm(true)
+  }
+
+  const confirmLogout = () => {
+    logout()
+    setShowLogoutConfirm(false)
+  }
+
   return (
     <>
       <Sidebar>
@@ -131,7 +150,7 @@ export function AdminSidebar() {
             <SidebarMenuItem>
               <div className="flex items-center gap-2 p-2">
                 <ThemeToggle />
-                <Button variant="ghost" className="flex-1 justify-start" onClick={logout}>
+                <Button variant="ghost" className="flex-1 justify-start" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </Button>
@@ -159,6 +178,22 @@ export function AdminSidebar() {
           {activeView === "profile" && <ProfileSettings />}
         </div>
       </SidebarInset>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to logout? You'll need to sign in again to access the admin panel.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmLogout}>Logout</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

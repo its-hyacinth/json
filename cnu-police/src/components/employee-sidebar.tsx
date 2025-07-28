@@ -25,12 +25,23 @@ import { EmployeeOvertime } from "./employee-overtime"
 import { ProfileSettings } from "./profile-settings"
 import { ThemeToggle } from "./theme-toggle"
 import { NotificationBell } from "./notification-bell"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export function EmployeeSidebar() {
   const { user, logout } = useAuth()
   const [activeView, setActiveView] = useState<
     "schedule" | "leave-request" | "training-requests" | "overtime" | "profile"
   >("schedule")
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const menuItems = [
     {
@@ -75,6 +86,15 @@ export function EmployeeSidebar() {
       default:
         return "Dashboard"
     }
+  }
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true)
+  }
+
+  const confirmLogout = () => {
+    logout()
+    setShowLogoutConfirm(false)
   }
 
   return (
@@ -122,7 +142,7 @@ export function EmployeeSidebar() {
             <SidebarMenuItem>
               <div className="flex items-center gap-2 p-2">
                 <ThemeToggle />
-                <Button variant="ghost" className="flex-1 justify-start" onClick={logout}>
+                <Button variant="ghost" className="flex-1 justify-start" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </Button>
@@ -149,6 +169,22 @@ export function EmployeeSidebar() {
           {activeView === "profile" && <ProfileSettings />}
         </div>
       </SidebarInset>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to logout? You'll need to sign in again to access your employee portal.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmLogout}>Logout</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
