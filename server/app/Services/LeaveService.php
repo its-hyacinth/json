@@ -20,12 +20,18 @@ class LeaveService
             'status' => 'pending'
         ]);
         
+        NotificationService::sendLeaveRequestSubmitted($leaveRequest);
+        
         return $leaveRequest;
     }
-    
+
     public function processLeaveRequest(LeaveRequest $leaveRequest, $status)
     {
+        $previousStatus = $leaveRequest->status;
+        
         $leaveRequest->update(['status' => $status]);
+        
+        NotificationService::sendLeaveRequestStatusUpdate($leaveRequest, $previousStatus);
         
         if ($status === 'approved') {
             $this->updateSchedulesForLeave($leaveRequest);

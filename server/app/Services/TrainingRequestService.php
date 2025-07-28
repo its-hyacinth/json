@@ -81,7 +81,12 @@ class TrainingRequestService
     {
         $data['user_id'] = $user->id;
         
-        return TrainingRequest::create($data);
+        $trainingRequest = TrainingRequest::create($data);
+        
+        // Send notification to admins
+        NotificationService::sendTrainingRequestCreated($trainingRequest);
+        
+        return $trainingRequest;
     }
 
     /**
@@ -95,6 +100,10 @@ class TrainingRequestService
         }
 
         $trainingRequest->update($data);
+        
+        // Send notification about the update
+        NotificationService::sendTrainingRequestUpdated($trainingRequest);
+        
         return $trainingRequest->fresh();
     }
 
@@ -108,7 +117,23 @@ class TrainingRequestService
             throw new \Exception('Cannot delete training request that has already been processed.');
         }
 
-        return $trainingRequest->delete();
+        // Store info for notification before deletion
+        $user = $trainingRequest->user;
+        $title = $trainingRequest->title;
+        
+        $deleted = $trainingRequest->delete();
+        
+        if ($deleted) {
+            // Create a temporary object for notification
+            $tempRequest = new TrainingRequest([
+                'title' => $title,
+                'user' => $user
+            ]);
+            
+            NotificationService::sendTrainingRequestDeleted($tempRequest);
+        }
+        
+        return $deleted;
     }
 
     /**
@@ -130,6 +155,9 @@ class TrainingRequestService
         // Update employee schedule to mark training days as "S"
         $this->updateScheduleForTraining($trainingRequest);
 
+        // Send approval notification
+        NotificationService::sendTrainingRequestApproved($trainingRequest);
+        
         return $trainingRequest->fresh();
     }
 
@@ -149,6 +177,9 @@ class TrainingRequestService
             'admin_notes' => $adminNotes,
         ]);
 
+        // Send declined notification
+        NotificationService::sendTrainingRequestDeclined($trainingRequest);
+        
         return $trainingRequest->fresh();
     }
 
@@ -163,11 +194,15 @@ class TrainingRequestService
 
         $trainingRequest->update([
             'status' => 'completed',
+            'completed_at' => now(),
         ]);
 
         // Ensure schedule is marked as "S" for training days
         $this->updateScheduleForTraining($trainingRequest);
 
+        // Send completion notifications
+        NotificationService::sendTrainingRequestCompleted($trainingRequest);
+        
         return $trainingRequest->fresh();
     }
 

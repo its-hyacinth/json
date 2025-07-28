@@ -86,7 +86,12 @@ class OvertimeRequestService
             $data['overtime_hours'] = $end->diffInHours($start, true);
         }
         
-        return OvertimeRequest::create($data);
+        $overtimeRequest = OvertimeRequest::create($data);
+        
+        // Send notification
+        NotificationService::sendOvertimeRequestCreated($overtimeRequest->load(['requester', 'assignedEmployee']));
+        
+        return $overtimeRequest;
     }
 
     /**
@@ -110,6 +115,12 @@ class OvertimeRequestService
         }
 
         $overtimeRequest->update($data);
+        
+        // Send notification if any significant fields were changed
+        if (count(array_intersect(array_keys($data), ['start_time', 'end_time', 'reason', 'overtime_type']))) {
+            NotificationService::sendOvertimeRequestUpdated($overtimeRequest->load(['requester', 'assignedEmployee']));
+        }
+        
         return $overtimeRequest->fresh();
     }
 
@@ -123,6 +134,9 @@ class OvertimeRequestService
             throw new \Exception('Cannot delete overtime request that has already been responded to.');
         }
 
+        // Send notification before deletion
+        NotificationService::sendOvertimeRequestDeleted($overtimeRequest->load(['requester', 'assignedEmployee']));
+        
         return $overtimeRequest->delete();
     }
 
@@ -141,6 +155,9 @@ class OvertimeRequestService
             'responded_at' => now(),
         ]);
 
+        // Send notification
+        NotificationService::sendOvertimeRequestAccepted($overtimeRequest->load(['requester', 'assignedEmployee']));
+        
         return $overtimeRequest->fresh();
     }
 
@@ -159,6 +176,9 @@ class OvertimeRequestService
             'responded_at' => now(),
         ]);
 
+        // Send notification
+        NotificationService::sendOvertimeRequestDeclined($overtimeRequest->load(['requester', 'assignedEmployee']));
+        
         return $overtimeRequest->fresh();
     }
 
@@ -184,6 +204,9 @@ class OvertimeRequestService
             $overtimeRequests[] = $overtimeRequest->load(['requester', 'assignedEmployee', 'coveringForEmployee']);
         }
 
+        // Send notifications for all auto-created requests
+        NotificationService::sendAutoCreatedOvertimeRequests($overtimeRequests, $admin);
+        
         return $overtimeRequests;
     }
 

@@ -19,7 +19,8 @@ export interface Event {
   updated_at: string
   creator?: {
     id: number
-    name: string
+    first_name: string
+    last_name: string
     email: string
   }
 }

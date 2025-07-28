@@ -15,7 +15,6 @@ class EventService
     public function getEvents(array $filters = []): Collection|LengthAwarePaginator
     {
         $query = Event::with('creator')
-            ->active()
             ->orderBy('start_date', 'asc')
             ->orderBy('start_time', 'asc');
 
@@ -53,7 +52,12 @@ class EventService
     {
         $data['created_by'] = $user->id;
         
-        return Event::create($data);
+        $event = Event::create($data);
+        
+        // Send notifications to all users
+        NotificationService::sendNewEventNotificationToAll($event, $user->id);
+
+        return $event;
     }
 
     /**
@@ -61,7 +65,14 @@ class EventService
      */
     public function updateEvent(Event $event, array $data): Event
     {
+        $changes = $event->getDirty();
         $event->update($data);
+        
+        // Send update notification to all users if there are changes
+        if (!empty($changes)) {
+            NotificationService::sendEventUpdateNotificationToAll($event, $changes);
+        }
+        
         return $event->fresh();
     }
 
@@ -70,6 +81,7 @@ class EventService
      */
     public function deleteEvent(Event $event): bool
     {
+        NotificationService::sendEventCancellationNotificationToAll($event);
         return $event->update(['is_active' => false]);
     }
 
@@ -79,7 +91,6 @@ class EventService
     public function getEventsForDateRange(string $startDate, string $endDate): Collection
     {
         return Event::with('creator')
-            ->active()
             ->inDateRange($startDate, $endDate)
             ->orderBy('start_date', 'asc')
             ->orderBy('start_time', 'asc')
@@ -92,7 +103,6 @@ class EventService
     public function getEventsForDate(string $date): Collection
     {
         return Event::with('creator')
-            ->active()
             ->where('start_date', '<=', $date)
             ->where('end_date', '>=', $date)
             ->orderBy('start_time', 'asc')
@@ -104,8 +114,7 @@ class EventService
      */
     public function hasEventsOnDate(string $date): bool
     {
-        return Event::active()
-            ->where('start_date', '<=', $date)
+        return Event::where('start_date', '<=', $date)
             ->where('end_date', '>=', $date)
             ->exists();
     }

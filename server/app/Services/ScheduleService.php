@@ -4,10 +4,11 @@ namespace App\Services;
 use App\Models\Schedule;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Services\NotificationService;
 
 class ScheduleService
 {
-    public function generateSchedulesForMonth(User $user, $month = null, $year = null)
+    public function generateSchedulesForMonth(User $user, $month = null, $year = null, $createdBy = null)
     {
         $now = Carbon::now();
         $month = $month ?? $now->month;
@@ -29,9 +30,15 @@ class ScheduleService
             
             $startDate->addDay();
         }
+
+        // Send notification to user
+        $monthYear = $startDate->format('F Y');
+        NotificationService::sendScheduleGeneratedForMonth($user->id, $monthYear, $createdBy);
+        
+        return true;
     }
     
-    public function updateFutureSchedules(User $user, array $changes)
+    public function updateFutureSchedules(User $user, array $changes, $createdBy = null)
     {
         // Get the current date and time
         $today = Carbon::now();
@@ -41,6 +48,8 @@ class ScheduleService
             ->whereDate('date', '>=', $today->toDateString())
             ->orderBy('date')
             ->get();
+
+        $changesCount = 0;
 
         // Apply changes to each future schedule
         foreach ($futureSchedules as $schedule) {
@@ -52,17 +61,20 @@ class ScheduleService
                     case 'weekly':
                         if ($scheduleDate->dayOfWeek === $today->dayOfWeek) {
                             $this->applyChangesToSchedule($schedule, $changes);
+                            $changesCount++;
                         }
                         break;
                         
                     case 'monthly':
                         if ($scheduleDate->day === $today->day) {
                             $this->applyChangesToSchedule($schedule, $changes);
+                            $changesCount++;
                         }
                         break;
                         
                     case 'daily':
                         $this->applyChangesToSchedule($schedule, $changes);
+                        $changesCount++;
                         break;
                 }
             } 
@@ -73,21 +85,28 @@ class ScheduleService
                     Carbon::parse($changes['end_date'])
                 )) {
                     $this->applyChangesToSchedule($schedule, $changes);
+                    $changesCount++;
                 }
             }
             // For all future schedules without conditions
             else {
                 $this->applyChangesToSchedule($schedule, $changes);
+                $changesCount++;
             }
         }
+
+        // Only send notification if changes were made
+        if ($changesCount > 0) {
+            NotificationService::sendBulkScheduleUpdate([$user->id], $changes, $createdBy);
+        }
         
-        return true;
+        return $changesCount;
     }
 
     /**
      * Generate schedules for multiple employees using a template week
      */
-    public function generateSchedulesWithTemplate(string $templateWeekStart, int $month, int $year, array $employeeIds)
+    public function generateSchedulesWithTemplate(string $templateWeekStart, int $month, int $year, array $employeeIds, $createdBy = null)
     {
         $templateStart = Carbon::parse($templateWeekStart)->startOfWeek(Carbon::MONDAY);
         $templateEnd = $templateStart->copy()->endOfWeek(Carbon::SUNDAY);
@@ -159,6 +178,10 @@ class ScheduleService
                     $generatedCount++;
                 }
             }
+
+            // Send notification to each employee
+            $monthYear = $monthStart->format('F Y');
+            NotificationService::sendScheduleGeneratedForMonth($employeeId, $monthYear, $createdBy);
         }
         
         return [
@@ -167,9 +190,9 @@ class ScheduleService
     }
 
     /**
-     * Copy a week pattern to multiple target weeks (Fixed parameter name)
+     * Copy a week pattern to multiple target weeks
      */
-    public function copyWeekPattern(User $user, string $sourceWeekStart, array $targetWeekStarts)
+    public function copyWeekPattern(User $user, string $sourceWeekStart, array $targetWeekStarts, $createdBy = null)
     {
         $sourceStart = Carbon::parse($sourceWeekStart)->startOfWeek(Carbon::MONDAY);
         $sourceEnd = $sourceStart->copy()->endOfWeek(Carbon::SUNDAY);
@@ -225,6 +248,10 @@ class ScheduleService
             }
         }
 
+        // Send notification to user about the copied schedule pattern
+        $message = "Week pattern from {$sourceStart->format('M d')} has been applied to selected weeks";
+        NotificationService::sendScheduleUpdate([$user->id], $message, $createdBy);
+
         return [
             'copied_count' => $copiedCount,
             'source_schedules' => $sourceSchedules->count()
@@ -245,5 +272,29 @@ class ScheduleService
         }
         
         $schedule->save();
+    }
+
+    /**
+     * Check for schedule conflicts
+     */
+    public function checkForConflicts(User $user, $date, $timeIn, $createdBy = null)
+    {
+        $existingSchedule = Schedule::where('user_id', $user->id)
+            ->whereDate('date', $date)
+            ->first();
+
+        if ($existingSchedule && $existingSchedule->time_in !== $timeIn) {
+            // Notify admins about the conflict
+            $adminIds = NotificationService::getAdminUserIds();
+            NotificationService::sendScheduleConflictNotification(
+                $adminIds,
+                $user->first_name . ' ' . $user->last_name,
+                Carbon::parse($date)->format('M d, Y'),
+                $createdBy
+            );
+            return true;
+        }
+
+        return false;
     }
 }

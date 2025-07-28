@@ -603,7 +603,7 @@ export function EmployeeSchedule() {
 
               {selectedEvent.creator && (
                 <div className="pt-2 border-t">
-                  <p className="text-xs text-muted-foreground">Created by {selectedEvent.creator.name}</p>
+                  <p className="text-xs text-muted-foreground">Created by {selectedEvent.creator.first_name} {selectedEvent.creator.last_name}</p>
                 </div>
               )}
             </div>

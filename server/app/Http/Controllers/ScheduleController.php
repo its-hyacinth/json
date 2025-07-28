@@ -6,6 +6,7 @@ use App\Models\Schedule;
 use App\Models\User;
 use App\Services\ScheduleService;
 use Illuminate\Http\Request;
+use App\Services\NotificationService;
 use Carbon\Carbon;
 
 class ScheduleController extends Controller
@@ -115,7 +116,48 @@ class ScheduleController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
         
+        // Get the original data before update
+        $originalData = $schedule->getOriginal();
+        
+        // Perform the update
         $schedule->update($request->validated());
+        
+        // Get the changed fields
+        $changes = [];
+        foreach ($request->validated() as $key => $value) {
+            if ($originalData[$key] != $value) {
+                $changes[$key] = $value;
+            }
+        }
+        
+        // Send notification if there are changes
+        if (!empty($changes)) {
+            $message = "Your schedule has been updated: ";
+            $details = [];
+            
+            if (isset($changes['time_in'])) {
+                $details[] = "start time to {$changes['time_in']}";
+            }
+            if (isset($changes['time_out'])) {
+                $details[] = "end time to {$changes['time_out']}";
+            }
+            if (isset($changes['status'])) {
+                $details[] = "status to {$changes['status']}";
+            }
+            if (isset($changes['date'])) {
+                $details[] = "date to {$changes['date']}";
+            }
+            
+            $message .= implode(', ', $details);
+            
+            // Send notification to the schedule owner
+            NotificationService::sendScheduleNotification(
+                $schedule->user_id,
+                $message,
+                $user->id
+            );
+        }
+        
         return response()->json($schedule);
     }
     

@@ -12,7 +12,8 @@ export interface Schedule {
   updated_at: string
   user?: {
     id: number
-    name: string
+    first_name: string
+    last_name: string
     email: string
     badge_number?: string
   }

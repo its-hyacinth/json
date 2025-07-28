@@ -37,7 +37,12 @@ export function useNotifications() {
   const fetchUnreadCount = async () => {
     try {
       const response = await notificationService.getUnreadCount()
-      setUnreadCount(response.count)
+      const newCount = response.count
+      setUnreadCount(newCount)
+      // Refresh notifications if count increased or if we have no notifications
+      if (newCount > unreadCount || notifications.length === 0) {
+        fetchNotifications(1)
+      }
     } catch (error) {
       console.error("Failed to fetch unread count:", error)
     }
@@ -86,6 +91,9 @@ export function useNotifications() {
         title: "Success",
         description: "Notification sent successfully",
       })
+      // Refresh notifications after sending
+      fetchNotifications(1)
+      fetchUnreadCount()
     } catch (error) {
       toast({
         title: "Error",
