@@ -125,6 +125,31 @@
   .font-sans {
     font-family: var(--font-geist-sans), sans-serif;
   }
+
+  .glass-container {
+    perspective: 1000px;
+  }
+
+  .glass-card {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background-color: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .glass-card input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .glass-card input:-webkit-autofill,
+  .glass-card input:-webkit-autofill:hover,
+  .glass-card input:-webkit-autofill:focus,
+  .glass-card input:-webkit-autofill:active {
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: white;
+    transition: background-color 5000s ease-in-out 0s;
+  }
 }
 
 @theme inline {

@@ -182,30 +182,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        .glass-container {
-          perspective: 1000px;
-        }
-        .glass-card {
-          backdrop-filter: blur(20px) saturate(180%);
-          -webkit-backdrop-filter: blur(20px) saturate(180%);
-          background-color: rgba(255, 255, 255, 0.05);
-          box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-          border: 1px solid rgba(255, 255, 255, 0.18);
-        }
-        input::placeholder {
-          color: rgba(255, 255, 255, 0.5);
-        }
-        input:-webkit-autofill,
-        input:-webkit-autofill:hover,
-        input:-webkit-autofill:focus,
-        input:-webkit-autofill:active {
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: white;
-          transition: background-color 5000s ease-in-out 0s;
-        }
-      `}</style>
     </div>
   )
 }
