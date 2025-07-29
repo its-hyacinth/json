@@ -58,45 +58,51 @@
 
   .dark {
     /* Dark Theme - Navy Only */
-    --background: oklch(0.12 0.05 260); /* Very dark navy */
-    --foreground: oklch(0.85 0.08 260); /* Light navy text */
-    --card: oklch(0.15 0.06 260); /* Dark navy */
-    --card-foreground: oklch(0.85 0.08 260);
-    --popover: oklch(0.18 0.07 260);
-    --popover-foreground: oklch(0.85 0.08 260);
+    --background: oklch(0.98 0 0); /* White */
+    --foreground: oklch(0.38 0.12 260); /* Base navy */
+    --card: oklch(0.96 0 0); /* Off-white */
+    --card-foreground: oklch(0.38 0.12 260);
+    --popover: oklch(0.95 0 0);
+    --popover-foreground: oklch(0.38 0.12 260);
     
-    /* Navy Variations */
-    --primary: oklch(0.50 0.11 260); /* Brighter navy */
-    --primary-foreground: oklch(0.12 0.05 260);
-    --secondary: oklch(0.20 0.08 260);
-    --secondary-foreground: oklch(0.85 0.08 260);
-    --muted: oklch(0.16 0.07 260);
-    --muted-foreground: oklch(0.60 0.10 260);
-    --accent: oklch(0.25 0.10 260);
-    --accent-foreground: oklch(0.85 0.08 260);
+    /* Navy Blue Variations */
+    --primary: oklch(0.38 0.12 260); /* #19488c */
+    --primary-foreground: oklch(0.98 0 0);
+    --secondary: oklch(0.85 0.08 260); /* Light navy */
+    --secondary-foreground: oklch(0.38 0.12 260);
+    --muted: oklch(0.92 0.03 260); /* Very light navy tint */
+    --muted-foreground: oklch(0.50 0.09 260); /* Medium navy */
+    --accent: oklch(0.30 0.15 260); /* Darker navy */
+    --accent-foreground: oklch(0.98 0 0);
+    
+    /* Hover States - Much Lighter */
+    --hover: oklch(0.92 0.05 260); /* Very light navy tint */
+    --hover-primary: oklch(0.90 0.06 260); /* Slightly more tint for primary */
     
     /* Monochromatic Elements */
-    --destructive: oklch(0.25 0.10 260); /* Dark navy */
-    --border: oklch(0.22 0.09 260);
-    --input: oklch(0.18 0.08 260);
-    --ring: oklch(0.50 0.11 260);
+    --destructive: oklch(0.30 0.15 260); /* Dark navy as "destructive" */
+    --border: oklch(0.85 0.08 260); /* Light navy border */
+    --input: oklch(0.90 0.05 260); /* Slightly tinted input */
+    --ring: oklch(0.38 0.12 260); /* Base navy */
+    --radius: 0.5rem;
     
-    /* Chart Colors */
-    --chart-1: oklch(0.50 0.11 260);
-    --chart-2: oklch(0.55 0.10 260);
-    --chart-3: oklch(0.45 0.12 260);
-    --chart-4: oklch(0.60 0.09 260);
-    --chart-5: oklch(0.40 0.13 260);
+    /* Chart Colors - Navy Shades Only */
+    --chart-1: oklch(0.38 0.12 260); /* Base */
+    --chart-2: oklch(0.45 0.11 260); /* Slightly lighter */
+    --chart-3: oklch(0.32 0.13 260); /* Slightly darker */
+    --chart-4: oklch(0.50 0.10 260); /* Lighter */
+    --chart-5: oklch(0.28 0.14 260); /* Darker */
 
-    /* Sidebar */
-    --sidebar-background: oklch(0.15 0.07 260);
-    --sidebar-foreground: oklch(0.85 0.08 260);
-    --sidebar-primary: oklch(0.50 0.11 260);
-    --sidebar-primary-foreground: oklch(0.15 0.07 260);
-    --sidebar-accent: oklch(0.25 0.10 260);
-    --sidebar-accent-foreground: oklch(0.85 0.08 260);
-    --sidebar-border: oklch(0.20 0.09 260);
+    /* Sidebar - Closer to Base Navy */
+    --sidebar-background: oklch(0.40 0.12 260); /* Slightly lighter than base navy */
+    --sidebar-foreground: oklch(0.98 0 0); /* White text for better contrast */
+    --sidebar-primary: oklch(0.50 0.11 260); /* Brighter navy for primary */
+    --sidebar-primary-foreground: oklch(0.98 0 0);
+    --sidebar-accent: oklch(0.35 0.13 260); /* Between base and dark navy */
+    --sidebar-accent-foreground: oklch(0.98 0 0);
+    --sidebar-border: oklch(0.35 0.13 260); /* Matching accent */
     --sidebar-ring: oklch(0.50 0.11 260);
+    --sidebar-hover: oklch(0.45 0.11 260 / 0.3); /* Semi-transparent lighter navy */
   }
 }
 
