@@ -500,7 +500,7 @@ export function AdminSchedules() {
         <div className="flex items-center justify-center h-full">
           <Badge
             variant="secondary"
-            className="text-xs font-bold bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-300"
+            className="text-xs font-bold bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300"
           >
             C
           </Badge>
@@ -513,7 +513,7 @@ export function AdminSchedules() {
         <div className="flex items-center justify-center h-full">
           <Badge
             variant="destructive"
-            className="text-xs font-bold bg-red-100 text-red-700 hover:bg-red-100 dark:bg-red-900 dark:text-red-300"
+            className="text-xs font-bold bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300"
           >
             SD
           </Badge>
@@ -526,7 +526,7 @@ export function AdminSchedules() {
         <div className="flex items-center justify-center h-full">
           <Badge
             variant="outline"
-            className="text-xs font-bold bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300 border-green-300"
+            className="text-xs font-bold bg-cyan-100 text-cyan-700 hover:bg-cyan-100 dark:bg-cyan-900 dark:text-cyan-300 border-cyan-300"
           >
             S
           </Badge>
@@ -539,7 +539,7 @@ export function AdminSchedules() {
         <div className="flex items-center justify-center h-full">
           <Badge
             variant="outline"
-            className="text-xs font-bold bg-purple-100 text-purple-700 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-300 border-purple-300"
+            className="text-xs font-bold bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900 dark:text-amber-300 border-amber-300"
           >
             M
           </Badge>
@@ -1315,7 +1315,7 @@ export function AdminSchedules() {
             <div className="flex items-center gap-3">
               <Badge
                 variant="secondary"
-                className="bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-300"
+                className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300"
               >
                 C
               </Badge>
@@ -1324,7 +1324,7 @@ export function AdminSchedules() {
             <div className="flex items-center gap-3">
               <Badge
                 variant="destructive"
-                className="bg-red-100 text-red-700 hover:bg-red-100 dark:bg-red-900 dark:text-red-300"
+                className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300"
               >
                 SD
               </Badge>
@@ -1333,7 +1333,7 @@ export function AdminSchedules() {
             <div className="flex items-center gap-3">
               <Badge
                 variant="outline"
-                className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300 border-green-300"
+                className="bg-cyan-100 text-cyan-700 hover:bg-cyan-100 dark:bg-cyan-900 dark:text-cyan-300 border-cyan-300"
               >
                 S
               </Badge>
@@ -1342,7 +1342,7 @@ export function AdminSchedules() {
             <div className="flex items-center gap-3">
               <Badge
                 variant="outline"
-                className="bg-purple-100 text-purple-700 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-300 border-purple-300"
+                className="bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900 dark:text-amber-300 border-amber-300"
               >
                 M
               </Badge>
