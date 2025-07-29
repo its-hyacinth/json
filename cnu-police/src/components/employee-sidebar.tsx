@@ -25,6 +25,7 @@ import { EmployeeOvertime } from "./employee-overtime"
 import { ProfileSettings } from "./profile-settings"
 import { ThemeToggle } from "./theme-toggle"
 import { NotificationBell } from "./notification-bell"
+import Image from "next/image"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -102,10 +103,18 @@ export function EmployeeSidebar() {
       <Sidebar>
         <SidebarHeader className="border-b">
           <div className="flex items-center space-x-2 p-2">
-            <Shield className="h-6 w-6 text-blue-600" />
+            {/* Badge Image */}
+            <div className="relative h-10 w-10">
+              <Image 
+                src="/images/Badge.png" 
+                alt="CNU Police Badge"
+                fill
+                className="object-contain"
+              />
+            </div>
             <div>
               <h2 className="font-semibold">CNU Police Dept</h2>
-              <p className="text-xs text-muted-foreground">Employee Portal</p>
+              <p className="text-xs text-muted-foreground">Employee Panel</p>
             </div>
           </div>
         </SidebarHeader>
@@ -141,7 +150,6 @@ export function EmployeeSidebar() {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <div className="flex items-center gap-2 p-2">
-                <ThemeToggle />
                 <Button variant="ghost" className="flex-1 justify-start" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout

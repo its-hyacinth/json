@@ -140,8 +140,8 @@ export function NotificationBell() {
                 </Badge>
               )}
             </div>
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{notification.data.message}</p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs mt-1 line-clamp-2">{notification.data.message}</p>
+            <p className="text-xs mt-1">
               {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
             </p>
           </div>

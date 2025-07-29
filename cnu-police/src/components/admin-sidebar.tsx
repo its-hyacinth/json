@@ -26,6 +26,8 @@ import { AdminOvertime } from "./admin-overtime"
 import { AdminAccounts } from "./admin-accounts"
 import { ProfileSettings } from "./profile-settings"
 import { NotificationBell } from "./notification-bell"
+import Image from "next/image"
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,11 +53,6 @@ export function AdminSidebar() {
       key: "schedules" as const,
     },
     {
-      title: "Account Management",
-      icon: UserCheck,
-      key: "accounts" as const,
-    },
-    {
       title: "Leave Requests",
       icon: FileText,
       key: "leave-requests" as const,
@@ -71,6 +68,11 @@ export function AdminSidebar() {
       key: "overtime" as const,
     },
     {
+      title: "Account Management",
+      icon: UserCheck,
+      key: "accounts" as const,
+    },
+    {
       title: "Profile",
       icon: User,
       key: "profile" as const,
@@ -81,14 +83,14 @@ export function AdminSidebar() {
     switch (activeView) {
       case "schedules":
         return "Employee Schedules"
-      case "accounts":
-        return "Account Management"
       case "leave-requests":
         return "Leave Requests"
       case "training-requests":
         return "Training Requests"
       case "overtime":
         return "Overtime Management"
+      case "accounts":
+        return "Account Management"
       case "profile":
         return "Profile Settings"
       default:
@@ -110,7 +112,15 @@ export function AdminSidebar() {
       <Sidebar>
         <SidebarHeader className="border-b">
           <div className="flex items-center space-x-2 p-2">
-            <Shield className="h-6 w-6 text-blue-600" />
+            {/* Badge Image */}
+            <div className="relative h-10 w-10">
+              <Image 
+                src="/images/Badge.png" 
+                alt="CNU Police Badge"
+                fill
+                className="object-contain"
+              />
+            </div>
             <div>
               <h2 className="font-semibold">CNU Police Dept</h2>
               <p className="text-xs text-muted-foreground">Admin Panel</p>
@@ -149,7 +159,6 @@ export function AdminSidebar() {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <div className="flex items-center gap-2 p-2">
-                <ThemeToggle />
                 <Button variant="ghost" className="flex-1 justify-start" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Logout

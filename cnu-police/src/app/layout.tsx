@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "CNU Police Department - Schedule System",
+  icons: {
+    icon: "favicon.ico", 
+  },
   description: "Automatic work schedule management system for CNU Police Department",
 }
 
