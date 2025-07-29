@@ -192,15 +192,6 @@ export function EmployeeSchedule() {
     setSelectedMonth(direction === "prev" ? subMonths(selectedMonth, 1) : addMonths(selectedMonth, 1))
   }
 
-  // Statistics
-  const currentMonthSchedules = schedules.filter((s) => isSameMonth(new Date(s.date), selectedMonth))
-  const workingDays = currentMonthSchedules.filter((s) => s.status === "working").length
-  const leaveDays = currentMonthSchedules.filter((s) => s.status === "C").length
-  const sickDays = currentMonthSchedules.filter((s) => s.status === "SD").length
-  const schoolDays = currentMonthSchedules.filter((s) => s.status === "S").length
-  const militaryDays = currentMonthSchedules.filter((s) => s.status === "M").length
-  const totalEvents = events.length
-
   return (
     <div className="space-y-6">
       {/* Header with Navigation */}
@@ -236,95 +227,6 @@ export function EmployeeSchedule() {
           </Button>
         </div>
       </div>
-
-      {/* Statistics Cards */}
-      {(currentMonthSchedules.length > 0 || totalEvents > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-muted rounded-lg">
-                  <Clock className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Working Days</p>
-                  <p className="text-2xl font-bold">{workingDays}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-muted rounded-lg">
-                  <User className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Leave Days</p>
-                  <p className="text-2xl font-bold">{leaveDays}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-muted rounded-lg">
-                  <User className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Sick Days</p>
-                  <p className="text-2xl font-bold">{sickDays}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-muted rounded-lg">
-                  <GraduationCap className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">School/Training Days</p>
-                  <p className="text-2xl font-bold">{schoolDays}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-muted rounded-lg">
-                  <Shield className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Military Days</p>
-                  <p className="text-2xl font-bold">{militaryDays}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-yellow-100 rounded-lg">
-                  <Star className="h-4 w-4 text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Events This Month</p>
-                  <p className="text-2xl font-bold text-yellow-600">{totalEvents}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
 
       {/* Events List */}
       {events.length > 0 && (
@@ -388,63 +290,6 @@ export function EmployeeSchedule() {
           </CardContent>
         </Card>
       )}
-
-      {/* Legend */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Schedule Legend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-3">
-              <Badge variant="default" className="text-xs">
-                Working
-              </Badge>
-              <span className="text-sm">Regular work day</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="text-xs">
-                Leave
-              </Badge>
-              <span className="text-sm">Ordinary leave</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge variant="destructive" className="text-xs">
-                Sick
-              </Badge>
-              <span className="text-sm">Sick leave</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-primary/10 border-2 border-primary/30 rounded"></div>
-              <span className="text-sm">Today</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
-                School
-              </Badge>
-              <span className="text-sm">School/Training</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-300">
-                Military
-              </Badge>
-              <span className="text-sm">Military</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-yellow-50 border-2 border-yellow-200 rounded flex items-center justify-center">
-                <Star className="h-3 w-3 text-yellow-600" />
-              </div>
-              <span className="text-sm">Event Day</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
-                <Star className="h-2 w-2 mr-1" />1
-              </Badge>
-              <span className="text-sm">Event Badge</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Calendar Grid */}
       <Card>
@@ -544,6 +389,63 @@ export function EmployeeSchedule() {
               </div>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Legend */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Schedule Legend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex items-center gap-3">
+              <Badge variant="default" className="text-xs">
+                Working
+              </Badge>
+              <span className="text-sm">Regular work day</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge variant="secondary" className="text-xs">
+                Leave
+              </Badge>
+              <span className="text-sm">Ordinary leave</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge variant="destructive" className="text-xs">
+                Sick
+              </Badge>
+              <span className="text-sm">Sick leave</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 bg-primary/10 border-2 border-primary/30 rounded"></div>
+              <span className="text-sm">Today</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                School
+              </Badge>
+              <span className="text-sm">School/Training</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-300">
+                Military
+              </Badge>
+              <span className="text-sm">Military</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 bg-yellow-50 border-2 border-yellow-200 rounded flex items-center justify-center">
+                <Star className="h-3 w-3 text-yellow-600" />
+              </div>
+              <span className="text-sm">Event Day</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
+                <Star className="h-2 w-2 mr-1" />1
+              </Badge>
+              <span className="text-sm">Event Badge</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

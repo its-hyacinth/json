@@ -143,13 +143,6 @@ export function AdminSchedules() {
     end: endOfMonth(selectedMonth),
   })
 
-  // Statistics
-  const totalSchedules = allSchedules.length
-  const workingDays = allSchedules.filter((s) => s.status === "working").length
-  const leaveDays = allSchedules.filter((s) => s.status === "C").length
-  const sickDays = allSchedules.filter((s) => s.status === "SD").length
-  const schoolDays = allSchedules.filter((s) => s.status === "S").length
-  const militaryDays = allSchedules.filter((s) => s.status === "M").length
 
   // Fetch schedules for all employees
   const fetchAllSchedules = async () => {
@@ -816,131 +809,7 @@ export function AdminSchedules() {
             </CardContent>
           </Card>
         )}
-
-        {/* Statistics */}
-        {totalSchedules > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            <Card className="p-4 border-primary/10">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-primary" />
-                <div>
-                  <p className="text-sm font-medium">Working Days</p>
-                  <p className="text-2xl font-bold text-primary">{workingDays}</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-4 border-blue-200">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-blue-600" />
-                <div>
-                  <p className="text-sm font-medium">Leave Days</p>
-                  <p className="text-2xl font-bold text-blue-600">{leaveDays}</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-4 border-red-200">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-red-600" />
-                <div>
-                  <p className="text-sm font-medium">Sick Days</p>
-                  <p className="text-2xl font-bold text-red-600">{sickDays}</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-4 border-green-200">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4 text-green-600" />
-                <div>
-                  <p className="text-sm font-medium">School/Training</p>
-                  <p className="text-2xl font-bold text-green-600">{schoolDays}</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-4 border-purple-200">
-              <div className="flex items-center gap-2">
-                <Shield className="h-4 w-4 text-purple-600" />
-                <div>
-                  <p className="text-sm font-medium">Military</p>
-                  <p className="text-2xl font-bold text-purple-600">{militaryDays}</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-4 border-gray-200">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-gray-600" />
-                <div>
-                  <p className="text-sm font-medium">Total Entries</p>
-                  <p className="text-2xl font-bold text-gray-600">{totalSchedules}</p>
-                </div>
-              </div>
-            </Card>
-          </div>
-        )}
       </div>
-
-      {/* Legend */}
-      <Card className="border-primary/10">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-primary"></div>
-            Schedule Legend
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-6 bg-background border-2 border-primary/20 rounded flex items-center justify-center text-xs font-mono font-semibold">
-                08:00
-              </div>
-              <span className="text-sm">Working Time</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge
-                variant="secondary"
-                className="bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-300"
-              >
-                C
-              </Badge>
-              <span className="text-sm">Ordinary Leave</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge
-                variant="destructive"
-                className="bg-red-100 text-red-700 hover:bg-red-100 dark:bg-red-900 dark:text-red-300"
-              >
-                SD
-              </Badge>
-              <span className="text-sm">Sick Leave</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge
-                variant="outline"
-                className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300 border-green-300"
-              >
-                S
-              </Badge>
-              <span className="text-sm">School/Training</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge
-                variant="outline"
-                className="bg-purple-100 text-purple-700 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-300 border-purple-300"
-              >
-                M
-              </Badge>
-              <span className="text-sm">Military</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-6 bg-yellow-50 border-2 border-yellow-200 rounded"></div>
-              <span className="text-sm">Event Day</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Copy className="h-4 w-4 text-primary" />
-              <span className="text-sm">Click copy button</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Event Modal */}
       <Dialog open={showEventModal} onOpenChange={setShowEventModal}>
@@ -1424,6 +1293,70 @@ export function AdminSchedules() {
               </div>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Legend */}
+      <Card className="border-primary/10">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-primary"></div>
+            Schedule Legend
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-6 bg-background border-2 border-primary/20 rounded flex items-center justify-center text-xs font-mono font-semibold">
+                08:00
+              </div>
+              <span className="text-sm">Working Time</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="secondary"
+                className="bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-300"
+              >
+                C
+              </Badge>
+              <span className="text-sm">Ordinary Leave</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="destructive"
+                className="bg-red-100 text-red-700 hover:bg-red-100 dark:bg-red-900 dark:text-red-300"
+              >
+                SD
+              </Badge>
+              <span className="text-sm">Sick Leave</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="outline"
+                className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300 border-green-300"
+              >
+                S
+              </Badge>
+              <span className="text-sm">School/Training</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="outline"
+                className="bg-purple-100 text-purple-700 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-300 border-purple-300"
+              >
+                M
+              </Badge>
+              <span className="text-sm">Military</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-6 bg-yellow-50 border-2 border-yellow-200 rounded"></div>
+              <span className="text-sm">Event Day</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Copy className="h-4 w-4 text-primary" />
+              <span className="text-sm">Click copy button</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
       {/* Export Dialog */}

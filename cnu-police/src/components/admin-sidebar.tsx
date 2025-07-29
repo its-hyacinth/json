@@ -109,63 +109,57 @@ export function AdminSidebar() {
 
   return (
     <>
-      <Sidebar>
-        <SidebarHeader className="border-b">
-          <div className="flex items-center space-x-2 p-2">
-            {/* Badge Image */}
-            <div className="relative h-10 w-10">
-              <Image 
-                src="/images/Badge.png" 
-                alt="CNU Police Badge"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <div>
-              <h2 className="font-semibold">CNU Police Dept</h2>
-              <p className="text-xs text-muted-foreground">Admin Panel</p>
-            </div>
+      <Sidebar className="bg-gradient-to-b from-blue-900 to-blue-700 text-white w-64">
+        <SidebarHeader className="border-none py-8 flex flex-col items-center justify-center text-center">
+          <div className="relative w-20 h-20 mb-4">
+            <Image src="/images/Badge.png" alt="CNU Badge" fill className="object-contain" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-sm font-bold tracking-wide uppercase font-serif">Christopher Newport University</h2>
+            <p className="text-xs uppercase tracking-wide font-serif">Police Department</p>
+            <p className="text-sm text-white/80 mt-2">Admin Dashboard</p>
           </div>
         </SidebarHeader>
 
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Management</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {menuItems.map((item) => (
-                  <SidebarMenuItem key={item.key}>
-                    <SidebarMenuButton onClick={() => setActiveView(item.key)} isActive={activeView === item.key}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+        <SidebarContent className="px-2">
+          <SidebarMenu className="space-y-1">
+            {menuItems.map((item) => (
+              <SidebarMenuItem key={item.key}>
+                <SidebarMenuButton
+                  onClick={() => setActiveView(item.key)}
+                  isActive={activeView === item.key}
+                  className={`w-full px-4 py-3 rounded-md text-sm flex items-center gap-3 transition-colors ${
+                    activeView === item.key
+                      ? "bg-white/20 text-white font-semibold"
+                      : "hover:bg-white/10 text-white/80"
+                  }`}
+                >
+                  <item.icon className="h-4 w-4" />
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
         </SidebarContent>
 
-        <SidebarFooter className="border-t">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <div className="flex items-center space-x-2 p-2">
-                <Users className="h-4 w-4" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{user?.first_name} {user?.last_name}</p>
-                  <p className="text-xs text-muted-foreground">Administrator</p>
-                </div>
+        <SidebarFooter className="mt-auto p-4 border-none">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <Users className="h-4 w-4 text-white/80" />
+              <div>
+                <p className="text-sm font-medium">{user?.first_name} {user?.last_name}</p>
+                <p className="text-xs text-white/60">Administrator</p>
               </div>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <div className="flex items-center gap-2 p-2">
-                <Button variant="ghost" className="flex-1 justify-start" onClick={handleLogout}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
-              </div>
-            </SidebarMenuItem>
-          </SidebarMenu>
+            </div>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-white/80 hover:bg-white/10 px-0"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </SidebarFooter>
       </Sidebar>
 
@@ -176,7 +170,6 @@ export function AdminSidebar() {
             <h1 className="text-lg font-semibold">{getPageTitle()}</h1>
           </div>
           <NotificationBell />
-          <ThemeToggle />
         </header>
         <div className="flex-1 p-6">
           {activeView === "schedules" && <AdminSchedules />}
