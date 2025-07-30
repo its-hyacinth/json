@@ -45,36 +45,48 @@ export function EmployeeSchedule() {
     return allEmployees.filter((employee) => employee.role !== "admin")
   }, [allEmployees])
 
-  // Sort employees by today's start time (only after schedules are loaded)
   const sortedEmployees = useMemo(() => {
-    if (allSchedules.length === 0) {
-      // If no schedules loaded yet, return employees sorted by name
-      return [...filteredEmployees].sort((a, b) => a.last_name.localeCompare(b.last_name))
-    }
+    // Define the custom sort order
+    const customSortOrder = [
+      "OZMENT",
+      "CHERRY",
+      "DECKER",
+      "RICHARDS",
+      "LANZENDORF",
+      "SANDERS",
+      "DELGADO",
+      "HATTON",
+      "CERRUTI",
+      "AUSTIN",
+      "CRENSHAW",
+      "CAMACHO",
+      "SENTZ",
+      "WILLIAMS",
+      "GOLBAD",
+      "REYNOLDS"
+    ].map(name => name.toLowerCase()); // Convert to lowercase for case-insensitive comparison
 
-    const today = new Date()
     return [...filteredEmployees].sort((a, b) => {
-      const scheduleA = allSchedules.find((s) => s.user_id === a.id && isSameDay(new Date(s.date), today))
-      const scheduleB = allSchedules.find((s) => s.user_id === b.id && isSameDay(new Date(s.date), today))
+      // Get the index in the custom sort order (default to end if not found)
+      const indexA = customSortOrder.indexOf(a.last_name.toLowerCase());
+      const indexB = customSortOrder.indexOf(b.last_name.toLowerCase());
 
-      // Get start times, default to 24:00 for non-working statuses
-      const getStartTime = (schedule: Schedule | undefined) => {
-        if (!schedule || schedule.status !== "working" || !schedule.time_in) {
-          return "24:00" // Sort non-working to end
-        }
-        return schedule.time_in
+      // If both are in the custom order, sort by that
+      if (indexA !== -1 && indexB !== -1) {
+        return indexA - indexB;
       }
-
-      const timeA = getStartTime(scheduleA)
-      const timeB = getStartTime(scheduleB)
-
-      // Compare times, then by last name
-      if (timeA !== timeB) {
-        return timeA.localeCompare(timeB)
+      // If only A is in the custom order, it comes first
+      if (indexA !== -1) {
+        return -1;
       }
-      return a.last_name.localeCompare(b.last_name)
-    })
-  }, [filteredEmployees, allSchedules])
+      // If only B is in the custom order, it comes first
+      if (indexB !== -1) {
+        return 1;
+      }
+      // If neither is in the custom order, sort alphabetically
+      return a.last_name.localeCompare(b.last_name);
+    });
+  }, [filteredEmployees, allSchedules]);
 
   const { events, loading: eventsLoading } = useEvents({
     month: selectedMonth.getMonth() + 1,
