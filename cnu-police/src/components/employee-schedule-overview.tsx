@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useEmployees } from "@/hooks/use-employees"
 import { useEvents } from "@/hooks/use-events"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -44,7 +44,7 @@ export function EmployeeScheduleOverview() {
   const { toast } = useToast()
 
   // Fetch schedules for all employees
-  const fetchAllSchedules = useCallback(async () => {
+  const fetchAllSchedules = async () => {
     if (employees.length === 0) return
 
     setLoading(true)
@@ -74,13 +74,13 @@ export function EmployeeScheduleOverview() {
     } finally {
       setLoading(false)
     }
-  }, [employees, selectedMonth, toast])
+  }
 
   useEffect(() => {
-        if (!employeesLoading && employees.length > 0) {
-        fetchAllSchedules()
-        }
-    }, [fetchAllSchedules, employeesLoading, employees.length])
+    if (!employeesLoading && employees.length > 0) {
+      fetchAllSchedules()
+    }
+  }, [selectedMonth, employees, employeesLoading])
 
   const getScheduleForEmployeeAndDate = (employeeId: number, date: Date): Schedule | undefined => {
     return allSchedules.find((schedule) => schedule.user_id === employeeId && isSameDay(new Date(schedule.date), date))

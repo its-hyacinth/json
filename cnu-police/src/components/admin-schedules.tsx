@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useEmployees } from "@/hooks/use-employees"
 import { useEvents } from "@/hooks/use-events"
 import { Button } from "@/components/ui/button"
@@ -119,6 +119,35 @@ export function AdminSchedules() {
   const [showExportDialog, setShowExportDialog] = useState(false)
 
   const { employees, loading: employeesLoading } = useEmployees()
+
+  // Filter out admin users and sort by today's start time
+  const nonAdminEmployees = useMemo(() => {
+    const filtered = employees.filter((employee) => employee.role !== "admin")
+    const today = new Date()
+
+    return filtered.sort((a, b) => {
+      const scheduleA = allSchedules.find((s) => s.user_id === a.id && isSameDay(new Date(s.date), today))
+      const scheduleB = allSchedules.find((s) => s.user_id === b.id && isSameDay(new Date(s.date), today))
+
+      // Get start times, default to 24:00 for non-working statuses
+      const getStartTime = (schedule: Schedule | undefined) => {
+        if (!schedule || schedule.status !== "working" || !schedule.time_in) {
+          return "24:00" // Sort non-working to end
+        }
+        return schedule.time_in
+      }
+
+      const timeA = getStartTime(scheduleA)
+      const timeB = getStartTime(scheduleB)
+
+      // Compare times, then by last name
+      if (timeA !== timeB) {
+        return timeA.localeCompare(timeB)
+      }
+      return a.last_name.localeCompare(b.last_name)
+    })
+  }, [employees, allSchedules])
+
   const {
     events,
     loading: eventsLoading,
@@ -138,14 +167,14 @@ export function AdminSchedules() {
   })
 
   // Fetch schedules for all employees
-  const fetchAllSchedules = async () => {
-    if (employees.length === 0) return
+  const fetchAllSchedules = useCallback(async () => {
+    if (nonAdminEmployees.length === 0) return
 
     setLoading(true)
     try {
       const allEmployeeSchedules: Schedule[] = []
 
-      for (const employee of employees) {
+      for (const employee of nonAdminEmployees) {
         try {
           const schedules = await scheduleService.getAdminSchedules({
             month: selectedMonth.getMonth() + 1,
@@ -168,13 +197,13 @@ export function AdminSchedules() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [nonAdminEmployees, selectedMonth, toast])
 
   useEffect(() => {
-    if (!employeesLoading && employees.length > 0) {
+    if (!employeesLoading && nonAdminEmployees.length > 0) {
       fetchAllSchedules()
     }
-  }, [selectedMonth, employees, employeesLoading])
+  }, [selectedMonth, nonAdminEmployees, employeesLoading, fetchAllSchedules])
 
   const getScheduleForEmployeeAndDate = (employeeId: number, date: Date): Schedule | undefined => {
     return allSchedules.find((schedule) => schedule.user_id === employeeId && isSameDay(new Date(schedule.date), date))
@@ -213,7 +242,7 @@ export function AdminSchedules() {
   const handleCellClick = (employeeId: number, date: Date) => {
     if (loading || generatingSchedules) return
 
-    const employee = employees.find((e) => e.id === employeeId)
+    const employee = nonAdminEmployees.find((e) => e.id === employeeId)
     if (!employee) return
 
     const schedule = getScheduleForEmployeeAndDate(employeeId, date)
@@ -358,7 +387,7 @@ export function AdminSchedules() {
   const handleCopyWeek = () => {
     if (!copyingEmployeeId || !selectedCopyDate) return
 
-    const employee = employees.find((e) => e.id === copyingEmployeeId)
+    const employee = nonAdminEmployees.find((e) => e.id === copyingEmployeeId)
     if (!employee) return
 
     const weekStart = startOfWeek(selectedCopyDate, { weekStartsOn: 1 }) // Monday start
@@ -455,7 +484,7 @@ export function AdminSchedules() {
         template_week_start: format(templateWeekStart, "yyyy-MM-dd"),
         month: selectedMonth.getMonth() + 1,
         year: selectedMonth.getFullYear(),
-        employee_ids: employees.map((e) => e.id),
+        employee_ids: nonAdminEmployees.map((e) => e.id),
       })
 
       await fetchAllSchedules()
@@ -594,7 +623,7 @@ export function AdminSchedules() {
   const generateSchedulesForAll = async () => {
     setGeneratingSchedules(true)
     try {
-      for (const employee of employees) {
+      for (const employee of nonAdminEmployees) {
         await scheduleService.generateSchedules(employee.id, selectedMonth.getMonth() + 1, selectedMonth.getFullYear())
       }
       await fetchAllSchedules()
@@ -662,7 +691,7 @@ export function AdminSchedules() {
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="gap-1 border-primary/20">
               <Users className="h-3 w-3" />
-              {employees.length} Employees
+              {nonAdminEmployees.length} Employees
             </Badge>
             <Badge variant="outline" className="gap-1 border-yellow-300">
               <Star className="h-3 w-3" />
@@ -998,8 +1027,8 @@ export function AdminSchedules() {
             <DialogTitle>Copy Week Pattern</DialogTitle>
             <DialogDescription>
               Select a date to copy the entire week's schedule pattern from{" "}
-              {copyingEmployeeId && employees.find((e) => e.id === copyingEmployeeId)?.first_name}{" "}
-              {copyingEmployeeId && employees.find((e) => e.id === copyingEmployeeId)?.last_name}.
+              {copyingEmployeeId && nonAdminEmployees.find((e) => e.id === copyingEmployeeId)?.first_name}{" "}
+              {copyingEmployeeId && nonAdminEmployees.find((e) => e.id === copyingEmployeeId)?.last_name}.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -1225,7 +1254,7 @@ export function AdminSchedules() {
                   {/* Header Row */}
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="border border-gray-300 p-2 text-sm font-bold text-center w-40 bg-gray-200">
+                      <th className="border border-gray-300 p-2 text-sm font-bold text-center w-40 bg-gray-200 sticky left-0 z-10">
                         {format(selectedMonth, "MMMM yyyy").toUpperCase()}
                       </th>
                       {monthDays.map((date) => {
@@ -1259,7 +1288,7 @@ export function AdminSchedules() {
 
                   {/* Employee Rows */}
                   <tbody>
-                    {employees.map((employee, index) => (
+                    {nonAdminEmployees.map((employee, index) => (
                       <tr
                         key={employee.id}
                         className={cn(
@@ -1267,7 +1296,7 @@ export function AdminSchedules() {
                           index % 2 === 0 ? "bg-white" : "bg-gray-50/50",
                         )}
                       >
-                        <td className="border border-gray-300 p-2 bg-gray-100 font-bold text-sm">
+                        <td className="border border-gray-300 p-2 bg-gray-100 font-bold text-sm sticky left-0 z-10">
                           <div className="flex items-center justify-between group">
                             <div className="min-w-0 flex-1">
                               <div className="font-bold text-sm truncate uppercase">{employee.last_name}</div>
