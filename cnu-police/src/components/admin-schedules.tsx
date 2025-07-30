@@ -25,20 +25,14 @@ import {
   Download,
   Plus,
   Save,
-  RefreshCw,
   Calendar,
   Users,
-  Clock,
-  AlertCircle,
-  CheckCircle2,
   Loader2,
   Copy,
   Clipboard,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
-  GraduationCap,
-  Shield,
   Star,
   Edit,
   Trash2,
@@ -143,7 +137,6 @@ export function AdminSchedules() {
     end: endOfMonth(selectedMonth),
   })
 
-
   // Fetch schedules for all employees
   const fetchAllSchedules = async () => {
     if (employees.length === 0) return
@@ -188,17 +181,17 @@ export function AdminSchedules() {
   }
 
   const getEventsForDate = (date: Date): Event[] => {
-    const dateOnly = new Date(date.setHours(0, 0, 0, 0));
-    
+    const dateOnly = new Date(date.setHours(0, 0, 0, 0))
+
     return events.filter((event) => {
-      const eventStart = new Date(event.start_date);
-      eventStart.setHours(0, 0, 0, 0);
-      
-      const eventEnd = new Date(event.end_date);
-      eventEnd.setHours(23, 59, 59, 999); 
-      
-      return dateOnly >= eventStart && dateOnly <= eventEnd;
-    });
+      const eventStart = new Date(event.start_date)
+      eventStart.setHours(0, 0, 0, 0)
+
+      const eventEnd = new Date(event.end_date)
+      eventEnd.setHours(23, 59, 59, 999)
+
+      return dateOnly >= eventStart && dateOnly <= eventEnd
+    })
   }
 
   // Soft update local state after successful backend operation
@@ -1225,86 +1218,141 @@ export function AdminSchedules() {
               </div>
             </div>
           ) : (
-            <div className="w-[70vw] ml-10">
-              <div className="overflow-x-auto">
-                <div className="min-w-max border-t">
+            <div className="w-full overflow-x-auto">
+              <div className="min-w-max">
+                {/* Spreadsheet-style table */}
+                <table className="w-full border-collapse border border-gray-300">
                   {/* Header Row */}
-                  <div
-                    className="grid gap-0 bg-primary/5 border-b-2 border-primary/20"
-                    style={{ gridTemplateColumns: `200px repeat(${monthDays.length}, 56px)` }}
-                  >
-                    <div className="p-3 text-sm font-semibold text-center border-r border-primary/20 bg-primary/10">
-                      EMPLOYEE
-                    </div>
-                    {monthDays.map((date) => {
-                      const dayEvents = getEventsForDate(date)
-                      return (
-                        <div
-                          key={date.toISOString()}
-                          className={cn(
-                            "p-2 text-xs font-semibold text-center border-r border-primary/10 last:border-r-0 relative",
-                            isToday(date) ? "bg-primary/20 text-primary" : "bg-primary/5",
-                            dayEvents.length > 0 && "bg-yellow-100 dark:bg-yellow-900/30",
-                          )}
-                          title={
-                            dayEvents.length > 0 ? `Events: ${dayEvents.map((e) => e.title).join(", ")}` : undefined
-                          }
-                        >
-                          <div className="font-bold">{format(date, "d")}</div>
-                          <div className="text-[10px] text-muted-foreground uppercase">{format(date, "EEE")}</div>
-                          {dayEvents.length > 0 && (
-                            <div className="absolute top-1 right-1">
-                              <Star className="h-2 w-2 text-yellow-600" />
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 p-2 text-sm font-bold text-center w-40 bg-gray-200">
+                        {format(selectedMonth, "MMMM yyyy").toUpperCase()}
+                      </th>
+                      {monthDays.map((date) => {
+                        const dayEvents = getEventsForDate(date)
+                        return (
+                          <th
+                            key={date.toISOString()}
+                            className={cn(
+                              "border border-gray-300 p-1 text-xs font-bold text-center w-12 relative",
+                              isToday(date) ? "bg-blue-200" : "bg-gray-100",
+                              dayEvents.length > 0 && "bg-yellow-200",
+                            )}
+                            title={
+                              dayEvents.length > 0 ? `Events: ${dayEvents.map((e) => e.title).join(", ")}` : undefined
+                            }
+                          >
+                            <div className="font-bold text-sm">{format(date, "d")}</div>
+                            <div className="text-[10px] text-gray-600 uppercase font-bold">
+                              {format(date, "EEE")[0]}
                             </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
+                            {dayEvents.length > 0 && (
+                              <div className="absolute top-0 right-0">
+                                <Star className="h-2 w-2 text-yellow-600" />
+                              </div>
+                            )}
+                          </th>
+                        )
+                      })}
+                    </tr>
+                  </thead>
 
                   {/* Employee Rows */}
-                  {employees.map((employee, index) => (
-                    <div
-                      key={employee.id}
-                      className="grid gap-0 border-b last:border-b-0 hover:bg-primary/5 transition-colors"
-                      style={{ gridTemplateColumns: `200px repeat(${monthDays.length}, 56px)` }}
-                    >
-                      <div className="p-3 border-r border-primary/10 bg-primary/5 flex items-center justify-between group">
-                        <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-sm truncate">
-                            {employee.first_name} {employee.last_name}
+                  <tbody>
+                    {employees.map((employee, index) => (
+                      <tr
+                        key={employee.id}
+                        className={cn(
+                          "hover:bg-gray-50 transition-colors",
+                          index % 2 === 0 ? "bg-white" : "bg-gray-50/50",
+                        )}
+                      >
+                        <td className="border border-gray-300 p-2 bg-gray-100 font-bold text-sm">
+                          <div className="flex items-center justify-between group">
+                            <div className="min-w-0 flex-1">
+                              <div className="font-bold text-sm truncate uppercase">{employee.last_name}</div>
+                              {employee.first_name && (
+                                <div className="text-xs text-gray-600 truncate">{employee.first_name}</div>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+                              onClick={() => handleOpenCopyModal(employee.id)}
+                              title="Copy week pattern"
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
                           </div>
-                          <div className="text-xs text-muted-foreground">{employee.badge_number}</div>
-                          {employee.division && (
-                            <div className="text-xs text-muted-foreground truncate">{employee.division}</div>
-                          )}
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-8 w-8"
-                          onClick={() => handleOpenCopyModal(employee.id)}
-                          title="Copy week pattern"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
+                        </td>
 
-                      {monthDays.map((date) => (
-                        <div
-                          key={`${employee.id}-${date.toISOString()}`}
-                          className={cn(
-                            "border-r border-primary/10 last:border-r-0 cursor-pointer hover:bg-primary/10 min-h-[70px] flex items-center justify-center relative transition-all duration-200",
-                            getCellBackground(date, index),
-                          )}
-                          onClick={() => handleCellClick(employee.id, date)}
-                        >
-                          {getCellContent(employee.id, date)}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
+                        {monthDays.map((date) => {
+                          const schedule = getScheduleForEmployeeAndDate(employee.id, date)
+                          const dayOfWeek = getDay(date)
+                          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+                          const isTodayDate = isToday(date)
+                          const hasEvents = getEventsForDate(date).length > 0
+
+                          let cellBg = "bg-white"
+                          if (isTodayDate) {
+                            cellBg = "bg-blue-100"
+                          } else if (hasEvents) {
+                            cellBg = "bg-yellow-100"
+                          } else if (isWeekend) {
+                            cellBg = "bg-gray-100"
+                          }
+
+                          // Special background colors for different statuses
+                          if (schedule?.status === "C") {
+                            cellBg = "bg-yellow-200"
+                          } else if (schedule?.status === "SD") {
+                            cellBg = "bg-green-200"
+                          } else if (schedule?.status === "S") {
+                            cellBg = "bg-cyan-200"
+                          } else if (schedule?.status === "M") {
+                            cellBg = "bg-amber-200"
+                          } else if (schedule?.status === "CT") {
+                            cellBg = "bg-indigo-200"
+                          }
+
+                          return (
+                            <td
+                              key={`${employee.id}-${date.toISOString()}`}
+                              className={cn(
+                                "border border-gray-300 p-1 text-center cursor-pointer hover:bg-gray-200 transition-colors h-12 w-12",
+                                cellBg,
+                              )}
+                              onClick={() => handleCellClick(employee.id, date)}
+                            >
+                              <div className="flex items-center justify-center h-full">
+                                {!schedule ? (
+                                  <span className="text-xs text-gray-400 font-bold">0</span>
+                                ) : schedule.status === "C" ? (
+                                  <span className="text-xs font-bold text-black">C</span>
+                                ) : schedule.status === "SD" ? (
+                                  <span className="text-xs font-bold text-black">SD</span>
+                                ) : schedule.status === "S" ? (
+                                  <span className="text-xs font-bold text-black">S</span>
+                                ) : schedule.status === "M" ? (
+                                  <span className="text-xs font-bold text-black">M</span>
+                                ) : schedule.status === "CT" ? (
+                                  <span className="text-xs font-bold text-black">CT</span>
+                                ) : schedule.time_in ? (
+                                  <span className="text-xs font-bold text-black">
+                                    {Number.parseInt(schedule.time_in.split(":")[0])}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-gray-400 font-bold">0</span>
+                                )}
+                              </div>
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}

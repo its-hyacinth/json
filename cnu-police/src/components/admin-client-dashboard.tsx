@@ -14,8 +14,7 @@ export default function ClientAdminDashboard() {
   useEffect(() => {
     if (!loading) {
       if (!user || user.role !== "admin") {
-        logout() // Call logout if user is not authenticated or not an admin
-        router.push("/")
+        logout().then(() => router.push("/"))
       }
     }
   }, [user, loading, router, logout])

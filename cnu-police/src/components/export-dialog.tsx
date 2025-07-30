@@ -57,11 +57,17 @@ export function ExportDialog({ open, onOpenChange, currentMonth }: ExportDialogP
     const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0)
     const daysInMonth = monthEnd.getDate()
 
-    // Create header row with dates
-    const headers = ["Employee", "Badge Number", "Division"]
+    // Create header row exactly like the image
+    const monthYearHeader = [format(month, "MMMM yyyy").toUpperCase()]
+    for (let day = 1; day <= daysInMonth; day++) {
+      monthYearHeader.push(day.toString())
+    }
+
+    // Create day abbreviation row
+    const dayAbbrevHeader = [""]
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(month.getFullYear(), month.getMonth(), day)
-      headers.push(`${day} (${format(date, "EEE")})`)
+      dayAbbrevHeader.push(format(date, "EEEEE")) // Single letter day abbreviation
     }
 
     // Group schedules by employee
@@ -78,34 +84,46 @@ export function ExportDialog({ open, onOpenChange, currentMonth }: ExportDialogP
     )
 
     // Create data rows
-    const rows = [headers]
+    const rows = [monthYearHeader, dayAbbrevHeader]
 
     const targetEmployees =
       includeEmployees === "all" ? employees : employees.filter((e) => selectedEmployeeIds.includes(e.id))
 
     targetEmployees.forEach((employee) => {
-      const row = [`${employee.first_name} ${employee.last_name}`, employee.badge_number || "", employee.division || ""]
+      const row = [employee.last_name.toUpperCase()]
 
       for (let day = 1; day <= daysInMonth; day++) {
         const schedule = schedulesByEmployee[employee.id]?.[day]
         if (!schedule) {
-          row.push("-")
+          row.push("0")
         } else if (schedule.status === "C") {
-          row.push("C (Leave)")
+          row.push("C")
         } else if (schedule.status === "SD") {
-          row.push("SD (Sick)")
+          row.push("SD")
         } else if (schedule.status === "S") {
-          row.push("S (School/Training)")
+          row.push("S")
         } else if (schedule.status === "M") {
-          row.push("M (Military Attachment)")
+          row.push("M")
+        } else if (schedule.status === "CT") {
+          row.push("CT")
         } else if (schedule.time_in) {
-          row.push(format(new Date(`2000-01-01T${schedule.time_in}`), "HH:mm"))
+          // Extract hour from time and display as number
+          const hour = Number.parseInt(schedule.time_in.split(":")[0])
+          row.push(hour.toString())
         } else {
-          row.push("Working")
+          row.push("0")
         }
       }
       rows.push(row)
     })
+
+    // Add events row if there are any events
+    const eventsRow = ["EVENTS"]
+    for (let day = 1; day <= daysInMonth; day++) {
+      // You can add event logic here if needed
+      eventsRow.push("")
+    }
+    rows.push(eventsRow)
 
     return rows
   }
@@ -127,7 +145,6 @@ export function ExportDialog({ open, onOpenChange, currentMonth }: ExportDialogP
   }
 
   const exportToPDF = async (schedules: Schedule[], month: Date) => {
-    // Create a printable HTML version
     const monthStart = new Date(month.getFullYear(), month.getMonth(), 1)
     const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0)
     const daysInMonth = monthEnd.getDate()
@@ -148,155 +165,120 @@ export function ExportDialog({ open, onOpenChange, currentMonth }: ExportDialogP
       {} as Record<number, Record<number, Schedule>>,
     )
 
-    // Create HTML content
+    // Create HTML content that matches the spreadsheet exactly
     let htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>CNU Police Department - Schedule Report</title>
-        <style>
-          body { 
-            font-family: Arial, sans-serif; 
-            margin: 20px; 
-            font-size: 12px;
-          }
-          .header { 
-            text-align: center; 
-            margin-bottom: 30px; 
-            border-bottom: 2px solid #333;
-            padding-bottom: 20px;
-          }
-          .header h1 { 
-            color: #1e40af; 
-            margin: 0;
-            font-size: 24px;
-          }
-          .header h2 { 
-            color: #666; 
-            margin: 5px 0;
-            font-size: 18px;
-          }
-          .schedule-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 20px;
-            font-size: 10px;
-          }
-          .schedule-table th, .schedule-table td { 
-            border: 1px solid #ddd; 
-            padding: 4px; 
-            text-align: center;
-          }
-          .schedule-table th { 
-            background-color: #1e40af; 
-            color: white; 
-            font-weight: bold;
-          }
-          .employee-cell {
-            background-color: #f8fafc;
-            text-align: left;
-            font-weight: bold;
-            min-width: 120px;
-          }
-          .weekend { 
-            background-color: #f3f4f6; 
-          }
-          .leave { 
-            background-color: #dbeafe; 
-            color: #1e40af;
-            font-weight: bold;
-          }
-          .sick { 
-            background-color: #fee2e2; 
-            color: #dc2626;
-            font-weight: bold;
-          }
-          .working { 
-            background-color: #f0fdf4; 
-            color: #166534;
-            font-weight: bold;
-          }
-          .school { 
-            background-color: #f0fdf4; 
-            color: #166534;
-            font-weight: bold;
-          }
-          .military { 
-            background-color: #faf5ff; 
-            color: #7c3aed;
-            font-weight: bold;
-          }
-          .legend {
-            margin-top: 20px;
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-          }
-          .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-          }
-          .legend-color {
-            width: 20px;
-            height: 15px;
-            border: 1px solid #ccc;
-          }
-          @media print {
-            body { margin: 10px; }
-            .no-print { display: none; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>CNU Police Department</h1>
-          <h2>Schedule Report - ${format(month, "MMMM yyyy")}</h2>
-          <p>Generated on ${format(new Date(), "PPP")} at ${format(new Date(), "p")}</p>
-        </div>
-        
-        <table class="schedule-table">
-          <thead>
-            <tr>
-              <th rowspan="2" class="employee-cell">Employee</th>
-              <th rowspan="2">Badge</th>
-    `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Schedule Export - ${format(month, "MMMM yyyy")}</title>
+      <style>
+        body { 
+          font-family: Arial, sans-serif; 
+          margin: 10px; 
+          font-size: 11px;
+        }
+        .schedule-table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          font-size: 10px;
+        }
+        .schedule-table th, .schedule-table td { 
+          border: 1px solid #000; 
+          padding: 2px; 
+          text-align: center;
+          height: 20px;
+          min-width: 25px;
+        }
+        .month-header { 
+          background-color: #808080; 
+          color: white; 
+          font-weight: bold;
+          font-size: 11px;
+        }
+        .day-header { 
+          background-color: #f0f0f0; 
+          font-weight: bold;
+          font-size: 9px;
+        }
+        .employee-cell {
+          background-color: #f0f0f0;
+          text-align: left;
+          font-weight: bold;
+          padding-left: 5px;
+          min-width: 80px;
+          font-size: 9px;
+        }
+        .weekend { 
+          background-color: #e0e0e0; 
+        }
+        .status-c { 
+          background-color: #ffff00; 
+          font-weight: bold;
+        }
+        .status-s { 
+          background-color: #00ffff; 
+          font-weight: bold;
+        }
+        .status-m { 
+          background-color: #90EE90; 
+          font-weight: bold;
+        }
+        .status-sd { 
+          background-color: #90EE90; 
+          font-weight: bold;
+        }
+        .working-time { 
+          font-weight: bold;
+        }
+        .events-row {
+          background-color: #d0d0d0;
+          font-weight: bold;
+        }
+        @media print {
+          body { margin: 5px; }
+          .schedule-table { font-size: 8px; }
+        }
+      </style>
+    </head>
+    <body>
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th class="month-header">${format(month, "MMMM yyyy").toUpperCase()}</th>
+  `
 
     // Add date headers
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(month.getFullYear(), month.getMonth(), day)
       const isWeekend = date.getDay() === 0 || date.getDay() === 6
-      htmlContent += `<th class="${isWeekend ? "weekend" : ""}">${day}</th>`
+      htmlContent += `<th class="month-header ${isWeekend ? "weekend" : ""}">${day}</th>`
     }
 
     htmlContent += `
-            </tr>
-            <tr>
-    `
+          </tr>
+          <tr>
+            <th class="day-header"></th>
+  `
 
-    // Add day of week headers
+    // Add day abbreviation headers
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(month.getFullYear(), month.getMonth(), day)
       const isWeekend = date.getDay() === 0 || date.getDay() === 6
-      htmlContent += `<th class="${isWeekend ? "weekend" : ""}">${format(date, "EEE")}</th>`
+      htmlContent += `<th class="day-header ${isWeekend ? "weekend" : ""}">${format(date, "EEEEE")}</th>`
     }
 
     htmlContent += `
-            </tr>
-          </thead>
-          <tbody>
-    `
+          </tr>
+        </thead>
+        <tbody>
+  `
 
     // Add employee rows
     targetEmployees.forEach((employee) => {
       htmlContent += `
-        <tr>
-          <td class="employee-cell">
-            ${employee.first_name} ${employee.last_name}
-            ${employee.division ? `<br><small>${employee.division}</small>` : ""}
-          </td>
-          <td>${employee.badge_number || "-"}</td>
-      `
+      <tr>
+        <td class="employee-cell">${employee.last_name.toUpperCase()}</td>
+    `
 
       for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(month.getFullYear(), month.getMonth(), day)
@@ -304,27 +286,28 @@ export function ExportDialog({ open, onOpenChange, currentMonth }: ExportDialogP
         const schedule = schedulesByEmployee[employee.id]?.[day]
 
         let cellClass = isWeekend ? "weekend" : ""
-        let cellContent = "-"
+        let cellContent = "0"
 
         if (schedule) {
           if (schedule.status === "C") {
-            cellClass += " leave"
+            cellClass += " status-c"
             cellContent = "C"
           } else if (schedule.status === "SD") {
-            cellClass += " sick"
+            cellClass += " status-sd"
             cellContent = "SD"
           } else if (schedule.status === "S") {
-            cellClass += " school"
+            cellClass += " status-s"
             cellContent = "S"
           } else if (schedule.status === "M") {
-            cellClass += " military"
+            cellClass += " status-m"
             cellContent = "M"
+          } else if (schedule.status === "CT") {
+            cellClass += " status-m"
+            cellContent = "CT"
           } else if (schedule.time_in) {
-            cellClass += " working"
-            cellContent = format(new Date(`2000-01-01T${schedule.time_in}`), "HH:mm")
-          } else {
-            cellClass += " working"
-            cellContent = "08:00"
+            cellClass += " working-time"
+            const hour = Number.parseInt(schedule.time_in.split(":")[0])
+            cellContent = hour.toString()
           }
         }
 
@@ -334,45 +317,31 @@ export function ExportDialog({ open, onOpenChange, currentMonth }: ExportDialogP
       htmlContent += "</tr>"
     })
 
+    // Add events row
     htmlContent += `
-          </tbody>
-        </table>
-        
-        <div class="legend">
-          <div class="legend-item">
-            <div class="legend-color working"></div>
-            <span>Working Time</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color leave"></div>
-            <span>Ordinary Leave (C)</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color sick"></div>
-            <span>Sick Leave (SD)</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color school"></div>
-            <span>School/Training (S)</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color military"></div>
-            <span>Military Attachment (M)</span>
-          </div>
-          <div class="legend-item">
-            <div class="legend-color weekend"></div>
-            <span>Weekend</span>
-          </div>
-        </div>
-        
-        <script>
-          window.onload = function() {
-            window.print();
-          }
-        </script>
-      </body>
-      </html>
-    `
+    <tr>
+      <td class="employee-cell events-row">EVENTS</td>
+  `
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(month.getFullYear(), month.getMonth(), day)
+      const isWeekend = date.getDay() === 0 || date.getDay() === 6
+      htmlContent += `<td class="events-row ${isWeekend ? "weekend" : ""}"></td>`
+    }
+
+    htmlContent += `
+    </tr>
+        </tbody>
+      </table>
+      
+      <script>
+        window.onload = function() {
+          window.print();
+        }
+      </script>
+    </body>
+    </html>
+  `
 
     // Open in new window for printing
     const printWindow = window.open("", "_blank")

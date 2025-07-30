@@ -13,8 +13,7 @@ export default function ClientEmployeeDashboard() {
   useEffect(() => {
     if (!loading) {
       if (!user || user.role !== "employee") {
-        logout() // Call logout if user is not authenticated or not an employee
-        router.push("/")
+        logout().then(() => router.push("/"))
       }
     }
   }, [user, loading, router, logout])
