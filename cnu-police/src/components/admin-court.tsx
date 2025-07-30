@@ -1,79 +1,63 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useCourtRequests } from "@/hooks/use-court-requests"
-import { useEmployees } from "@/hooks/use-employees"
+import { useAuth } from "@/contexts/auth-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Calendar,
   Clock,
-  Plus,
-  Search,
-  Filter,
   Gavel,
-  User,
   MapPin,
   FileText,
-  TrendingUp,
+  User,
   AlertCircle,
   CheckCircle,
   XCircle,
+  MessageSquare,
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
-import { COURT_TYPES, type CreateCourtRequestData, type CourtRequestFilters } from "@/services/court-request-service"
+import { COURT_TYPES, type CourtRequest } from "@/services/court-request-service"
 
 export function AdminCourt() {
-  const [filters, setFilters] = useState<CourtRequestFilters>({})
-  const [showCreateDialog, setShowCreateDialog] = useState(false)
-  const [createData, setCreateData] = useState<CreateCourtRequestData>({
-    employee_id: 0,
-    court_date: "",
-    court_time: "",
-    case_number: "",
-    court_type: "criminal",
-    location: "",
-    description: "",
-  })
+  const { user } = useAuth()
+  const [selectedRequest, setSelectedRequest] = useState<CourtRequest | null>(null)
+  const [showResponseDialog, setShowResponseDialog] = useState(false)
+  const [responseStatus, setResponseStatus] = useState<"accepted" | "declined">("accepted")
+  const [employeeNotes, setEmployeeNotes] = useState("")
 
-  // Ensure courtRequests defaults to empty array
-  const { courtRequests, refetch, loading, createCourtRequest, deleteCourtRequest } = useCourtRequests(filters)
-  const { employees = [] } = useEmployees()
+  // Memoize filters to prevent infinite re-renders
+  const filters = useMemo(() => ({
+    employee_id: user?.id
+  }), [user?.id])
 
-  const handleCreateCourtRequest = async (e: React.FormEvent) => {
+  const { courtRequests, loading, acceptCourtRequest, declineCourtRequest, refetch } = useCourtRequests(filters)
+
+  const handleResponse = async (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      await createCourtRequest(createData)
-      setShowCreateDialog(false)
-      setCreateData({
-        employee_id: 0,
-        court_date: "",
-        court_time: "",
-        case_number: "",
-        court_type: "criminal",
-        location: "",
-        description: "",
-      })
+    if (!selectedRequest) return
 
-      await refetch()
+    try {
+      if (responseStatus === "accepted") {
+        await acceptCourtRequest(selectedRequest.id, employeeNotes)
+      } else {
+        await declineCourtRequest(selectedRequest.id, employeeNotes)
+      }
+      setShowResponseDialog(false)
+      setSelectedRequest(null)
+      setEmployeeNotes("")
+      setResponseStatus("accepted")
     } catch (error) {
-      console.error("Failed to create court request:", error)
+      // Error handled by hook
     }
   }
 
@@ -83,7 +67,7 @@ export function AdminCourt() {
         return (
           <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
             <AlertCircle className="h-3 w-3 mr-1" />
-            Pending
+            Pending Response
           </Badge>
         )
       case "accepted":
@@ -123,327 +107,289 @@ export function AdminCourt() {
     )
   }
 
+  // Ensure courtRequests.data exists before filtering
+  const pendingRequests = courtRequests?.data.filter((req) => req.status === "pending") || []
+  const respondedRequests = courtRequests?.data.filter((req) => req.status !== "pending") || []
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="space-y-1">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Gavel className="h-6 w-6" />
-            Court Management
-          </h2>
-          <p className="text-muted-foreground">Manage court appearances and requests for employees</p>
-        </div>
+      <div className="space-y-1">
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+          <Gavel className="h-6 w-6" />
+          My Court Appearances
+        </h2>
+        <p className="text-muted-foreground">View and respond to court appearance requests</p>
+      </div>
 
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Court Request
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create Court Request</DialogTitle>
-              <DialogDescription>Request a court appearance for an employee</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreateCourtRequest} className="space-y-4">
+      {/* Court Requests */}
+      <Tabs defaultValue="pending" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="pending" className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Pending ({pendingRequests.length})
+          </TabsTrigger>
+          <TabsTrigger value="responded" className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4" />
+            Responded ({respondedRequests.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pending" className="space-y-4">
+          {loading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
+              ))}
+            </div>
+          ) : pendingRequests.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Gavel className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No pending court requests</h3>
+                <p className="text-muted-foreground">You have no court appearance requests awaiting your response.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {pendingRequests.map((request) => (
+                <Card key={request.id} className="border-yellow-200">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          {getCourtTypeBadge(request.court_type)}
+                          {getStatusBadge(request.status)}
+                        </div>
+                        <CardTitle className="text-lg">Court Appearance Request</CardTitle>
+                        <CardDescription>
+                          Requested by {request.creator?.name} on {format(new Date(request.created_at), "MMM d, yyyy")}
+                        </CardDescription>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          setSelectedRequest(request)
+                          setShowResponseDialog(true)
+                        }}
+                        className="bg-yellow-600 hover:bg-yellow-700"
+                      >
+                        Respond
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{format(new Date(request.court_date), "EEEE, MMMM d, yyyy")}</p>
+                          {request.court_time && (
+                            <p className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {request.court_time}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {request.case_number && (
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">Case Number</p>
+                            <p className="text-sm font-mono">{request.case_number}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {request.location && (
+                        <div className="flex items-center gap-3">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">Location</p>
+                            <p className="text-sm">{request.location}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-3">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">Requested by</p>
+                          <p className="text-sm">{request.creator?.name}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {request.description && (
+                      <div className="space-y-2">
+                        <p className="font-medium">Description</p>
+                        <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">{request.description}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="responded" className="space-y-4">
+          {loading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
+              ))}
+            </div>
+          ) : respondedRequests.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <CheckCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No responded requests</h3>
+                <p className="text-muted-foreground">You haven't responded to any court requests yet.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {respondedRequests.map((request) => (
+                <Card key={request.id}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          {getCourtTypeBadge(request.court_type)}
+                          {getStatusBadge(request.status)}
+                        </div>
+                        <CardTitle className="text-lg">Court Appearance Request</CardTitle>
+                        <CardDescription>
+                          Responded on{" "}
+                          {request.responded_at ? format(new Date(request.responded_at), "MMM d, yyyy") : "N/A"}
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">{format(new Date(request.court_date), "EEEE, MMMM d, yyyy")}</p>
+                          {request.court_time && (
+                            <p className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {request.court_time}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {request.case_number && (
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">Case Number</p>
+                            <p className="text-sm font-mono">{request.case_number}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {request.employee_notes && (
+                      <div className="space-y-2">
+                        <p className="font-medium flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4" />
+                          Your Response Notes
+                        </p>
+                        <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+                          {request.employee_notes}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Response Dialog */}
+      <Dialog open={showResponseDialog} onOpenChange={setShowResponseDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Respond to Court Request</DialogTitle>
+            <DialogDescription>Please respond to the court appearance request</DialogDescription>
+          </DialogHeader>
+          {selectedRequest && (
+            <form onSubmit={handleResponse} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="employee">Employee</Label>
-                <Select
-                  value={createData.employee_id.toString()}
-                  onValueChange={(value) => setCreateData((prev) => ({ ...prev, employee_id: Number.parseInt(value) }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select employee" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id.toString()}>
-                        {employee.first_name} {employee.last_name} {employee.badge_number && `(#${employee.badge_number})`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <p className="text-sm font-medium">Court Details:</p>
+                <div className="bg-muted p-3 rounded-lg space-y-1">
+                  <p className="text-sm">
+                    <strong>Date:</strong> {format(new Date(selectedRequest.court_date), "EEEE, MMMM d, yyyy")}
+                  </p>
+                  {selectedRequest.court_time && (
+                    <p className="text-sm">
+                      <strong>Time:</strong> {selectedRequest.court_time}
+                    </p>
+                  )}
+                  {selectedRequest.case_number && (
+                    <p className="text-sm">
+                      <strong>Case:</strong> {selectedRequest.case_number}
+                    </p>
+                  )}
+                  <p className="text-sm">
+                    <strong>Type:</strong> {COURT_TYPES[selectedRequest.court_type as keyof typeof COURT_TYPES]}
+                  </p>
+                </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="court_date">Court Date</Label>
-                  <Input
-                    id="court_date"
-                    type="date"
-                    value={createData.court_date}
-                    onChange={(e) => setCreateData((prev) => ({ ...prev, court_date: e.target.value }))}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="court_time">Court Time</Label>
-                  <Input
-                    id="court_time"
-                    type="time"
-                    value={createData.court_time}
-                    onChange={(e) => setCreateData((prev) => ({ ...prev, court_time: e.target.value }))}
-                  />
-                </div>
-              </div>
-
               <div className="space-y-2">
-                <Label htmlFor="court_type">Court Type</Label>
+                <Label htmlFor="status">Response</Label>
                 <Select
-                  value={createData.court_type}
-                  onValueChange={(value) => setCreateData((prev) => ({ ...prev, court_type: value }))}
+                  value={responseStatus}
+                  onValueChange={(value: "accepted" | "declined") => setResponseStatus(value)}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(COURT_TYPES).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="accepted">Accept</SelectItem>
+                    <SelectItem value="declined">Decline</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="case_number">Case Number</Label>
-                <Input
-                  id="case_number"
-                  value={createData.case_number}
-                  onChange={(e) => setCreateData((prev) => ({ ...prev, case_number: e.target.value }))}
-                  placeholder="e.g., CR-2024-001"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={createData.location}
-                  onChange={(e) => setCreateData((prev) => ({ ...prev, location: e.target.value }))}
-                  placeholder="e.g., Newport News Circuit Court"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="employee_notes">
+                  {responseStatus === "accepted" ? "Notes (Optional)" : "Reason for Declining (Required)"}
+                </Label>
                 <Textarea
-                  id="description"
-                  value={createData.description}
-                  onChange={(e) => setCreateData((prev) => ({ ...prev, description: e.target.value }))}
-                  placeholder="Additional details about the court appearance..."
+                  id="employee_notes"
+                  value={employeeNotes}
+                  onChange={(e) => setEmployeeNotes(e.target.value)}
+                  placeholder={
+                    responseStatus === "accepted" 
+                      ? "Add any notes about your response..." 
+                      : "Please provide a reason for declining..."
+                  }
                   rows={3}
+                  required={responseStatus === "declined"}
                 />
               </div>
 
               <div className="flex gap-2 pt-4">
                 <Button type="submit" className="flex-1">
-                  Create Request
+                  Submit Response
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
+                <Button type="button" variant="outline" onClick={() => setShowResponseDialog(false)}>
                   Cancel
                 </Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label>Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search case number, location..."
-                  value={filters.search || ""}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select
-                value={filters.status || "all"}
-                onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, status: value === "all" ? undefined : value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="accepted">Accepted</SelectItem>
-                  <SelectItem value="declined">Declined</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Court Type</Label>
-              <Select
-                value={filters.court_type || "all"}
-                onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, court_type: value === "all" ? undefined : value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {Object.entries(COURT_TYPES).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Employee</Label>
-              <Select
-                value={filters.employee_id?.toString() || "all"}
-                onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, employee_id: value === "all" ? undefined : Number.parseInt(value) }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Employees</SelectItem>
-                  {employees.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.id.toString()}>
-                      {employee.first_name} {employee.last_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Court Requests Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Court Requests</CardTitle>
-          <CardDescription>Manage all court appearance requests</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-16 bg-muted animate-pulse rounded" />
-              ))}
-            </div>
-          ) : !Array.isArray(courtRequests.data) ? (
-            <div className="text-center py-8">
-              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Data Error</h3>
-              <p className="text-muted-foreground mb-4">
-                Unable to load court requests. Please try again later.
-              </p>
-            </div>
-          ) : courtRequests.data.length === 0 ? (
-            <div className="text-center py-8">
-              <Gavel className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No court requests found</h3>
-              <p className="text-muted-foreground mb-4">Create your first court request to get started.</p>
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Court Request
-              </Button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Court Date</TableHead>
-                    <TableHead>Case Number</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {courtRequests.data.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">{request.employee?.first_name} {request.employee?.last_name}</p>
-                            {request.employee?.badge_number && (
-                              <p className="text-xs text-muted-foreground">#{request.employee.badge_number}</p>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">
-                              {request.court_date ? format(new Date(request.court_date), "MMM d, yyyy") : "N/A"}
-                            </p>
-                            {request.court_time && (
-                              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {request.court_time}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-mono text-sm">{request.case_number || "N/A"}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{getCourtTypeBadge(request.court_type)}</TableCell>
-                      <TableCell>
-                        {request.location ? (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{request.location}</span>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">N/A</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(request.status)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm" onClick={() => deleteCourtRequest(request.id)}>
-                            Delete
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
           )}
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
