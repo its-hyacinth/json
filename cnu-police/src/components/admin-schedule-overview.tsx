@@ -1,0 +1,477 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useEmployees } from "@/hooks/use-employees"
+import { useEvents } from "@/hooks/use-events"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  Calendar,
+  Users,
+  GraduationCap,
+  Shield,
+  Loader2,
+} from "lucide-react"
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameDay,
+  getDay,
+  isToday,
+  addMonths,
+  subMonths,
+} from "date-fns"
+import type { Schedule } from "@/services/schedule-service"
+import { EVENT_TYPES, type Event, type CreateEventData } from "@/services/event-service"
+import { scheduleService } from "@/services/schedule-service"
+import { useToast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
+import { Button } from "./ui/button"
+import { Input } from "./ui/input"
+
+export function AdminScheduleOverview() {
+  const [selectedMonth, setSelectedMonth] = useState(new Date())
+  const [allSchedules, setAllSchedules] = useState<Schedule[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const { employees, loading: employeesLoading } = useEmployees()
+  const {
+    events,
+    loading: eventsLoading,
+    fetchEvents,
+  } = useEvents({
+    month: selectedMonth.getMonth() + 1,
+    year: selectedMonth.getFullYear(),
+  })
+  const { toast } = useToast()
+
+  const monthDays = eachDayOfInterval({
+    start: startOfMonth(selectedMonth),
+    end: endOfMonth(selectedMonth),
+  })
+
+  // Fetch schedules for all employees
+  const fetchAllSchedules = async () => {
+    if (employees.length === 0) return
+
+    setLoading(true)
+    try {
+      const allEmployeeSchedules: Schedule[] = []
+
+      for (const employee of employees) {
+        try {
+          const schedules = await scheduleService.getAdminSchedules({
+            month: selectedMonth.getMonth() + 1,
+            year: selectedMonth.getFullYear(),
+            user_id: employee.id,
+          })
+          allEmployeeSchedules.push(...schedules)
+        } catch (error) {
+          console.warn(`Failed to fetch schedules for employee ${employee.id}:`, error)
+        }
+      }
+
+      setAllSchedules(allEmployeeSchedules)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch schedules",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!employeesLoading && employees.length > 0) {
+      fetchAllSchedules()
+    }
+  }, [selectedMonth, employees, employeesLoading])
+
+  const getScheduleForEmployeeAndDate = (employeeId: number, date: Date): Schedule | undefined => {
+    return allSchedules.find((schedule) => schedule.user_id === employeeId && isSameDay(new Date(schedule.date), date))
+  }
+
+  const getEventsForDate = (date: Date): Event[] => {
+    const dateOnly = new Date(date.setHours(0, 0, 0, 0));
+    
+    return events.filter((event) => {
+      const eventStart = new Date(event.start_date);
+      eventStart.setHours(0, 0, 0, 0);
+      
+      const eventEnd = new Date(event.end_date);
+      eventEnd.setHours(23, 59, 59, 999); 
+      
+      return dateOnly >= eventStart && dateOnly <= eventEnd;
+    });
+  }
+
+  const getCellContent = (employeeId: number, date: Date) => {
+    const schedule = getScheduleForEmployeeAndDate(employeeId, date)
+
+    if (!schedule) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-xs text-muted-foreground">—</div>
+        </div>
+      )
+    }
+
+    if (schedule.status === "C") {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <Badge
+            variant="secondary"
+            className="text-xs font-bold bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300"
+          >
+            C
+          </Badge>
+        </div>
+      )
+    }
+
+    if (schedule.status === "SD") {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <Badge
+            variant="destructive"
+            className="text-xs font-bold bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300"
+          >
+            SD
+          </Badge>
+        </div>
+      )
+    }
+
+    if (schedule.status === "S") {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <Badge
+            variant="outline"
+            className="text-xs font-bold bg-cyan-100 text-cyan-700 hover:bg-cyan-100 dark:bg-cyan-900 dark:text-cyan-300 border-cyan-300"
+          >
+            S
+          </Badge>
+        </div>
+      )
+    }
+
+    if (schedule.status === "M") {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <Badge
+            variant="outline"
+            className="text-xs font-bold bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900 dark:text-amber-300 border-amber-300"
+          >
+            M
+          </Badge>
+        </div>
+      )
+    }
+
+    if (schedule.status === "CT") {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <Badge
+            variant="outline"
+            className="text-xs font-bold bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300 border-indigo-300"
+          >
+            CT
+          </Badge>
+        </div>
+      )
+    }
+
+    if (schedule.time_in) {
+      const timeIn = format(new Date(`2000-01-01T${schedule.time_in}`), "HH:mm")
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-xs font-mono font-semibold text-foreground">{timeIn}</div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-xs text-muted-foreground">—</div>
+      </div>
+    )
+  }
+
+  const getCellBackground = (date: Date, employeeIndex: number) => {
+    const dayOfWeek = getDay(date)
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+    const isTodayDate = isToday(date)
+    const hasEvents = getEventsForDate(date).length > 0
+
+    if (isTodayDate) {
+      return "bg-primary/10 border-primary/30"
+    }
+
+    if (hasEvents) {
+      return "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800"
+    }
+
+    if (isWeekend) {
+      return "bg-muted/30"
+    }
+
+    return employeeIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
+  }
+
+  if (employeesLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-48" />
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-28" />
+          </div>
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6 max-w-full">
+      {/* Header Section */}
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight text-primary">Schedule Overview</h1>
+            <p className="text-muted-foreground">Viewing schedules for {format(selectedMonth, "MMMM yyyy")}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="gap-1 border-primary/20">
+              <Users className="h-3 w-3" />
+              {employees.length} Employees
+            </Badge>
+            <Badge variant="outline" className="gap-1 border-yellow-300">
+              <Star className="h-3 w-3" />
+              {events.length} Events
+            </Badge>
+          </div>
+        </div>
+
+        {/* Month Controls */}
+        <div className="flex gap-4 items-center justify-between bg-primary/5 p-4 rounded-lg border border-primary/10">
+          <div className="flex gap-4 items-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}
+              className="bg-transparent"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            <div className="space-y-2">
+              <div className="flex">
+                <Input
+                  id="month"
+                  type="month"
+                  value={format(selectedMonth, "yyyy-MM")}
+                  onChange={(e) => setSelectedMonth(new Date(e.target.value))}
+                  className="w-44"
+                />
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))}
+              className="bg-transparent"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Schedule Grid */}
+      <Card className="border-primary/10 w-full">
+        <CardHeader>
+          <CardTitle className="text-xl text-primary">Schedule Grid</CardTitle>
+          <CardDescription>
+            Read-only view of schedules. Times are displayed in 24-hour format. Yellow highlighted cells indicate event days.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-8">
+              <div className="flex items-center justify-center space-y-4">
+                <div className="text-center">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+                  <p className="text-sm text-muted-foreground">Loading schedules...</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="w-[70vw] ml-10">
+              <div className="overflow-x-auto">
+                <div className="min-w-max border-t">
+                  {/* Header Row */}
+                  <div
+                    className="grid gap-0 bg-primary/5 border-b-2 border-primary/20"
+                    style={{ gridTemplateColumns: `200px repeat(${monthDays.length}, 56px)` }}
+                  >
+                    <div className="p-3 text-sm font-semibold text-center border-r border-primary/20 bg-primary/10">
+                      EMPLOYEE
+                    </div>
+                    {monthDays.map((date) => {
+                      const dayEvents = getEventsForDate(date)
+                      return (
+                        <div
+                          key={date.toISOString()}
+                          className={cn(
+                            "p-2 text-xs font-semibold text-center border-r border-primary/10 last:border-r-0 relative",
+                            isToday(date) ? "bg-primary/20 text-primary" : "bg-primary/5",
+                            dayEvents.length > 0 && "bg-yellow-100 dark:bg-yellow-900/30",
+                          )}
+                          title={
+                            dayEvents.length > 0 ? `Events: ${dayEvents.map((e) => e.title).join(", ")}` : undefined
+                          }
+                        >
+                          <div className="font-bold">{format(date, "d")}</div>
+                          <div className="text-[10px] text-muted-foreground uppercase">{format(date, "EEE")}</div>
+                          {dayEvents.length > 0 && (
+                            <div className="absolute top-1 right-1">
+                              <Star className="h-2 w-2 text-yellow-600" />
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* Employee Rows */}
+                  {employees.map((employee, index) => (
+                    <div
+                      key={employee.id}
+                      className="grid gap-0 border-b last:border-b-0 hover:bg-primary/5 transition-colors"
+                      style={{ gridTemplateColumns: `200px repeat(${monthDays.length}, 56px)` }}
+                    >
+                      <div className="p-3 border-r border-primary/10 bg-primary/5 flex items-center justify-between">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold text-sm truncate">
+                            {employee.first_name} {employee.last_name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{employee.badge_number}</div>
+                          {employee.division && (
+                            <div className="text-xs text-muted-foreground truncate">{employee.division}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      {monthDays.map((date) => (
+                        <div
+                          key={`${employee.id}-${date.toISOString()}`}
+                          className={cn(
+                            "border-r border-primary/10 last:border-r-0 min-h-[70px] flex items-center justify-center relative",
+                            getCellBackground(date, index),
+                          )}
+                        >
+                          {getCellContent(employee.id, date)}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Legend */}
+      <Card className="border-primary/10">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-primary"></div>
+            Schedule Legend
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-6 bg-background border-2 border-primary/20 rounded flex items-center justify-center text-xs font-mono font-semibold">
+                08:00
+              </div>
+              <span className="text-sm">Working Time</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="secondary"
+                className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300"
+              >
+                C
+              </Badge>
+              <span className="text-sm">Ordinary Leave</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="destructive"
+                className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300"
+              >
+                SD
+              </Badge>
+              <span className="text-sm">Sick Leave</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="outline"
+                className="bg-cyan-100 text-cyan-700 hover:bg-cyan-100 dark:bg-cyan-900 dark:text-cyan-300 border-cyan-300"
+              >
+                S
+              </Badge>
+              <span className="text-sm">School/Training</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="outline"
+                className="bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900 dark:text-amber-300 border-amber-300"
+              >
+                M
+              </Badge>
+              <span className="text-sm">Military</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="outline"
+                className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300 border-indigo-300"
+              >
+                CT
+              </Badge>
+              <span className="text-sm">Court</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-6 bg-yellow-50 border-2 border-yellow-200 rounded"></div>
+              <span className="text-sm">Event Day</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

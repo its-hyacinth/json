@@ -17,7 +17,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Calendar, FileText, LogOut, Shield, Users, GraduationCap, Clock, UserCheck, User, Gavel } from "lucide-react"
+import { Calendar, FileText, LogOut, Shield, Users, GraduationCap, Clock, UserCheck, User, Gavel, LayoutDashboard } from "lucide-react"
 import { AdminSchedules } from "./admin-schedules"
 import { AdminLeaveRequests } from "./admin-leave-requests"
 import { ThemeToggle } from "./theme-toggle"
@@ -39,15 +39,21 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { AdminCourt } from "./admin-court"
+import { AdminScheduleOverview } from "./admin-schedule-overview"
 
 export function AdminSidebar() {
   const { user, logout } = useAuth()
   const [activeView, setActiveView] = useState<
-    "schedules" | "leave-requests" | "training-requests" | "overtime" | "court" | "accounts" | "profile"
-  >("schedules")
+    "dashboard" | "schedules" | "leave-requests" | "training-requests" | "overtime" | "court" | "accounts" | "profile"
+  >("dashboard")
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const menuItems = [
+    {
+      title: "Dashboard",
+      icon: LayoutDashboard,
+      key: "dashboard" as const,
+    },
     {
       title: "Schedules",
       icon: Calendar,
@@ -87,6 +93,8 @@ export function AdminSidebar() {
 
   const getPageTitle = () => {
     switch (activeView) {
+      case "dashboard":
+        return "Dashboard"
       case "schedules":
         return "Employee Schedules"
       case "leave-requests":
@@ -180,6 +188,7 @@ export function AdminSidebar() {
           <NotificationBell />
         </header>
         <div className="flex-1 p-6">
+          {activeView === "dashboard" && <AdminScheduleOverview />}
           {activeView === "schedules" && <AdminSchedules />}
           {activeView === "accounts" && <AdminAccounts />}
           {activeView === "leave-requests" && <AdminLeaveRequests />}
