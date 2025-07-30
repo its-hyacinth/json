@@ -80,7 +80,7 @@ export function EmployeeScheduleOverview() {
     if (!employeesLoading && employees.length > 0) {
       fetchAllSchedules()
     }
-  }, [selectedMonth, employees, employeesLoading])
+  }, [selectedMonth, employees, employeesLoading, fetchAllSchedules])
 
   const getScheduleForEmployeeAndDate = (employeeId: number, date: Date): Schedule | undefined => {
     return allSchedules.find((schedule) => schedule.user_id === employeeId && isSameDay(new Date(schedule.date), date))

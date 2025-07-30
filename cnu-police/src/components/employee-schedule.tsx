@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useEmployees } from "@/hooks/use-employees"
 import { useEvents } from "@/hooks/use-events"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -40,8 +40,41 @@ export function EmployeeSchedule() {
 
   const { employees: allEmployees, loading: employeesLoading } = useEmployees()
 
-  // Filter out admin users - only show regular employees
-  const employees = allEmployees.filter((employee) => employee.role !== "admin")
+  // Filter out admin users (without depending on schedules)
+  const filteredEmployees = useMemo(() => {
+    return allEmployees.filter((employee) => employee.role !== "admin")
+  }, [allEmployees])
+
+  // Sort employees by today's start time (only after schedules are loaded)
+  const sortedEmployees = useMemo(() => {
+    if (allSchedules.length === 0) {
+      // If no schedules loaded yet, return employees sorted by name
+      return [...filteredEmployees].sort((a, b) => a.last_name.localeCompare(b.last_name))
+    }
+
+    const today = new Date()
+    return [...filteredEmployees].sort((a, b) => {
+      const scheduleA = allSchedules.find((s) => s.user_id === a.id && isSameDay(new Date(s.date), today))
+      const scheduleB = allSchedules.find((s) => s.user_id === b.id && isSameDay(new Date(s.date), today))
+
+      // Get start times, default to 24:00 for non-working statuses
+      const getStartTime = (schedule: Schedule | undefined) => {
+        if (!schedule || schedule.status !== "working" || !schedule.time_in) {
+          return "24:00" // Sort non-working to end
+        }
+        return schedule.time_in
+      }
+
+      const timeA = getStartTime(scheduleA)
+      const timeB = getStartTime(scheduleB)
+
+      // Compare times, then by last name
+      if (timeA !== timeB) {
+        return timeA.localeCompare(timeB)
+      }
+      return a.last_name.localeCompare(b.last_name)
+    })
+  }, [filteredEmployees, allSchedules])
 
   const { events, loading: eventsLoading } = useEvents({
     month: selectedMonth.getMonth() + 1,
@@ -54,15 +87,15 @@ export function EmployeeSchedule() {
     end: endOfMonth(selectedMonth),
   })
 
-  // Fetch schedules for all employees (same as admin component)
-  const fetchAllSchedules = async () => {
-    if (employees.length === 0) return
+  // Fetch schedules for all employees
+  const fetchAllSchedules = useCallback(async () => {
+    if (filteredEmployees.length === 0) return
 
     setLoading(true)
     try {
       const allEmployeeSchedules: Schedule[] = []
 
-      for (const employee of employees) {
+      for (const employee of filteredEmployees) {
         try {
           const schedules = await scheduleService.getSchedules({
             month: selectedMonth.getMonth() + 1,
@@ -85,13 +118,14 @@ export function EmployeeSchedule() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filteredEmployees, selectedMonth, toast])
 
+  // Only fetch schedules when month changes or filtered employees change
   useEffect(() => {
-    if (!employeesLoading && employees.length > 0) {
+    if (!employeesLoading && filteredEmployees.length > 0) {
       fetchAllSchedules()
     }
-  }, [selectedMonth, employees, employeesLoading])
+  }, [selectedMonth, filteredEmployees, employeesLoading, fetchAllSchedules])
 
   const getScheduleForEmployeeAndDate = (employeeId: number, date: Date): Schedule | undefined => {
     return allSchedules.find((schedule) => schedule.user_id === employeeId && isSameDay(new Date(schedule.date), date))
@@ -108,34 +142,6 @@ export function EmployeeSchedule() {
       eventEnd.setHours(23, 59, 59, 999)
 
       return dateOnly >= eventStart && dateOnly <= eventEnd
-    })
-  }
-
-  const getSortedEmployees = () => {
-    const today = new Date()
-
-    return [...employees].sort((a, b) => {
-      const scheduleA = getScheduleForEmployeeAndDate(a.id, today)
-      const scheduleB = getScheduleForEmployeeAndDate(b.id, today)
-
-      // Get time_in values, defaulting to a high value for non-working statuses
-      const getTimeValue = (schedule: Schedule | undefined) => {
-        if (!schedule || !schedule.time_in || schedule.status !== "working") {
-          return 24 * 60 // 24:00 in minutes (end of day for sorting)
-        }
-        const [hours, minutes] = schedule.time_in.split(":").map(Number)
-        return hours * 60 + minutes
-      }
-
-      const timeA = getTimeValue(scheduleA)
-      const timeB = getTimeValue(scheduleB)
-
-      // Sort by time, then by last name if times are equal
-      if (timeA === timeB) {
-        return a.last_name.localeCompare(b.last_name)
-      }
-
-      return timeA - timeB
     })
   }
 
@@ -191,7 +197,7 @@ export function EmployeeSchedule() {
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="gap-1 border-primary/20">
               <Users className="h-3 w-3" />
-              {employees.length} Employees
+              {filteredEmployees.length} Employees
             </Badge>
             <Badge variant="outline" className="gap-1 border-yellow-300">
               <Star className="h-3 w-3" />
@@ -290,7 +296,7 @@ export function EmployeeSchedule() {
 
                   {/* Employee Rows */}
                   <tbody>
-                    {getSortedEmployees().map((employee, index) => {
+                    {sortedEmployees.map((employee, index) => {
                       const isCurrentUser = employee.id === currentUserId
                       return (
                         <tr
