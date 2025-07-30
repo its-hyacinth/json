@@ -17,7 +17,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Calendar, FileText, LogOut, Shield, User, GraduationCap, Clock, Users, Gavel } from "lucide-react"
+import { Calendar, FileText, LogOut, Shield, User, GraduationCap, Clock, Users, Gavel, LayoutDashboard } from "lucide-react"
 import { EmployeeSchedule } from "./employee-schedule"
 import { EmployeeLeaveRequest } from "./employee-leave-request"
 import { EmployeeTrainingRequests } from "./employee-training-requests"
@@ -37,15 +37,21 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { EmployeeCourt } from "./employee-court"
+import { EmployeeScheduleOverview } from "./employee-schedule-overview"
 
 export function EmployeeSidebar() {
   const { user, logout } = useAuth()
   const [activeView, setActiveView] = useState<
-    "schedule" | "leave-request" | "training-requests" | "overtime" | "profile" | "court"
-  >("schedule")
+    "dashboard" | "schedule" | "leave-request" | "training-requests" | "overtime" | "profile" | "court"
+  >("dashboard")
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const menuItems = [
+    {
+      title: "Dashboard",
+      icon: LayoutDashboard,
+      key: "dashboard" as const,
+    },
     {
       title: "My Schedule",
       icon: Calendar,
@@ -80,6 +86,8 @@ export function EmployeeSidebar() {
 
   const getPageTitle = () => {
     switch (activeView) {
+      case "dashboard":
+        return "Dashboard"
       case "schedule":
         return "My Schedule"
       case "leave-request":
@@ -171,6 +179,7 @@ export function EmployeeSidebar() {
           <NotificationBell />
         </header>
         <div className="flex-1 p-6">
+          {activeView === "dashboard" && <EmployeeScheduleOverview />}
           {activeView === "schedule" && <EmployeeSchedule />}
           {activeView === "leave-request" && <EmployeeLeaveRequest />}
           {activeView === "training-requests" && <EmployeeTrainingRequests />}
