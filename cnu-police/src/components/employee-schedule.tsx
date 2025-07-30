@@ -60,7 +60,7 @@ export function EmployeeSchedule() {
 
       for (const employee of employees) {
         try {
-          const schedules = await scheduleService.getAdminSchedules({
+          const schedules = await scheduleService.getSchedules({
             month: selectedMonth.getMonth() + 1,
             year: selectedMonth.getFullYear(),
             user_id: employee.id,
