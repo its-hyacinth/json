@@ -6,7 +6,7 @@ import { useEvents } from "@/hooks/use-events"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, ChevronLeft, ChevronRight, Star, MapPin } from "lucide-react"
+import { Calendar, ChevronLeft, ChevronRight, Star } from "lucide-react"
 import {
   format,
   startOfMonth,
@@ -20,9 +20,9 @@ import {
   subMonths,
   isWeekend,
   isSameMonth,
+  getDay,
 } from "date-fns"
 import { cn } from "@/lib/utils"
-import { EVENT_TYPES } from "@/services/event-service"
 
 export function EmployeeScheduleOverview() {
   const [selectedMonth, setSelectedMonth] = useState(new Date())
@@ -53,14 +53,14 @@ export function EmployeeScheduleOverview() {
   }
 
   const getEventsForDate = (date: Date) => {
-    const dateOnly = new Date(date.setHours(0, 0, 0, 0));
+    const dateOnly = new Date(date.setHours(0, 0, 0, 0))
     return events.filter((event) => {
-      const eventStart = new Date(event.start_date);
-      eventStart.setHours(0, 0, 0, 0);
-      const eventEnd = new Date(event.end_date);
-      eventEnd.setHours(23, 59, 59, 999); 
-      return dateOnly >= eventStart && dateOnly <= eventEnd;
-    });
+      const eventStart = new Date(event.start_date)
+      eventStart.setHours(0, 0, 0, 0)
+      const eventEnd = new Date(event.end_date)
+      eventEnd.setHours(23, 59, 59, 999)
+      return dateOnly >= eventStart && dateOnly <= eventEnd
+    })
   }
 
   const getStatusBadge = (status: string, timeIn?: string) => {
@@ -163,12 +163,12 @@ export function EmployeeScheduleOverview() {
         </div>
       </div>
 
-      {/* Calendar Grid */}
+      {/* Schedule Grid */}
       <Card>
         <CardHeader>
           <CardTitle className="text-xl">{format(selectedMonth, "MMMM yyyy")}</CardTitle>
           <CardDescription>
-            Your schedule overview. Yellow highlighted cells indicate event days.
+            Your schedule overview. Times are shown in 24-hour format. Yellow highlighted cells indicate event days.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -182,61 +182,140 @@ export function EmployeeScheduleOverview() {
               </div>
             </div>
           ) : (
-            <div className="p-4">
-              <div className="grid grid-cols-7 gap-1">
-                {/* Day Headers */}
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                  <div key={day} className="p-2 text-center font-semibold text-sm bg-muted rounded-t-lg">
-                    {day}
-                  </div>
-                ))}
+            <div className="w-[70vw] ml-10 overflow-x-auto">
+              <div className="min-w-max">
+                {/* Spreadsheet-style table */}
+                <table className="w-full border-collapse border border-gray-300">
+                  {/* Header Row */}
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 p-2 text-sm font-bold text-center w-40 bg-gray-200">
+                        {format(selectedMonth, "MMMM yyyy").toUpperCase()}
+                      </th>
+                      {eachDayOfInterval({
+                        start: startOfMonth(selectedMonth),
+                        end: endOfMonth(selectedMonth),
+                      }).map((date) => {
+                        const dayEvents = getEventsForDate(date)
+                        return (
+                          <th
+                            key={date.toISOString()}
+                            className={cn(
+                              "border border-gray-300 p-1 text-xs font-bold text-center w-12 relative",
+                              isToday(date) ? "bg-blue-200" : "bg-gray-100",
+                              dayEvents.length > 0 && "bg-yellow-200",
+                            )}
+                            title={
+                              dayEvents.length > 0 ? `Events: ${dayEvents.map((e) => e.title).join(", ")}` : undefined
+                            }
+                          >
+                            <div className="font-bold text-sm">{format(date, "d")}</div>
+                            <div className="text-[10px] text-gray-600 uppercase font-bold">
+                              {format(date, "EEE")[0]}
+                            </div>
+                            {dayEvents.length > 0 && (
+                              <div className="absolute top-0 right-0">
+                                <Star className="h-2 w-2 text-yellow-600" />
+                              </div>
+                            )}
+                          </th>
+                        )
+                      })}
+                    </tr>
+                  </thead>
 
-                {/* Calendar Days */}
-                {calendarDays.map((date) => {
-                  const schedule = getScheduleForDate(date)
-                  const dayEvents = getEventsForDate(date)
-                  const isTodayDate = isToday(date)
-                  const isCurrentMonth = isSameMonth(date, selectedMonth)
-
-                  return (
-                    <div
-                      key={date.toISOString()}
-                      className={cn(
-                        "min-h-[100px] p-2 rounded-lg",
-                        getDayBackground(date, schedule, dayEvents),
-                        "flex flex-col",
-                      )}
-                    >
-                      {/* Date Number */}
-                      <div
-                        className={cn(
-                          "text-sm font-medium mb-1",
-                          isTodayDate ? "font-bold" : "",
-                          !isCurrentMonth ? "text-muted-foreground" : "",
-                        )}
-                      >
-                        {format(date, "d")}
-                        {dayEvents.length > 0 && isCurrentMonth && (
-                          <Star className="h-3 w-3 text-yellow-600 inline-block ml-1" />
-                        )}
-                      </div>
-
-                      {/* Schedule Content */}
-                      {schedule && isCurrentMonth && (
-                        <div className="mb-1">{getStatusBadge(schedule.status)}</div>
-                      )}
-
-                      {/* Events */}
-                      {dayEvents.length > 0 && isCurrentMonth && (
-                        <div className="mt-auto">
-                          <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
-                            {dayEvents.length} event{dayEvents.length > 1 ? "s" : ""}
-                          </Badge>
+                  {/* Employee Row - Highlighted */}
+                  <tbody>
+                    <tr className="bg-primary/10 border-2 border-primary/30 hover:bg-primary/15 transition-colors">
+                      <td className="border border-gray-300 p-2 bg-primary/20 font-bold text-sm">
+                        <div className="flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="font-bold text-sm uppercase text-primary">OVERVIEW</div>
+                            <div className="text-xs text-primary/80">{format(selectedMonth, "MMMM yyyy")}</div>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  )
-                })}
+                      </td>
+
+                      {eachDayOfInterval({
+                        start: startOfMonth(selectedMonth),
+                        end: endOfMonth(selectedMonth),
+                      }).map((date) => {
+                        const schedule = getScheduleForDate(date)
+                        const dayOfWeek = getDay(date)
+                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+                        const isTodayDate = isToday(date)
+                        const hasEvents = getEventsForDate(date).length > 0
+
+                        let cellBg = "bg-primary/5"
+                        if (isTodayDate) {
+                          cellBg = "bg-blue-200 border-2 border-blue-400"
+                        } else if (hasEvents) {
+                          cellBg = "bg-yellow-200"
+                        } else if (isWeekend) {
+                          cellBg = "bg-gray-200"
+                        }
+
+                        // Special background colors for different statuses
+                        if (schedule?.status === "C") {
+                          cellBg = "bg-yellow-300"
+                        } else if (schedule?.status === "SD") {
+                          cellBg = "bg-green-300"
+                        } else if (schedule?.status === "S") {
+                          cellBg = "bg-cyan-300"
+                        } else if (schedule?.status === "M") {
+                          cellBg = "bg-amber-300"
+                        } else if (schedule?.status === "CT") {
+                          cellBg = "bg-indigo-300"
+                        }
+
+                        return (
+                          <td
+                            key={`schedule-${date.toISOString()}`}
+                            className={cn("border border-gray-300 p-1 text-center h-12 w-12 relative", cellBg)}
+                            title={
+                              hasEvents
+                                ? `Events: ${getEventsForDate(date)
+                                    .map((e) => e.title)
+                                    .join(", ")}`
+                                : schedule?.status === "working" && schedule?.time_in
+                                  ? `Working: ${format(new Date(`2000-01-01T${schedule.time_in}`), "HH:mm")}`
+                                  : schedule?.status
+                                    ? `Status: ${schedule.status}`
+                                    : "No schedule"
+                            }
+                          >
+                            <div className="flex items-center justify-center h-full">
+                              {!schedule ? (
+                                <span className="text-xs text-gray-500 font-bold">0</span>
+                              ) : schedule.status === "C" ? (
+                                <span className="text-xs font-bold text-black">C</span>
+                              ) : schedule.status === "SD" ? (
+                                <span className="text-xs font-bold text-black">SD</span>
+                              ) : schedule.status === "S" ? (
+                                <span className="text-xs font-bold text-black">S</span>
+                              ) : schedule.status === "M" ? (
+                                <span className="text-xs font-bold text-black">M</span>
+                              ) : schedule.status === "CT" ? (
+                                <span className="text-xs font-bold text-black">CT</span>
+                              ) : schedule.time_in ? (
+                                <span className="text-xs font-bold text-black">
+                                  {Number.parseInt(schedule.time_in.split(":")[0])}
+                                </span>
+                              ) : (
+                                <span className="text-xs text-gray-500 font-bold">0</span>
+                              )}
+                            </div>
+                            {hasEvents && (
+                              <div className="absolute top-0 right-0">
+                                <Star className="h-2 w-2 text-yellow-600" />
+                              </div>
+                            )}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
