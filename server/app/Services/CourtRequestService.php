@@ -22,9 +22,9 @@ class CourtRequestService
 
     public function getAllCourtRequests(array $filters = []): LengthAwarePaginator
     {
-        $query = CourtRequest::with(['employee', 'creator'])
-            ->orderBy('court_date', 'desc')
-            ->orderBy('created_at', 'desc');
+        $query = CourtRequest::with(['creator'])
+            ->where('employee_id', $employeeId)
+            ->orderBy('court_date', 'desc');
 
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
