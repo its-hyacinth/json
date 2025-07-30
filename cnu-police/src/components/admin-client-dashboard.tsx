@@ -8,14 +8,17 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AdminSchedules } from "@/components/admin-schedules"
 
 export default function ClientAdminDashboard() {
-  const { user, loading } = useAuth()
+  const { user, loading, logout } = useAuth() // Make sure your auth context provides a logout function
   const router = useRouter()
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== "admin")) {
-      router.push("/")
+    if (!loading) {
+      if (!user || user.role !== "admin") {
+        logout() // Call logout if user is not authenticated or not an admin
+        router.push("/")
+      }
     }
-  }, [user, loading, router])
+  }, [user, loading, router, logout])
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>

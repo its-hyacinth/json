@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowRight, Eye, EyeOff } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { FaUserShield, FaUsers } from "react-icons/fa"
 import Image from "next/image"
 
 export default function Home() {
@@ -17,7 +16,6 @@ export default function Home() {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState<"admin" | "employee">("admin")
   const { login, user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
@@ -72,31 +70,6 @@ export default function Home() {
 
           <div className="w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent my-6" />
 
-          <div className="flex bg-white/10 backdrop-blur-md rounded-full p-1 mb-6 border border-white/20 shadow-inner">
-            <button
-              className={`flex-1 py-3 px-4 rounded-full flex items-center justify-center transition-all ${
-                activeTab === "admin"
-                  ? "bg-white/20 text-white shadow-md"
-                  : "text-white/70 hover:text-white"
-              }`}
-              onClick={() => setActiveTab("admin")}
-            >
-              <FaUserShield className="mr-2" />
-              Admin Login
-            </button>
-            <button
-              className={`flex-1 py-3 px-4 rounded-full flex items-center justify-center transition-all ${
-                activeTab === "employee"
-                  ? "bg-white/20 text-white shadow-md"
-                  : "text-white/70 hover:text-white"
-              }`}
-              onClick={() => setActiveTab("employee")}
-            >
-              <FaUsers className="mr-2" />
-              Employee Login
-            </button>
-          </div>
-
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-white/80">
@@ -105,11 +78,7 @@ export default function Home() {
               <Input
                 id="email"
                 type="email"
-                placeholder={
-                  activeTab === "admin"
-                    ? "jason.richards@cnu.edu"
-                    : "sarah.wilson@cnu.edu"
-                }
+                placeholder="your.email@cnu.edu"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-white/10 border border-white/20 text-white placeholder-white/50 h-12 rounded-xl shadow-inner"
@@ -168,7 +137,7 @@ export default function Home() {
                 </div>
               ) : (
                 <>
-                  Sign In as {activeTab === "admin" ? "Admin" : "Employee"}
+                  Sign In
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </>
               )}
