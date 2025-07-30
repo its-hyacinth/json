@@ -37,7 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
 
     // Schedule routes
-    Route::get('/schedules', [ScheduleController::class, 'adminIndex']);
+    Route::get('/schedules', [ScheduleController::class, 'index']);
     Route::get('/schedules/current-month', [ScheduleController::class, 'currentMonth']);
     Route::put('/schedules/{schedule}', [ScheduleController::class, 'update']);
 
