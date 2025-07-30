@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { authService, type User } from "@/services/auth-service"
 
 interface AuthContextType {
@@ -10,6 +10,7 @@ interface AuthContextType {
   logout: () => Promise<void>
   loading: boolean
   isAuthenticated: boolean
+  error: Error | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -17,50 +18,75 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  const handleAuthChange = useCallback((userData: User | null) => {
+    setUser(userData)
+    if (userData) {
+      localStorage.setItem("user", JSON.stringify(userData))
+    } else {
+      localStorage.removeItem("user")
+    }
+  }, [])
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkAuth = async () => {
       try {
+        setLoading(true)
         const userData = localStorage.getItem("user")
-        const isAuthenticated = authService.isAuthenticated()
-
-        if (userData && isAuthenticated) {
-          setUser(JSON.parse(userData))
+        const isValid = await authService.isAuthenticated()
+        
+        if (userData && isValid) {
+          // Optionally verify with server here
+          handleAuthChange(JSON.parse(userData))
+        } else {
+          handleAuthChange(null)
         }
-      } catch (error) {
-        console.error("Auth check failed:", error)
-        // Clear invalid data
-        localStorage.removeItem("user")
-        localStorage.removeItem("auth_token")
+      } catch (err) {
+        console.error("Auth check failed:", err)
+        setError(err instanceof Error ? err : new Error("Authentication failed"))
+        handleAuthChange(null)
       } finally {
         setLoading(false)
       }
     }
 
     checkAuth()
-  }, [])
+
+    // Optional: Add storage event listener to sync across tabs
+    const syncLogout = (e: StorageEvent) => {
+      if (e.key === "user" && e.oldValue && !e.newValue) {
+        handleAuthChange(null)
+      }
+    }
+
+    window.addEventListener("storage", syncLogout)
+    return () => window.removeEventListener("storage", syncLogout)
+  }, [handleAuthChange])
 
   const login = async (email: string, password: string) => {
     try {
+      setLoading(true)
       const response = await authService.login(email, password)
-      setUser(response.user)
-      localStorage.setItem("user", JSON.stringify(response.user))
-    } catch (error) {
-      throw error
+      handleAuthChange(response.user)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Login failed"))
+      throw err
+    } finally {
+      setLoading(false)
     }
   }
 
   const logout = async () => {
     try {
+      setLoading(true)
       await authService.logout()
-      setUser(null)
-      localStorage.removeItem("user")
-    } catch (error) {
-      console.error("Logout failed:", error)
-      // Clear local data even if logout request fails
-      setUser(null)
-      localStorage.removeItem("user")
+    } catch (err) {
+      console.error("Logout failed:", err)
+    } finally {
+      handleAuthChange(null)
+      setLoading(false)
     }
   }
 
@@ -72,6 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         loading,
         isAuthenticated: !!user && authService.isAuthenticated(),
+        error,
       }}
     >
       {children}
