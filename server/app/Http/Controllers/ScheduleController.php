@@ -29,26 +29,19 @@ class ScheduleController extends Controller
             'user_id' => 'sometimes|exists:users,id'
         ]);
         
-        $user = $request->user();
         $month = $request->input('month', date('m'));
         $year = $request->input('year', date('Y'));
         
-        // If user_id is provided, check if current user is admin
+        $query = Schedule::with('user')
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month);
+            
         if ($request->has('user_id')) {
-            if (!$user->isAdmin()) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-            $targetUser = User::find($request->user_id);
-        } else {
-            $targetUser = $user;
+            $query->where('user_id', $request->user_id);
         }
         
-        $schedules = Schedule::where('user_id', $targetUser->id)
-            ->whereYear('date', $year)
-            ->whereMonth('date', $month)
-            ->orderBy('date')
-            ->get();
-            
+        $schedules = $query->orderBy('date')->get();
+        
         return response()->json($schedules);
     }
     
