@@ -9,10 +9,163 @@ use App\Models\Event;
 use App\Models\LeaveRequest;
 use App\Models\TrainingRequest;
 use App\Models\OvertimeRequest;
+use App\Models\CourtRequest;
 use Carbon\Carbon;
 
 class NotificationService
 {
+    /**
+     * Send notification when a new court request is created (admin to employee)
+     */
+    public static function sendNewCourtRequestNotification(CourtRequest $courtRequest, User $createdBy)
+    {
+        $employee = $courtRequest->employee;
+        
+        $message = "You have a new court request for {$courtRequest->court_date} - " .
+                 "Case: {$courtRequest->case_number} at {$courtRequest->location}";
+                  
+        self::sendNotification(
+            [$employee->id],
+            'new_court_request',
+            'New Court Request',
+            $message,
+            $createdBy->id,
+            null,
+            ['court_request_id' => $courtRequest->id]
+        );
+    }
+
+    /**
+     * Send notification when an employee accepts a court request
+     */
+    public static function sendCourtRequestAcceptedNotification(CourtRequest $courtRequest)
+    {
+        $employee = $courtRequest->employee;
+        $message = "Your court request for {$courtRequest->court_date} has been accepted";
+        
+        // Notify the employee who accepted
+        self::sendNotification(
+            [$employee->id],
+            'court_request_accepted',
+            'Court Request Accepted',
+            $message,
+            $employee->id,
+            null,
+            ['court_request_id' => $courtRequest->id]
+        );
+
+        // Notify admins/creator
+        $adminMessage = "{$employee->first_name} {$employee->last_name} has accepted the court request for " .
+                       "{$courtRequest->court_date} (Case: {$courtRequest->case_number})";
+        
+        self::sendNotification(
+            self::getAdminUserIds(),
+            'court_request_accepted_admin',
+            'Court Request Accepted',
+            $adminMessage,
+            $employee->id,
+            null,
+            ['court_request_id' => $courtRequest->id]
+        );
+    }
+
+    /**
+     * Send notification when an employee declines a court request
+     */
+    public static function sendCourtRequestDeclinedNotification(CourtRequest $courtRequest)
+    {
+        $employee = $courtRequest->employee;
+        $message = "Your court request for {$courtRequest->court_date} has been declined. " .
+                  "Reason: {$courtRequest->employee_notes}";
+        
+        // Notify the employee who declined
+        self::sendNotification(
+            [$employee->id],
+            'court_request_declined',
+            'Court Request Declined',
+            $message,
+            $employee->id,
+            null,
+            ['court_request_id' => $courtRequest->id]
+        );
+
+        // Notify admins/creator
+        $adminMessage = "{$employee->first_name} {$employee->last_name} has declined the court request for " .
+                       "{$courtRequest->court_date}. Reason: {$courtRequest->employee_notes}";
+        
+        self::sendNotification(
+            self::getAdminUserIds(),
+            'court_request_declined_admin',
+            'Court Request Declined',
+            $adminMessage,
+            $employee->id,
+            null,
+            ['court_request_id' => $courtRequest->id]
+        );
+    }
+
+    /**
+     * Send notification when a court request is updated by admin
+     */
+    public static function sendCourtRequestUpdatedNotification(CourtRequest $courtRequest, User $updatedBy)
+    {
+        $employee = $courtRequest->employee;
+        
+        $message = "Your court request for {$courtRequest->court_date} has been updated. " .
+                 "Case: {$courtRequest->case_number} at {$courtRequest->location}";
+                  
+        self::sendNotification(
+            [$employee->id],
+            'court_request_updated',
+            'Court Request Updated',
+            $message,
+            $updatedBy->id,
+            null,
+            ['court_request_id' => $courtRequest->id]
+        );
+    }
+
+    /**
+     * Send notification when a court request is deleted
+     */
+    public static function sendCourtRequestDeletedNotification(CourtRequest $courtRequest, User $deletedBy)
+    {
+        $employee = $courtRequest->employee;
+        
+        $message = "Your court request for {$courtRequest->court_date} has been cancelled";
+                  
+        self::sendNotification(
+            [$employee->id],
+            'court_request_cancelled',
+            'Court Request Cancelled',
+            $message,
+            $deletedBy->id,
+            null,
+            ['court_request_id' => $courtRequest->id]
+        );
+    }
+
+    /**
+     * Send reminder notification for upcoming court requests
+     */
+    public static function sendCourtRequestReminder(CourtRequest $courtRequest, $daysBefore = 1)
+    {
+        $employee = $courtRequest->employee;
+        
+        $message = "Reminder: You have a court appearance in {$daysBefore} day(s) on {$courtRequest->court_date} " .
+                  "for case {$courtRequest->case_number} at {$courtRequest->location}";
+                  
+        self::sendNotification(
+            [$employee->id],
+            'court_request_reminder',
+            'Court Appearance Reminder',
+            $message,
+            null, // System generated
+            null,
+            ['court_request_id' => $courtRequest->id]
+        );
+    }
+    
     /**
      * Send notification to all users about a new event
      */

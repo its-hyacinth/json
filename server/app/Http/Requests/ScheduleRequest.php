@@ -15,7 +15,7 @@ class ScheduleRequest extends FormRequest
     {
         return [
             'time_in' => 'nullable|date_format:H:i',
-            'status' => 'required|in:working,C,SD,S,M'
+            'status' => 'required|in:working,C,SD,S,M,CT'
         ];
     }
 

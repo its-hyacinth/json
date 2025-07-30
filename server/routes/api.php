@@ -12,6 +12,7 @@ use App\Http\Controllers\OvertimeRequestController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CourtRequestController;
 use App\Http\Middleware\AdminMiddleware;
 
 /*
@@ -81,6 +82,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount']);
     Route::put('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
     Route::put('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+
+    Route::apiResource('court-requests', CourtRequestController::class);
+    Route::patch('/court-requests/{id}/response', [CourtRequestController::class, 'updateResponse']);
+    Route::get('/court-requests/statistics', [CourtRequestController::class, 'statistics']);
+    Route::get('/court-requests/upcoming', [CourtRequestController::class, 'upcoming']);
+    Route::patch('/court-requests/{courtRequest}/accept', [CourtRequestController::class, 'accept']);
+    Route::patch('/court-requests/{courtRequest}/decline', [CourtRequestController::class, 'decline']);
 
     // Admin routes
     Route::middleware(AdminMiddleware::class)->group(function () {

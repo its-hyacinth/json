@@ -17,7 +17,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Calendar, FileText, LogOut, Shield, User, GraduationCap, Clock, Users } from "lucide-react"
+import { Calendar, FileText, LogOut, Shield, User, GraduationCap, Clock, Users, Gavel } from "lucide-react"
 import { EmployeeSchedule } from "./employee-schedule"
 import { EmployeeLeaveRequest } from "./employee-leave-request"
 import { EmployeeTrainingRequests } from "./employee-training-requests"
@@ -36,11 +36,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { EmployeeCourt } from "./employee-court"
 
 export function EmployeeSidebar() {
   const { user, logout } = useAuth()
   const [activeView, setActiveView] = useState<
-    "schedule" | "leave-request" | "training-requests" | "overtime" | "profile"
+    "schedule" | "leave-request" | "training-requests" | "overtime" | "profile" | "court"
   >("schedule")
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
@@ -66,6 +67,11 @@ export function EmployeeSidebar() {
       key: "overtime" as const,
     },
     {
+      title: "Court",
+      icon: Gavel,
+      key: "court" as const,
+    },
+    {
       title: "Profile",
       icon: User,
       key: "profile" as const,
@@ -82,6 +88,8 @@ export function EmployeeSidebar() {
         return "Training Requests"
       case "overtime":
         return "Overtime"
+      case "court":
+        return "Court"
       case "profile":
         return "Profile Settings"
       default:
@@ -108,7 +116,7 @@ export function EmployeeSidebar() {
           <div className="space-y-1">
             <h2 className="text-sm font-bold tracking-wide uppercase font-serif">Christopher Newport University</h2>
             <p className="text-xs uppercase tracking-wide font-serif">Police Department</p>
-            <p className="text-sm text-white/80 mt-2">Admin Dashboard</p>
+            <p className="text-sm text-white/80 mt-2">Employee Dashboard</p>
           </div>
         </SidebarHeader>
 
@@ -167,6 +175,7 @@ export function EmployeeSidebar() {
           {activeView === "leave-request" && <EmployeeLeaveRequest />}
           {activeView === "training-requests" && <EmployeeTrainingRequests />}
           {activeView === "overtime" && <EmployeeOvertime />}
+          {activeView === "court" && <EmployeeCourt />}
           {activeView === "profile" && <ProfileSettings />}
         </div>
       </SidebarInset>

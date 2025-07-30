@@ -17,7 +17,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { Calendar, FileText, LogOut, Shield, Users, GraduationCap, Clock, UserCheck, User } from "lucide-react"
+import { Calendar, FileText, LogOut, Shield, Users, GraduationCap, Clock, UserCheck, User, Gavel } from "lucide-react"
 import { AdminSchedules } from "./admin-schedules"
 import { AdminLeaveRequests } from "./admin-leave-requests"
 import { ThemeToggle } from "./theme-toggle"
@@ -38,11 +38,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { AdminCourt } from "./admin-court"
 
 export function AdminSidebar() {
   const { user, logout } = useAuth()
   const [activeView, setActiveView] = useState<
-    "schedules" | "leave-requests" | "training-requests" | "overtime" | "accounts" | "profile"
+    "schedules" | "leave-requests" | "training-requests" | "overtime" | "court" | "accounts" | "profile"
   >("schedules")
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
@@ -68,6 +69,11 @@ export function AdminSidebar() {
       key: "overtime" as const,
     },
     {
+      title: "Court",
+      icon: Gavel,
+      key: "court" as const,
+    },
+    {
       title: "Account Management",
       icon: UserCheck,
       key: "accounts" as const,
@@ -89,6 +95,8 @@ export function AdminSidebar() {
         return "Training Requests"
       case "overtime":
         return "Overtime Management"
+      case "court":
+        return "Court Management"
       case "accounts":
         return "Account Management"
       case "profile":
@@ -177,6 +185,7 @@ export function AdminSidebar() {
           {activeView === "leave-requests" && <AdminLeaveRequests />}
           {activeView === "training-requests" && <AdminTrainingRequests />}
           {activeView === "overtime" && <AdminOvertime />}
+          {activeView === "court" && <AdminCourt />}
           {activeView === "profile" && <ProfileSettings />}
         </div>
       </SidebarInset>

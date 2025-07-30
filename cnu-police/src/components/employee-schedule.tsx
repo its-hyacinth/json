@@ -126,6 +126,19 @@ export function EmployeeSchedule() {
             Military
           </Badge>
         )
+      case "CT":
+        return (
+          <div className="space-y-1">
+            <Badge variant="outline" className="text-xs font-medium bg-indigo-100 text-indigo-700 border-indigo-300">
+              Court
+            </Badge>
+            {timeIn && (
+              <div className="text-xs font-mono text-foreground font-semibold">
+                {format(new Date(`2000-01-01T${timeIn}`), "HH:mm")}
+              </div>
+            )}
+          </div>
+        )
       default:
         return (
           <Badge variant="outline" className="text-xs">
@@ -432,6 +445,12 @@ export function EmployeeSchedule() {
                 Military
               </Badge>
               <span className="text-sm">Military</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="text-xs bg-indigo-100 text-indigo-700 border-indigo-300">
+                Court
+              </Badge>
+              <span className="text-sm">Court appearance</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-6 h-6 bg-yellow-50 border-2 border-yellow-200 rounded flex items-center justify-center">

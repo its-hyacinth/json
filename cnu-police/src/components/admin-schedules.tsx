@@ -547,6 +547,20 @@ export function AdminSchedules() {
       )
     }
 
+    // Add this new case for CT (Court)
+    if (schedule.status === "CT") {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <Badge
+            variant="outline"
+            className="text-xs font-bold bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300 border-indigo-300"
+          >
+            CT
+          </Badge>
+        </div>
+      )
+    }
+
     if (schedule.time_in) {
       const timeIn = format(new Date(`2000-01-01T${schedule.time_in}`), "HH:mm")
       return (
@@ -954,6 +968,7 @@ export function AdminSchedules() {
                     <SelectItem value="SD">Sick Leave (SD)</SelectItem>
                     <SelectItem value="S">School/Training (S)</SelectItem>
                     <SelectItem value="M">Military (M)</SelectItem>
+                    <SelectItem value="CT">Court (CT)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1347,6 +1362,15 @@ export function AdminSchedules() {
                 M
               </Badge>
               <span className="text-sm">Military</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="outline"
+                className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300 border-indigo-300"
+              >
+                CT
+              </Badge>
+              <span className="text-sm">Court</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-8 h-6 bg-yellow-50 border-2 border-yellow-200 rounded"></div>

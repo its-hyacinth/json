@@ -7,7 +7,7 @@ export interface Schedule {
   user_id: number
   date: string
   time_in: string | null
-  status: "working" | "C" | "SD" | "S" | "M"
+  status: "working" | "C" | "SD" | "S" | "M" | "CT"
   created_at: string
   updated_at: string
   user?: {
