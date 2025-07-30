@@ -38,7 +38,11 @@ export function EmployeeSchedule() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [showEventModal, setShowEventModal] = useState(false)
 
-  const { employees, loading: employeesLoading } = useEmployees()
+  const { employees: allEmployees, loading: employeesLoading } = useEmployees()
+
+  // Filter out admin users - only show regular employees
+  const employees = allEmployees.filter((employee) => employee.role !== "admin")
+
   const { events, loading: eventsLoading } = useEvents({
     month: selectedMonth.getMonth() + 1,
     year: selectedMonth.getFullYear(),
@@ -252,7 +256,7 @@ export function EmployeeSchedule() {
                   {/* Header Row */}
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="border border-gray-300 p-2 text-sm font-bold text-center w-40 bg-gray-200">
+                      <th className="border border-gray-300 p-2 text-sm font-bold text-center w-40 bg-gray-200 sticky left-0 z-10">
                         {format(selectedMonth, "MMMM yyyy").toUpperCase()}
                       </th>
                       {monthDays.map((date) => {
@@ -302,7 +306,7 @@ export function EmployeeSchedule() {
                         >
                           <td
                             className={cn(
-                              "border border-gray-300 p-2 font-bold text-sm",
+                              "border border-gray-300 p-2 font-bold text-sm sticky left-0 z-10",
                               isCurrentUser ? "bg-primary/20" : "bg-gray-100",
                             )}
                           >
@@ -314,7 +318,6 @@ export function EmployeeSchedule() {
                                     <span className="relative">
                                       <User className="h-3 w-3 text-primary" />
                                       <span className="sr-only">This is you</span>
-                                      <title>This is you</title>
                                     </span>
                                   )}
                                 </div>

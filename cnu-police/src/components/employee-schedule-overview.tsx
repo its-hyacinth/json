@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { useSchedules } from "@/hooks/use-schedules"
+import { useState, useEffect } from "react"
+import { useEmployees } from "@/hooks/use-employees"
 import { useEvents } from "@/hooks/use-events"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, ChevronLeft, ChevronRight, Star } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Calendar, ChevronLeft, ChevronRight, Star, Users, Loader2, User } from "lucide-react"
 import {
   format,
   startOfMonth,
@@ -14,42 +15,75 @@ import {
   eachDayOfInterval,
   isSameDay,
   isToday,
-  startOfWeek,
-  endOfWeek,
   addMonths,
   subMonths,
-  isWeekend,
-  isSameMonth,
   getDay,
 } from "date-fns"
 import { cn } from "@/lib/utils"
+import type { Schedule } from "@/services/schedule-service"
+import { scheduleService } from "@/services/schedule-service"
+import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/auth-context"
 
 export function EmployeeScheduleOverview() {
+  const { user } = useAuth()
+  const currentUserId = user?.id
   const [selectedMonth, setSelectedMonth] = useState(new Date())
+  const [allSchedules, setAllSchedules] = useState<Schedule[]>([])
+  const [loading, setLoading] = useState(false)
 
-  const { schedules, loading } = useSchedules({
-    month: selectedMonth.getMonth() + 1,
-    year: selectedMonth.getFullYear(),
-  })
+  const { employees: allEmployees, loading: employeesLoading } = useEmployees()
+
+  // Filter out admin users - only show regular employees
+  const employees = allEmployees.filter((employee) => employee.role !== "admin")
 
   const { events } = useEvents({
     month: selectedMonth.getMonth() + 1,
     year: selectedMonth.getFullYear(),
   })
+  const { toast } = useToast()
 
-  // Get calendar grid including previous/next month days for complete weeks
-  const monthStart = startOfMonth(selectedMonth)
-  const monthEnd = endOfMonth(selectedMonth)
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 }) // Sunday start
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 })
+  // Fetch schedules for all employees
+  const fetchAllSchedules = async () => {
+    if (employees.length === 0) return
 
-  const calendarDays = eachDayOfInterval({
-    start: calendarStart,
-    end: calendarEnd,
-  })
+    setLoading(true)
+    try {
+      const allEmployeeSchedules: Schedule[] = []
 
-  const getScheduleForDate = (date: Date) => {
-    return schedules.find((schedule) => isSameDay(new Date(schedule.date), date))
+      for (const employee of employees) {
+        try {
+          const schedules = await scheduleService.getSchedules({
+            month: selectedMonth.getMonth() + 1,
+            year: selectedMonth.getFullYear(),
+            user_id: employee.id,
+          })
+          allEmployeeSchedules.push(...schedules)
+        } catch (error) {
+          console.warn(`Failed to fetch schedules for employee ${employee.id}:`, error)
+        }
+      }
+
+      setAllSchedules(allEmployeeSchedules)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch schedules",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!employeesLoading && employees.length > 0) {
+      fetchAllSchedules()
+    }
+  }, [selectedMonth, employees, employeesLoading])
+
+  const getScheduleForEmployeeAndDate = (employeeId: number, date: Date): Schedule | undefined => {
+    return allSchedules.find((schedule) => schedule.user_id === employeeId && isSameDay(new Date(schedule.date), date))
   }
 
   const getEventsForDate = (date: Date) => {
@@ -63,80 +97,34 @@ export function EmployeeScheduleOverview() {
     })
   }
 
-  const getStatusBadge = (status: string, timeIn?: string) => {
-    switch (status) {
-      case "working":
-        return (
-          <Badge variant="default" className="text-xs">
-            Working
-          </Badge>
-        )
-      case "C":
-        return (
-          <Badge variant="secondary" className="text-xs">
-            Leave
-          </Badge>
-        )
-      case "SD":
-        return (
-          <Badge variant="destructive" className="text-xs">
-            Sick
-          </Badge>
-        )
-      case "S":
-        return (
-          <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
-            School
-          </Badge>
-        )
-      case "M":
-        return (
-          <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-300">
-            Military
-          </Badge>
-        )
-      case "CT":
-        return (
-          <Badge variant="outline" className="text-xs bg-indigo-100 text-indigo-700 border-indigo-300">
-            Court
-          </Badge>
-        )
-      default:
-        return (
-          <Badge variant="outline" className="text-xs">
-            {status}
-          </Badge>
-        )
-    }
-  }
-
-  const getDayBackground = (date: Date, schedule: any, dayEvents: any[]) => {
-    const isTodayDate = isToday(date)
-    const isCurrentMonth = isSameMonth(date, selectedMonth)
-    const isWeekendDay = isWeekend(date)
-    const hasEvents = dayEvents.length > 0
-
-    if (!isCurrentMonth) {
-      return "bg-muted/30 text-muted-foreground"
-    }
-
-    if (isTodayDate) {
-      return "bg-primary/10 border-primary/30 border-2"
-    }
-
-    if (hasEvents) {
-      return "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800"
-    }
-
-    if (isWeekendDay) {
-      return "bg-muted/50"
-    }
-
-    return "bg-background border hover:bg-muted/30 transition-colors"
-  }
-
   const navigateMonth = (direction: "prev" | "next") => {
     setSelectedMonth(direction === "prev" ? subMonths(selectedMonth, 1) : addMonths(selectedMonth, 1))
+  }
+
+  if (employeesLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-48" />
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-28" />
+          </div>
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
@@ -149,11 +137,15 @@ export function EmployeeScheduleOverview() {
             Schedule Overview
           </h2>
           <p className="text-muted-foreground">
-            {format(selectedMonth, "MMMM yyyy")} - View your work schedule and events
+            {format(selectedMonth, "MMMM yyyy")} - View your work schedule alongside your colleagues
           </p>
         </div>
 
         <div className="flex items-center gap-2">
+          <Badge variant="outline" className="gap-1 border-primary/20">
+            <Users className="h-3 w-3" />
+            {employees.length} Employees
+          </Badge>
           <Button variant="outline" size="sm" onClick={() => navigateMonth("prev")}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -168,7 +160,8 @@ export function EmployeeScheduleOverview() {
         <CardHeader>
           <CardTitle className="text-xl">{format(selectedMonth, "MMMM yyyy")}</CardTitle>
           <CardDescription>
-            Your schedule overview. Times are shown in 24-hour format. Yellow highlighted cells indicate event days.
+            Your schedule overview with team context. Your row is highlighted. Times are shown in 24-hour format. Yellow
+            highlighted cells indicate event days.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -176,8 +169,8 @@ export function EmployeeScheduleOverview() {
             <div className="p-8">
               <div className="flex items-center justify-center">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p className="text-sm text-muted-foreground">Loading schedule...</p>
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+                  <p className="text-sm text-muted-foreground">Loading schedules...</p>
                 </div>
               </div>
             </div>
@@ -189,7 +182,7 @@ export function EmployeeScheduleOverview() {
                   {/* Header Row */}
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="border border-gray-300 p-2 text-sm font-bold text-center w-40 bg-gray-200">
+                      <th className="border border-gray-300 p-2 text-sm font-bold text-center w-40 bg-gray-200 sticky left-0 z-10">
                         {format(selectedMonth, "MMMM yyyy").toUpperCase()}
                       </th>
                       {eachDayOfInterval({
@@ -224,91 +217,114 @@ export function EmployeeScheduleOverview() {
                     </tr>
                   </thead>
 
-                  {/* Employee Row - Highlighted */}
+                  {/* Employee Rows */}
                   <tbody>
-                    <tr className="bg-primary/10 border-2 border-primary/30 hover:bg-primary/15 transition-colors">
-                      <td className="border border-gray-300 p-2 bg-primary/20 font-bold text-sm">
-                        <div className="flex items-center justify-center">
-                          <div className="text-center">
-                            <div className="font-bold text-sm uppercase text-primary">MY SCHEDULE</div>
-                            <div className="text-xs text-primary/80">Personal View</div>
-                          </div>
-                        </div>
-                      </td>
-
-                      {eachDayOfInterval({
-                        start: startOfMonth(selectedMonth),
-                        end: endOfMonth(selectedMonth),
-                      }).map((date) => {
-                        const schedule = getScheduleForDate(date)
-                        const dayOfWeek = getDay(date)
-                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
-                        const isTodayDate = isToday(date)
-                        const hasEvents = getEventsForDate(date).length > 0
-
-                        let cellBg = "bg-primary/5"
-                        if (isTodayDate) {
-                          cellBg = "bg-primary/20"
-                        } else if (hasEvents) {
-                          cellBg = "bg-yellow-200"
-                        } else if (isWeekend) {
-                          cellBg = "bg-primary/10"
-                        }
-
-                        // Special background colors for different statuses
-                        if (schedule?.status === "C") {
-                          cellBg = "bg-yellow-300"
-                        } else if (schedule?.status === "SD") {
-                          cellBg = "bg-green-300"
-                        } else if (schedule?.status === "S") {
-                          cellBg = "bg-cyan-300"
-                        } else if (schedule?.status === "M") {
-                          cellBg = "bg-amber-300"
-                        } else if (schedule?.status === "CT") {
-                          cellBg = "bg-indigo-300"
-                        }
-
-                        return (
+                    {employees.map((employee, index) => {
+                      const isCurrentUser = employee.id === currentUserId
+                      return (
+                        <tr
+                          key={employee.id}
+                          className={cn(
+                            "hover:bg-gray-50 transition-colors",
+                            isCurrentUser
+                              ? "bg-primary/10 border-l-4 border-l-primary"
+                              : index % 2 === 0
+                                ? "bg-white"
+                                : "bg-gray-50/50",
+                          )}
+                        >
                           <td
-                            key={`schedule-${date.toISOString()}`}
-                            className={cn("border border-gray-300 p-1 text-center h-12 w-12 border-primary/30", cellBg)}
-                            title={
-                              hasEvents
-                                ? `Events: ${getEventsForDate(date)
-                                    .map((e) => e.title)
-                                    .join(", ")}`
-                                : schedule?.status === "working" && schedule?.time_in
-                                  ? `Working: ${format(new Date(`2000-01-01T${schedule.time_in}`), "HH:mm")}`
-                                  : schedule?.status
-                                    ? `Status: ${schedule.status}`
-                                    : "No schedule"
-                            }
+                            className={cn(
+                              "border border-gray-300 p-2 font-bold text-sm sticky left-0 z-10",
+                              isCurrentUser ? "bg-primary/20" : "bg-gray-100",
+                            )}
                           >
-                            <div className="flex items-center justify-center h-full">
-                              {!schedule ? (
-                                <span className="text-xs text-gray-400 font-bold">0</span>
-                              ) : schedule.status === "C" ? (
-                                <span className="text-xs font-bold text-black">C</span>
-                              ) : schedule.status === "SD" ? (
-                                <span className="text-xs font-bold text-black">SD</span>
-                              ) : schedule.status === "S" ? (
-                                <span className="text-xs font-bold text-black">S</span>
-                              ) : schedule.status === "M" ? (
-                                <span className="text-xs font-bold text-black">M</span>
-                              ) : schedule.status === "CT" ? (
-                                <span className="text-xs font-bold text-black">CT</span>
-                              ) : schedule.time_in ? (
-                                <span className="text-xs font-bold text-black">
-                                  {Number.parseInt(schedule.time_in.split(":")[0])}
-                                </span>
-                              ) : (
-                                <span className="text-xs text-gray-400 font-bold">0</span>
-                              )}
+                            <div className="flex items-center justify-between">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <div className="font-bold text-sm truncate uppercase">{employee.last_name}</div>
+                                  {isCurrentUser && (
+                                    <span className="relative">
+                                      <User className="h-3 w-3 text-primary" />
+                                      <span className="sr-only">This is you</span>
+                                    </span>
+                                  )}
+                                </div>
+                                {employee.first_name && (
+                                  <div className="text-xs text-gray-600 truncate">{employee.first_name}</div>
+                                )}
+                              </div>
                             </div>
                           </td>
-                        )
-                      })}
-                    </tr>
+
+                          {eachDayOfInterval({
+                            start: startOfMonth(selectedMonth),
+                            end: endOfMonth(selectedMonth),
+                          }).map((date) => {
+                            const schedule = getScheduleForEmployeeAndDate(employee.id, date)
+                            const dayOfWeek = getDay(date)
+                            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+                            const isTodayDate = isToday(date)
+                            const hasEvents = getEventsForDate(date).length > 0
+
+                            let cellBg = isCurrentUser ? "bg-primary/5" : "bg-white"
+                            if (isTodayDate) {
+                              cellBg = isCurrentUser ? "bg-primary/20" : "bg-blue-100"
+                            } else if (hasEvents) {
+                              cellBg = isCurrentUser ? "bg-yellow-200" : "bg-yellow-100"
+                            } else if (isWeekend) {
+                              cellBg = isCurrentUser ? "bg-primary/10" : "bg-gray-100"
+                            }
+
+                            // Special background colors for different statuses
+                            if (schedule?.status === "C") {
+                              cellBg = isCurrentUser ? "bg-yellow-300" : "bg-yellow-200"
+                            } else if (schedule?.status === "SD") {
+                              cellBg = isCurrentUser ? "bg-green-300" : "bg-green-200"
+                            } else if (schedule?.status === "S") {
+                              cellBg = isCurrentUser ? "bg-cyan-300" : "bg-cyan-200"
+                            } else if (schedule?.status === "M") {
+                              cellBg = isCurrentUser ? "bg-amber-300" : "bg-amber-200"
+                            } else if (schedule?.status === "CT") {
+                              cellBg = isCurrentUser ? "bg-indigo-300" : "bg-indigo-200"
+                            }
+
+                            return (
+                              <td
+                                key={`schedule-${date.toISOString()}`}
+                                className={cn(
+                                  "border border-gray-300 p-1 text-center h-12 w-12",
+                                  cellBg,
+                                  isCurrentUser && "border-primary/30",
+                                )}
+                              >
+                                <div className="flex items-center justify-center h-full">
+                                  {!schedule ? (
+                                    <span className="text-xs text-gray-400 font-bold">0</span>
+                                  ) : schedule.status === "C" ? (
+                                    <span className="text-xs font-bold text-black">C</span>
+                                  ) : schedule.status === "SD" ? (
+                                    <span className="text-xs font-bold text-black">SD</span>
+                                  ) : schedule.status === "S" ? (
+                                    <span className="text-xs font-bold text-black">S</span>
+                                  ) : schedule.status === "M" ? (
+                                    <span className="text-xs font-bold text-black">M</span>
+                                  ) : schedule.status === "CT" ? (
+                                    <span className="text-xs font-bold text-black">CT</span>
+                                  ) : schedule.time_in ? (
+                                    <span className="text-xs font-bold text-black">
+                                      {Number.parseInt(schedule.time_in.split(":")[0])}
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs text-gray-400 font-bold">0</span>
+                                  )}
+                                </div>
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -381,6 +397,12 @@ export function EmployeeScheduleOverview() {
             <div className="flex items-center gap-3">
               <div className="w-8 h-6 bg-yellow-50 border-2 border-yellow-200 rounded"></div>
               <span className="text-sm">Event Day</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-6 bg-primary/10 border-2 border-primary/30 rounded flex items-center justify-center">
+                <User className="h-3 w-3 text-primary" />
+              </div>
+              <span className="text-sm">Your Schedule</span>
             </div>
           </div>
         </CardContent>
