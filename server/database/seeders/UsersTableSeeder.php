@@ -36,17 +36,6 @@ class UsersTableSeeder extends Seeder
                 'role' => 'employee'
             ],
             [
-                'first_name' => 'VACANT',
-                'last_name' => '',
-                'badge_number' => 'EMP002',
-                'division' => 'Marketing',
-                'email' => 'vacant1@cnu.edu',
-                'phone' => '5553334444',
-                'address' => '789 Worker Blvd, City',
-                'password' => Hash::make('employee123'),
-                'role' => 'employee'
-            ],
-            [
                 'first_name' => 'DECKER',
                 'last_name' => '',
                 'badge_number' => 'EMP003',
@@ -98,17 +87,6 @@ class UsersTableSeeder extends Seeder
                 'email' => 'delgado@cnu.edu',
                 'phone' => '5555550000',
                 'address' => '325 Staff Lane, City',
-                'password' => Hash::make('employee123'),
-                'role' => 'employee'
-            ],
-            [
-                'first_name' => 'VACANT',
-                'last_name' => '',
-                'badge_number' => 'EMP008',
-                'division' => 'HR',
-                'email' => 'vacant2@cnu.edu',
-                'phone' => '5555551111',
-                'address' => '326 Staff Lane, City',
                 'password' => Hash::make('employee123'),
                 'role' => 'employee'
             ],
@@ -183,7 +161,7 @@ class UsersTableSeeder extends Seeder
                 'last_name' => '',
                 'badge_number' => 'EMP015',
                 'division' => 'Operations',
-                'email' => 'reynolds1@cnu.edu',
+                'email' => 'reynolds@cnu.edu',
                 'phone' => '5555558888',
                 'address' => '333 Staff Lane, City',
                 'password' => Hash::make('employee123'),
@@ -211,17 +189,6 @@ class UsersTableSeeder extends Seeder
                 'password' => Hash::make('employee123'),
                 'role' => 'employee'
             ],
-            [
-                'first_name' => 'REYNOLDS',
-                'last_name' => '',
-                'badge_number' => 'EMP018',
-                'division' => 'Marketing',
-                'email' => 'reynolds2@cnu.edu',
-                'phone' => '5555551111',
-                'address' => '336 Staff Lane, City',
-                'password' => Hash::make('employee123'),
-                'role' => 'employee'
-            ]
         ];
 
         foreach ($employees as $employee) {
