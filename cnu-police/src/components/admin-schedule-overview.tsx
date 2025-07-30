@@ -33,12 +33,20 @@ export function AdminScheduleOverview() {
 
   const { employees, loading: employeesLoading } = useEmployees()
 
-  // Filter out admin users and sort by today's start time
-  const nonAdminEmployees = useMemo(() => {
-    const filtered = employees.filter((employee) => employee.role !== "admin")
-    const today = new Date()
+  // Filter out admin users (without depending on schedules)
+  const filteredEmployees = useMemo(() => {
+    return employees.filter((employee) => employee.role !== "admin")
+  }, [employees])
 
-    return filtered.sort((a, b) => {
+  // Sort employees by today's start time (only after schedules are loaded)
+  const sortedEmployees = useMemo(() => {
+    if (allSchedules.length === 0) {
+      // If no schedules loaded yet, return employees sorted by name
+      return [...filteredEmployees].sort((a, b) => a.last_name.localeCompare(b.last_name))
+    }
+
+    const today = new Date()
+    return [...filteredEmployees].sort((a, b) => {
       const scheduleA = allSchedules.find((s) => s.user_id === a.id && isSameDay(new Date(s.date), today))
       const scheduleB = allSchedules.find((s) => s.user_id === b.id && isSameDay(new Date(s.date), today))
 
@@ -59,7 +67,7 @@ export function AdminScheduleOverview() {
       }
       return a.last_name.localeCompare(b.last_name)
     })
-  }, [employees, allSchedules])
+  }, [filteredEmployees, allSchedules])
 
   const {
     events,
@@ -78,13 +86,13 @@ export function AdminScheduleOverview() {
 
   // Fetch schedules for all employees
   const fetchAllSchedules = useCallback(async () => {
-    if (nonAdminEmployees.length === 0) return
+    if (filteredEmployees.length === 0) return
 
     setLoading(true)
     try {
       const allEmployeeSchedules: Schedule[] = []
 
-      for (const employee of nonAdminEmployees) {
+      for (const employee of filteredEmployees) {
         try {
           const schedules = await scheduleService.getAdminSchedules({
             month: selectedMonth.getMonth() + 1,
@@ -107,13 +115,14 @@ export function AdminScheduleOverview() {
     } finally {
       setLoading(false)
     }
-  }, [nonAdminEmployees, selectedMonth, toast])
+  }, [filteredEmployees, selectedMonth, toast])
 
+  // Only fetch schedules when month changes or filtered employees change
   useEffect(() => {
-    if (!employeesLoading && nonAdminEmployees.length > 0) {
+    if (!employeesLoading && filteredEmployees.length > 0) {
       fetchAllSchedules()
     }
-  }, [selectedMonth, nonAdminEmployees, employeesLoading, fetchAllSchedules])
+  }, [selectedMonth, filteredEmployees, employeesLoading, fetchAllSchedules])
 
   const getScheduleForEmployeeAndDate = (employeeId: number, date: Date): Schedule | undefined => {
     return allSchedules.find((schedule) => schedule.user_id === employeeId && isSameDay(new Date(schedule.date), date))
@@ -284,7 +293,7 @@ export function AdminScheduleOverview() {
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="gap-1 border-primary/20">
               <Users className="h-3 w-3" />
-              {nonAdminEmployees.length} Employees
+              {filteredEmployees.length} Employees
             </Badge>
             <Badge variant="outline" className="gap-1 border-yellow-300">
               <Star className="h-3 w-3" />
@@ -390,7 +399,7 @@ export function AdminScheduleOverview() {
 
                   {/* Employee Rows */}
                   <tbody>
-                    {nonAdminEmployees.map((employee, index) => (
+                    {sortedEmployees.map((employee, index) => (
                       <tr
                         key={employee.id}
                         className={cn(
