@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useCourtRequests } from "@/hooks/use-court-requests"
 import { useEmployees } from "@/hooks/use-employees"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -56,13 +56,23 @@ export function EmployeeCourt() {
   const { courtRequests, refetch, loading, createCourtRequest, deleteCourtRequest } = useCourtRequests(filters)
   const { employees = [] } = useEmployees()
 
+  // Filter admins from employees
+  const admins = employees.filter(employee => employee.role === 'admin')
+
+  // Auto-select the first admin when admins load
+  useEffect(() => {
+    if (admins.length > 0 && createData.employee_id === 0) {
+      setCreateData(prev => ({ ...prev, employee_id: admins[0].id }))
+    }
+  }, [admins])
+
   const handleCreateCourtRequest = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       await createCourtRequest(createData)
       setShowCreateDialog(false)
       setCreateData({
-        employee_id: 0,
+        employee_id: admins.length > 0 ? admins[0].id : 0,
         court_date: "",
         court_time: "",
         case_number: "",
@@ -145,24 +155,30 @@ export function EmployeeCourt() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Create Court Request</DialogTitle>
-              <DialogDescription>Request a court appearance for an employee</DialogDescription>
+              <DialogDescription>Request a court appearance for an admin</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleCreateCourtRequest} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="employee">Employee</Label>
+                <Label htmlFor="employee">Admin</Label>
                 <Select
                   value={createData.employee_id.toString()}
                   onValueChange={(value) => setCreateData((prev) => ({ ...prev, employee_id: Number.parseInt(value) }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select employee" />
+                    <SelectValue placeholder={admins.length > 0 ? "Select admin" : "No admins available"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id.toString()}>
-                        {employee.first_name} {employee.last_name} {employee.badge_number && `(#${employee.badge_number})`}
+                    {admins.length > 0 ? (
+                      admins.map((admin) => (
+                        <SelectItem key={admin.id} value={admin.id.toString()}>
+                          {admin.first_name} {admin.last_name} {admin.badge_number && `(#${admin.badge_number})`}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="0" disabled>
+                        No admins available
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -240,7 +256,7 @@ export function EmployeeCourt() {
               </div>
 
               <div className="flex gap-2 pt-4">
-                <Button type="submit" className="flex-1">
+                <Button type="submit" className="flex-1" disabled={admins.length === 0}>
                   Create Request
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
@@ -312,7 +328,7 @@ export function EmployeeCourt() {
             </div>
 
             <div className="space-y-2">
-              <Label>Employee</Label>
+              <Label>Admin</Label>
               <Select
                 value={filters.employee_id?.toString() || "all"}
                 onValueChange={(value) =>
@@ -323,10 +339,10 @@ export function EmployeeCourt() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Employees</SelectItem>
-                  {employees.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.id.toString()}>
-                      {employee.first_name} {employee.last_name}
+                  <SelectItem value="all">All Admins</SelectItem>
+                  {admins.map((admin) => (
+                    <SelectItem key={admin.id} value={admin.id.toString()}>
+                      {admin.first_name} {admin.last_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -372,7 +388,7 @@ export function EmployeeCourt() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Employee</TableHead>
+                    <TableHead>Admin</TableHead>
                     <TableHead>Court Date</TableHead>
                     <TableHead>Case Number</TableHead>
                     <TableHead>Type</TableHead>
