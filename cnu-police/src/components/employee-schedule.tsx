@@ -107,6 +107,34 @@ export function EmployeeSchedule() {
     })
   }
 
+  const getSortedEmployees = () => {
+    const today = new Date()
+
+    return [...employees].sort((a, b) => {
+      const scheduleA = getScheduleForEmployeeAndDate(a.id, today)
+      const scheduleB = getScheduleForEmployeeAndDate(b.id, today)
+
+      // Get time_in values, defaulting to a high value for non-working statuses
+      const getTimeValue = (schedule: Schedule | undefined) => {
+        if (!schedule || !schedule.time_in || schedule.status !== "working") {
+          return 24 * 60 // 24:00 in minutes (end of day for sorting)
+        }
+        const [hours, minutes] = schedule.time_in.split(":").map(Number)
+        return hours * 60 + minutes
+      }
+
+      const timeA = getTimeValue(scheduleA)
+      const timeB = getTimeValue(scheduleB)
+
+      // Sort by time, then by last name if times are equal
+      if (timeA === timeB) {
+        return a.last_name.localeCompare(b.last_name)
+      }
+
+      return timeA - timeB
+    })
+  }
+
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event)
     setShowEventModal(true)
@@ -195,67 +223,6 @@ export function EmployeeSchedule() {
             </Button>
           </div>
         </div>
-
-        {/* Events List */}
-        {events.length > 0 && (
-          <Card className="border-yellow-200">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-600" />
-                Upcoming Events - {format(selectedMonth, "MMMM yyyy")}
-              </CardTitle>
-              <CardDescription>Events and activities scheduled for this month</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {eventsLoading ? (
-                <div className="space-y-2">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {events.map((event) => (
-                    <div
-                      key={event.id}
-                      className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors"
-                      onClick={() => handleEventClick(event)}
-                    >
-                      <div className="p-2 bg-yellow-100 dark:bg-yellow-800 rounded-lg">
-                        <Star className="h-4 w-4 text-yellow-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="text-xs">
-                            {EVENT_TYPES[event.event_type as keyof typeof EVENT_TYPES]}
-                          </Badge>
-                          <h4 className="font-semibold truncate">{event.title}</h4>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(event.start_date), "MMM d")} -{" "}
-                          {format(new Date(event.end_date), "MMM d, yyyy")}
-                          {event.start_time && event.end_time && (
-                            <span className="ml-2">
-                              {event.start_time} - {event.end_time}
-                            </span>
-                          )}
-                        </p>
-                        {event.location && (
-                          <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                            📍 {event.location}
-                          </p>
-                        )}
-                        {event.description && (
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{event.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       {/* Schedule Grid */}
@@ -319,7 +286,7 @@ export function EmployeeSchedule() {
 
                   {/* Employee Rows */}
                   <tbody>
-                    {employees.map((employee, index) => {
+                    {getSortedEmployees().map((employee, index) => {
                       const isCurrentUser = employee.id === currentUserId
                       return (
                         <tr
@@ -343,13 +310,13 @@ export function EmployeeSchedule() {
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2">
                                   <div className="font-bold text-sm truncate uppercase">{employee.last_name}</div>
-                                    {isCurrentUser && (
-                                      <span className="relative">
-                                        <User className="h-3 w-3 text-primary" />
-                                        <span className="sr-only">This is you</span>
-                                        <title>This is you</title>
-                                      </span>
-                                    )}                                
+                                  {isCurrentUser && (
+                                    <span className="relative">
+                                      <User className="h-3 w-3 text-primary" />
+                                      <span className="sr-only">This is you</span>
+                                      <title>This is you</title>
+                                    </span>
+                                  )}
                                 </div>
                                 {employee.first_name && (
                                   <div className="text-xs text-gray-600 truncate">{employee.first_name}</div>
@@ -430,6 +397,67 @@ export function EmployeeSchedule() {
           )}
         </CardContent>
       </Card>
+
+      {/* Events List */}
+      {events.length > 0 && (
+        <Card className="border-yellow-200">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-600" />
+              Upcoming Events - {format(selectedMonth, "MMMM yyyy")}
+            </CardTitle>
+            <CardDescription>Events and activities scheduled for this month</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {eventsLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {events.map((event) => (
+                  <div
+                    key={event.id}
+                    className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors"
+                    onClick={() => handleEventClick(event)}
+                  >
+                    <div className="p-2 bg-yellow-100 dark:bg-yellow-800 rounded-lg">
+                      <Star className="h-4 w-4 text-yellow-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="outline" className="text-xs">
+                          {EVENT_TYPES[event.event_type as keyof typeof EVENT_TYPES]}
+                        </Badge>
+                        <h4 className="font-semibold truncate">{event.title}</h4>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(event.start_date), "MMM d")} -{" "}
+                        {format(new Date(event.end_date), "MMM d, yyyy")}
+                        {event.start_time && event.end_time && (
+                          <span className="ml-2">
+                            {event.start_time} - {event.end_time}
+                          </span>
+                        )}
+                      </p>
+                      {event.location && (
+                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                          📍 {event.location}
+                        </p>
+                      )}
+                      {event.description && (
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{event.description}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Legend */}
       <Card className="border-primary/10">

@@ -230,8 +230,8 @@ export function EmployeeScheduleOverview() {
                       <td className="border border-gray-300 p-2 bg-primary/20 font-bold text-sm">
                         <div className="flex items-center justify-center">
                           <div className="text-center">
-                            <div className="font-bold text-sm uppercase text-primary">OVERVIEW</div>
-                            <div className="text-xs text-primary/80">{format(selectedMonth, "MMMM yyyy")}</div>
+                            <div className="font-bold text-sm uppercase text-primary">MY SCHEDULE</div>
+                            <div className="text-xs text-primary/80">Personal View</div>
                           </div>
                         </div>
                       </td>
@@ -248,11 +248,11 @@ export function EmployeeScheduleOverview() {
 
                         let cellBg = "bg-primary/5"
                         if (isTodayDate) {
-                          cellBg = "bg-blue-200 border-2 border-blue-400"
+                          cellBg = "bg-primary/20"
                         } else if (hasEvents) {
                           cellBg = "bg-yellow-200"
                         } else if (isWeekend) {
-                          cellBg = "bg-gray-200"
+                          cellBg = "bg-primary/10"
                         }
 
                         // Special background colors for different statuses
@@ -271,7 +271,7 @@ export function EmployeeScheduleOverview() {
                         return (
                           <td
                             key={`schedule-${date.toISOString()}`}
-                            className={cn("border border-gray-300 p-1 text-center h-12 w-12 relative", cellBg)}
+                            className={cn("border border-gray-300 p-1 text-center h-12 w-12 border-primary/30", cellBg)}
                             title={
                               hasEvents
                                 ? `Events: ${getEventsForDate(date)
@@ -286,7 +286,7 @@ export function EmployeeScheduleOverview() {
                           >
                             <div className="flex items-center justify-center h-full">
                               {!schedule ? (
-                                <span className="text-xs text-gray-500 font-bold">0</span>
+                                <span className="text-xs text-gray-400 font-bold">0</span>
                               ) : schedule.status === "C" ? (
                                 <span className="text-xs font-bold text-black">C</span>
                               ) : schedule.status === "SD" ? (
@@ -302,14 +302,9 @@ export function EmployeeScheduleOverview() {
                                   {Number.parseInt(schedule.time_in.split(":")[0])}
                                 </span>
                               ) : (
-                                <span className="text-xs text-gray-500 font-bold">0</span>
+                                <span className="text-xs text-gray-400 font-bold">0</span>
                               )}
                             </div>
-                            {hasEvents && (
-                              <div className="absolute top-0 right-0">
-                                <Star className="h-2 w-2 text-yellow-600" />
-                              </div>
-                            )}
                           </td>
                         )
                       })}
@@ -323,44 +318,68 @@ export function EmployeeScheduleOverview() {
       </Card>
 
       {/* Legend */}
-      <Card>
+      <Card className="border-primary/10">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Schedule Legend</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-primary"></div>
+            Schedule Legend
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
             <div className="flex items-center gap-3">
-              <Badge variant="default" className="text-xs">
-                Working
+              <div className="w-8 h-6 bg-background border-2 border-primary/20 rounded flex items-center justify-center text-xs font-mono font-semibold">
+                08
+              </div>
+              <span className="text-sm">Working Time</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="secondary"
+                className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300"
+              >
+                C
               </Badge>
-              <span className="text-sm">Regular work day</span>
+              <span className="text-sm">Ordinary Leave</span>
             </div>
             <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="text-xs">
-                Leave
+              <Badge
+                variant="destructive"
+                className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300"
+              >
+                SD
               </Badge>
-              <span className="text-sm">Ordinary leave</span>
+              <span className="text-sm">Sick Leave</span>
             </div>
             <div className="flex items-center gap-3">
-              <Badge variant="destructive" className="text-xs">
-                Sick
-              </Badge>
-              <span className="text-sm">Sick leave</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-primary/10 border-2 border-primary/30 rounded"></div>
-              <span className="text-sm">Today</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
-                School
+              <Badge
+                variant="outline"
+                className="bg-cyan-100 text-cyan-700 hover:bg-cyan-100 dark:bg-cyan-900 dark:text-cyan-300 border-cyan-300"
+              >
+                S
               </Badge>
               <span className="text-sm">School/Training</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 bg-yellow-50 border-2 border-yellow-200 rounded flex items-center justify-center">
-                <Star className="h-3 w-3 text-yellow-600" />
-              </div>
+              <Badge
+                variant="outline"
+                className="bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900 dark:text-amber-300 border-amber-300"
+              >
+                M
+              </Badge>
+              <span className="text-sm">Military</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="outline"
+                className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300 border-indigo-300"
+              >
+                CT
+              </Badge>
+              <span className="text-sm">Court</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-6 bg-yellow-50 border-2 border-yellow-200 rounded"></div>
               <span className="text-sm">Event Day</span>
             </div>
           </div>
