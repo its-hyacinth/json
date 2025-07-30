@@ -1218,7 +1218,7 @@ export function AdminSchedules() {
               </div>
             </div>
           ) : (
-            <div className="w-full overflow-x-auto">
+            <div className="w-[70vw] ml-10">
               <div className="min-w-max">
                 {/* Spreadsheet-style table */}
                 <table className="w-full border-collapse border border-gray-300">
