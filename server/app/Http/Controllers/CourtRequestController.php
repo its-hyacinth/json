@@ -35,9 +35,12 @@ class CourtRequestController extends Controller
 
     public function store(CourtRequestRequest $request): JsonResponse
     {
+        $attachment = $request->hasFile('attachment') ? $request->file('attachment') : null;
+        
         $courtRequest = $this->courtRequestService->createCourtRequest(
             $request->validated(),
-            $request->user()
+            $request->user(),
+            $attachment
         );
 
         return response()->json([
@@ -54,12 +57,17 @@ class CourtRequestController extends Controller
 
     public function update(CourtRequestRequest $request, CourtRequest $courtRequest): JsonResponse
     {
-        $courtRequest->update($request->validated());
-        $courtRequest->load(['employee', 'creator']);
+        $attachment = $request->hasFile('attachment') ? $request->file('attachment') : null;
+        
+        $updatedCourtRequest = $this->courtRequestService->updateCourtRequest(
+            $courtRequest, 
+            $request->validated(),
+            $attachment
+        );
 
         return response()->json([
             'message' => 'Court request updated successfully',
-            'court_request' => $courtRequest
+            'court_request' => $updatedCourtRequest
         ]);
     }
 
@@ -70,6 +78,21 @@ class CourtRequestController extends Controller
         return response()->json([
             'message' => 'Court request deleted successfully'
         ]);
+    }
+
+    /**
+     * Download attachment for a court request.
+     */
+    public function downloadAttachment(CourtRequest $courtRequest)
+    {
+        try {
+            return $this->courtRequestService->downloadAttachment($courtRequest);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to download attachment',
+                'error' => $e->getMessage()
+            ], 404);
+        }
     }
 
     public function updateResponse(CourtRequestRequest $request, CourtRequest $courtRequest, int $id): JsonResponse
@@ -103,7 +126,6 @@ class CourtRequestController extends Controller
      */
     public function accept(Request $request, CourtRequest $courtRequest): JsonResponse
     {
-
         $validated = $request->validate([
             'employee_notes' => 'nullable|string'
         ]);
@@ -124,7 +146,6 @@ class CourtRequestController extends Controller
      */
     public function decline(Request $request, CourtRequest $courtRequest): JsonResponse
     {
-
         $validated = $request->validate([
             'employee_notes' => 'required|string'
         ]);

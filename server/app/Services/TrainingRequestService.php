@@ -7,6 +7,8 @@ use App\Models\Schedule;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class TrainingRequestService
@@ -69,9 +71,15 @@ class TrainingRequestService
     /**
      * Create a new training request.
      */
-    public function createTrainingRequest(array $data, User $user): TrainingRequest
+    public function createTrainingRequest(array $data, User $user, ?UploadedFile $attachment = null): TrainingRequest
     {
         $data['user_id'] = $user->id;
+        
+        // Handle file upload
+        if ($attachment) {
+            $attachmentData = $this->handleFileUpload($attachment, $user->id);
+            $data = array_merge($data, $attachmentData);
+        }
         
         $trainingRequest = TrainingRequest::create($data);
         
@@ -84,11 +92,22 @@ class TrainingRequestService
     /**
      * Update an existing training request.
      */
-    public function updateTrainingRequest(TrainingRequest $trainingRequest, array $data): TrainingRequest
+    public function updateTrainingRequest(TrainingRequest $trainingRequest, array $data, ?UploadedFile $attachment = null): TrainingRequest
     {
         // Only allow updates if status is pending
         if ($trainingRequest->status !== 'pending') {
             throw new \Exception('Cannot update training request that has already been processed.');
+        }
+
+        // Handle file upload
+        if ($attachment) {
+            // Delete old attachment if exists
+            if ($trainingRequest->attachment_path && Storage::exists($trainingRequest->attachment_path)) {
+                Storage::delete($trainingRequest->attachment_path);
+            }
+            
+            $attachmentData = $this->handleFileUpload($attachment, $trainingRequest->user_id);
+            $data = array_merge($data, $attachmentData);
         }
 
         $trainingRequest->update($data);
@@ -111,14 +130,14 @@ class TrainingRequestService
 
         // Store info for notification before deletion
         $user = $trainingRequest->user;
-        $title = $trainingRequest->title;
+        $title = $trainingRequest->training_title;
         
         $deleted = $trainingRequest->delete();
         
         if ($deleted) {
             // Create a temporary object for notification
             $tempRequest = new TrainingRequest([
-                'title' => $title,
+                'training_title' => $title,
                 'user' => $user
             ]);
             
@@ -126,6 +145,42 @@ class TrainingRequestService
         }
         
         return $deleted;
+    }
+
+    /**
+     * Handle file upload for training request attachments.
+     */
+    private function handleFileUpload(UploadedFile $file, int $userId): array
+    {
+        $originalName = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $mimeType = $file->getMimeType();
+        $size = $file->getSize();
+        
+        // Generate unique filename
+        $filename = 'training_' . $userId . '_' . time() . '_' . uniqid() . '.' . $extension;
+        
+        // Store file in training-attachments directory
+        $path = $file->storeAs('training-attachments', $filename, 'public');
+        
+        return [
+            'attachment_name' => $originalName,
+            'attachment_path' => $path,
+            'attachment_mime_type' => $mimeType,
+            'attachment_size' => $size,
+        ];
+    }
+
+    /**
+     * Download attachment for a training request.
+     */
+    public function downloadAttachment(TrainingRequest $trainingRequest): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        if (!$trainingRequest->attachment_path || !Storage::exists($trainingRequest->attachment_path)) {
+            throw new \Exception('Attachment not found.');
+        }
+
+        return Storage::download($trainingRequest->attachment_path, $trainingRequest->attachment_name);
     }
 
     /**

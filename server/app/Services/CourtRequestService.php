@@ -9,8 +9,9 @@ use App\Services\NotificationService;
 use App\Services\ScheduleService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
-
 use Carbon\Carbon;
 
 class CourtRequestService
@@ -84,9 +85,15 @@ class CourtRequestService
         return $query->paginate(15);
     }
 
-    public function createCourtRequest(array $data, User $creator): CourtRequest
+    public function createCourtRequest(array $data, User $creator, ?UploadedFile $attachment = null): CourtRequest
     {
         $data['created_by'] = $creator->id;
+        
+        // Handle file upload
+        if ($attachment) {
+            $attachmentData = $this->handleFileUpload($attachment, $creator->id);
+            $data = array_merge($data, $attachmentData);
+        }
         
         $courtRequest = CourtRequest::create($data);
         $courtRequest->load(['employee', 'creator']);
@@ -95,6 +102,61 @@ class CourtRequestService
         $this->notificationService->sendNewCourtRequestNotification($courtRequest, $creator);
 
         return $courtRequest;
+    }
+
+    public function updateCourtRequest(CourtRequest $courtRequest, array $data, ?UploadedFile $attachment = null): CourtRequest
+    {
+        // Handle file upload
+        if ($attachment) {
+            // Delete old attachment if exists
+            if ($courtRequest->attachment_path && Storage::exists($courtRequest->attachment_path)) {
+                Storage::delete($courtRequest->attachment_path);
+            }
+            
+            $attachmentData = $this->handleFileUpload($attachment, $courtRequest->created_by);
+            $data = array_merge($data, $attachmentData);
+        }
+
+        $courtRequest->update($data);
+        $courtRequest->load(['employee', 'creator']);
+
+        return $courtRequest;
+    }
+
+    /**
+     * Handle file upload for court request attachments.
+     */
+    private function handleFileUpload(UploadedFile $file, int $userId): array
+    {
+        $originalName = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $mimeType = $file->getMimeType();
+        $size = $file->getSize();
+        
+        // Generate unique filename
+        $filename = 'court_' . $userId . '_' . time() . '_' . uniqid() . '.' . $extension;
+        
+        // Store file in court-attachments directory
+        $path = $file->storeAs('court-attachments', $filename, 'public');
+        
+        return [
+            'attachment_name' => $originalName,
+            'attachment_path' => $path,
+            'attachment_mime_type' => $mimeType,
+            'attachment_size' => $size,
+        ];
+    }
+
+    /**
+     * Download attachment for a court request.
+     */
+    public function downloadAttachment(CourtRequest $courtRequest): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        if (!$courtRequest->attachment_path || !Storage::exists($courtRequest->attachment_path)) {
+            throw new \Exception('Attachment not found.');
+        }
+
+        return Storage::download($courtRequest->attachment_path, $courtRequest->attachment_name);
     }
 
     public function updateCourtRequestResponse(CourtRequest $courtRequest, array $data): CourtRequest

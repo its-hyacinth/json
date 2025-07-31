@@ -21,8 +21,7 @@ class CourtRequestRequest extends FormRequest
             'description' => 'nullable|string|max:1000',
             'status' => 'nullable|in:accepted,declined',
             'employee_notes' => 'nullable|string|max:500',
-            'attachment_name' => 'nullable|string|max:255',
-            'attachment_path' => 'nullable|string|max:255',
+            'attachment' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,txt', // 10MB max
         ];
 
         return $rules;
@@ -41,8 +40,9 @@ class CourtRequestRequest extends FormRequest
             'description.max' => 'Description cannot exceed 1000 characters.',
             'status.in' => 'Status must be either accepted or declined.',
             'employee_notes.max' => 'Employee notes cannot exceed 500 characters.',
-            'attachment_name.max' => 'Attachment name cannot exceed 255 characters.',
-            'attachment_path.max' => 'Attachment path cannot exceed 255 characters.',
+            'attachment.file' => 'Attachment must be a valid file.',
+            'attachment.max' => 'Attachment size cannot exceed 10MB.',
+            'attachment.mimes' => 'Attachment must be a PDF, Word document, image, or text file.',
         ];
     }
 }

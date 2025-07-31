@@ -29,8 +29,7 @@ class TrainingRequestRequest extends FormRequest
             'start_time' => 'nullable|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i|after:start_time',
             'justification' => 'required|string|max:1000',
-            'attachment_name' => 'nullable|string|max:255',
-            'attachment_path' => 'nullable|string|max:255',
+            'attachment' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,txt',
         ];
     }
 
@@ -47,8 +46,9 @@ class TrainingRequestRequest extends FormRequest
             'end_date.after_or_equal' => 'End date must be on or after the start date.',
             'end_time.after' => 'End time must be after start time.',
             'justification.required' => 'Justification for training is required.',
-            'attachment_name.max' => 'Attachment name cannot exceed 255 characters.',
-            'attachment_path.max' => 'Attachment path cannot exceed 255 characters.',
+            'attachment.file' => 'Attachment must be a valid file.',
+            'attachment.max' => 'Attachment size cannot exceed 10MB.',
+            'attachment.mimes' => 'Attachment must be a PDF, Word document, image, or text file.',
         ];
     }
 }

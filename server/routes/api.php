@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/training-requests/{trainingRequest}', [TrainingRequestController::class, 'show']);
     Route::put('/training-requests/{trainingRequest}', [TrainingRequestController::class, 'update']);
     Route::delete('/training-requests/{trainingRequest}', [TrainingRequestController::class, 'destroy']);
+    Route::get('training-requests/{trainingRequest}/attachment', [TrainingRequestController::class, 'downloadAttachment']);
 
     // Overtime request routes (employee)
     Route::get('/overtime-requests', [OvertimeRequestController::class, 'index']);
@@ -90,6 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/court-requests/upcoming', [CourtRequestController::class, 'upcoming']);
     Route::patch('/court-requests/{courtRequest}/accept', [CourtRequestController::class, 'accept']);
     Route::patch('/court-requests/{courtRequest}/decline', [CourtRequestController::class, 'decline']);
+    Route::get('/court-requests/{courtRequest}/attachment', [CourtRequestController::class, 'downloadAttachment']);
 
     // Admin routes
     Route::middleware(AdminMiddleware::class)->group(function () {

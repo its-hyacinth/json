@@ -19,6 +19,10 @@ return new class extends Migration
             $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
             $table->text('employee_notes')->nullable();
             $table->timestamp('responded_at')->nullable();
+            $table->string('attachment_name')->nullable()->after('employee_notes');
+            $table->string('attachment_path')->nullable()->after('attachment_name');
+            $table->string('attachment_mime_type')->nullable()->after('attachment_path');
+            $table->unsignedBigInteger('attachment_size')->nullable()->after('attachment_mime_type');
             $table->timestamps();
 
             $table->index(['employee_id', 'court_date']);

@@ -8,6 +8,8 @@ use App\Services\TrainingRequestService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
 
 class TrainingRequestController extends Controller
 {
@@ -40,7 +42,13 @@ class TrainingRequestController extends Controller
     public function store(TrainingRequestRequest $request): JsonResponse
     {
         try {
-            $trainingRequest = $this->trainingRequestService->createTrainingRequest($request->validated(), $request->user());
+            $attachment = $request->hasFile('attachment') ? $request->file('attachment') : null;
+            $trainingRequest = $this->trainingRequestService->createTrainingRequest(
+                $request->validated(), 
+                $request->user(),
+                $attachment
+            );
+            
             return response()->json([
                 'message' => 'Training request submitted successfully',
                 'training_request' => $trainingRequest->load(['user', 'approver'])
@@ -85,7 +93,13 @@ class TrainingRequestController extends Controller
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
 
-            $updatedTrainingRequest = $this->trainingRequestService->updateTrainingRequest($trainingRequest, $request->validated());
+            $attachment = $request->hasFile('attachment') ? $request->file('attachment') : null;
+            $updatedTrainingRequest = $this->trainingRequestService->updateTrainingRequest(
+                $trainingRequest, 
+                $request->validated(),
+                $attachment
+            );
+            
             return response()->json([
                 'message' => 'Training request updated successfully',
                 'training_request' => $updatedTrainingRequest->load(['user', 'approver'])
@@ -119,6 +133,21 @@ class TrainingRequestController extends Controller
                 'message' => 'Failed to delete training request',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Download attachment for a training request.
+     */
+    public function downloadAttachment(TrainingRequest $trainingRequest)
+    {
+        try {
+            return $this->trainingRequestService->downloadAttachment($trainingRequest);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to download attachment',
+                'error' => $e->getMessage()
+            ], 404);
         }
     }
 
