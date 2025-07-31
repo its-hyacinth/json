@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FileUpload } from "@/components/ui/file-upload"
 import {
   Dialog,
   DialogContent,
@@ -24,16 +24,17 @@ import {
   Clock,
   Calendar,
   MapPin,
-  DollarSign,
   CheckCircle2,
   XCircle,
   Edit,
   Trash2,
   Loader2,
+  Download,
+  Paperclip,
+  Eye,
 } from "lucide-react"
 import { format } from "date-fns"
-import { TRAINING_PRIORITIES, type CreateTrainingRequestData } from "@/services/training-request-service"
-import { PDFExportButton } from "./pdf-export-button"
+import type { CreateTrainingRequestData } from "@/services/training-request-service"
 
 export function EmployeeTrainingRequests() {
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -50,15 +51,29 @@ export function EmployeeTrainingRequests() {
     end_time: "",
     justification: "",
   })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [selectedRequest, setSelectedRequest] = useState<any>(null)
 
-  const { trainingRequests, loading, createTrainingRequest, updateTrainingRequest, deleteTrainingRequest } =
-    useTrainingRequests()
+  const {
+    trainingRequests,
+    loading,
+    createTrainingRequest,
+    updateTrainingRequest,
+    deleteTrainingRequest,
+    downloadAttachment,
+  } = useTrainingRequests()
+
+  const handleViewDetails = (request: any) => {
+    setSelectedRequest(request)
+    setShowDetailsModal(true)
+  }
 
   const handleCreateRequest = async () => {
     setSubmitting(true)
     try {
-      await createTrainingRequest(formData)
+      await createTrainingRequest(formData, selectedFile)
       setShowCreateModal(false)
       resetForm()
     } catch (error) {
@@ -81,6 +96,7 @@ export function EmployeeTrainingRequests() {
       end_time: request.end_time || "",
       justification: request.justification,
     })
+    setSelectedFile(null)
     setShowEditModal(true)
   }
 
@@ -89,7 +105,7 @@ export function EmployeeTrainingRequests() {
 
     setSubmitting(true)
     try {
-      await updateTrainingRequest(editingRequest.id, formData)
+      await updateTrainingRequest(editingRequest.id, formData, selectedFile)
       setShowEditModal(false)
       setEditingRequest(null)
       resetForm()
@@ -106,6 +122,14 @@ export function EmployeeTrainingRequests() {
     }
   }
 
+  const handleDownloadAttachment = async (request: any) => {
+    try {
+      await downloadAttachment(request.id)
+    } catch (error) {
+      console.error("Failed to download attachment:", error)
+    }
+  }
+
   const resetForm = () => {
     setFormData({
       training_title: "",
@@ -118,6 +142,7 @@ export function EmployeeTrainingRequests() {
       end_time: "",
       justification: "",
     })
+    setSelectedFile(null)
   }
 
   const getStatusBadge = (status: string) => {
@@ -155,25 +180,6 @@ export function EmployeeTrainingRequests() {
     }
   }
 
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return <Badge variant="destructive">High Priority</Badge>
-      case "medium":
-        return <Badge variant="outline">Medium Priority</Badge>
-      case "low":
-        return <Badge variant="secondary">Low Priority</Badge>
-      default:
-        return <Badge variant="outline">{priority}</Badge>
-    }
-  }
-
-  // Statistics
-  const totalRequests = trainingRequests.length
-  const pendingRequests = trainingRequests.filter((r) => r.status === "pending").length
-  const approvedRequests = trainingRequests.filter((r) => r.status === "approved").length
-  const completedRequests = trainingRequests.filter((r) => r.status === "completed").length
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -186,11 +192,6 @@ export function EmployeeTrainingRequests() {
           <p className="text-muted-foreground">Submit and track your training requests</p>
         </div>
         <div className="flex gap-2">
-          <PDFExportButton 
-            data={trainingRequests || []} 
-            type="training" 
-            className="bg-transparent" 
-          />
           <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
             <DialogTrigger asChild>
               <Button className="gap-2">
@@ -300,6 +301,8 @@ export function EmployeeTrainingRequests() {
                     rows={3}
                   />
                 </div>
+
+                <FileUpload onFileSelect={setSelectedFile} disabled={submitting} />
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setShowCreateModal(false)} disabled={submitting}>
@@ -324,48 +327,6 @@ export function EmployeeTrainingRequests() {
         </div>
       </div>
 
-      {/* Statistics */}
-      {totalRequests > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <GraduationCap className="h-4 w-4 text-primary" />
-              <div>
-                <p className="text-sm font-medium">Total Requests</p>
-                <p className="text-2xl font-bold">{totalRequests}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-yellow-600" />
-              <div>
-                <p className="text-sm font-medium">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">{pendingRequests}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <div>
-                <p className="text-sm font-medium">Approved</p>
-                <p className="text-2xl font-bold text-green-600">{approvedRequests}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-blue-600" />
-              <div>
-                <p className="text-sm font-medium">Completed</p>
-                <p className="text-2xl font-bold text-blue-600">{completedRequests}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
       {/* Training Requests List */}
       {loading ? (
         <div className="text-center py-8">Loading your training requests...</div>
@@ -388,7 +349,12 @@ export function EmployeeTrainingRequests() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-lg">{request.training_title}</h3>
-                      {getPriorityBadge(request.priority)}
+                      {request.attachment_name && (
+                        <Badge variant="outline" className="text-xs">
+                          <Paperclip className="h-3 w-3 mr-1" />
+                          Attachment
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
@@ -396,11 +362,6 @@ export function EmployeeTrainingRequests() {
                         {format(new Date(request.start_date), "MMM d")} -{" "}
                         {format(new Date(request.end_date), "MMM d, yyyy")}
                       </div>
-                      {request.estimated_cost && (
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="h-4 w-4" />${request.estimated_cost}
-                        </div>
-                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">{getStatusBadge(request.status)}</div>
@@ -426,6 +387,22 @@ export function EmployeeTrainingRequests() {
                     )}
                   </div>
 
+                  {request.attachment_name && (
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Paperclip className="h-4 w-4" />
+                        <span className="text-sm font-medium">{request.attachment_name}</span>
+                        {request.attachment_size_formatted && (
+                          <span className="text-xs text-muted-foreground">({request.attachment_size_formatted})</span>
+                        )}
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => handleDownloadAttachment(request)}>
+                        <Download className="h-4 w-4 mr-1" />
+                        Download
+                      </Button>
+                    </div>
+                  )}
+
                   {request.admin_notes && (
                     <div className="bg-muted p-3 rounded">
                       <p className="text-sm font-medium mb-1">Admin Notes:</p>
@@ -436,22 +413,29 @@ export function EmployeeTrainingRequests() {
                   <div className="flex items-center justify-between pt-4 border-t">
                     <div className="text-xs text-muted-foreground">
                       Submitted {format(new Date(request.created_at), "PPP")}
-                      {request.approved_at && (
-                        <span className="ml-2">• Processed {format(new Date(request.approved_at), "PPP")}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleViewDetails(request)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View Details
+                      </Button>
+                      {request.status === "pending" && (
+                        <>
+                          <Button 
+                            size="sm" 
+                            variant="destructive" 
+                            onClick={() => handleDeleteRequest(request.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </Button>
+                        </>
                       )}
                     </div>
-                    {request.status === "pending" && (
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => handleEditRequest(request)}>
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleDeleteRequest(request.id)}>
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 </div>
               </CardContent>
@@ -564,6 +548,12 @@ export function EmployeeTrainingRequests() {
                 rows={3}
               />
             </div>
+
+            <FileUpload
+              onFileSelect={setSelectedFile}
+              currentFile={editingRequest?.attachment_name}
+              disabled={submitting}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditModal(false)} disabled={submitting}>
@@ -583,6 +573,113 @@ export function EmployeeTrainingRequests() {
               Update Request
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Training Request Details</DialogTitle>
+            <DialogDescription>Complete information about your training request</DialogDescription>
+          </DialogHeader>
+          {selectedRequest && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium mb-2">Basic Information</h4>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium">Training Title:</span> {selectedRequest.training_title}
+                    </div>
+                    <div>
+                      <span className="font-medium">Status:</span> {getStatusBadge(selectedRequest.status)}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">Schedule</h4>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium">Start Date:</span>{" "}
+                      {format(new Date(selectedRequest.start_date), "PPP")}
+                    </div>
+                    <div>
+                      <span className="font-medium">End Date:</span> {format(new Date(selectedRequest.end_date), "PPP")}
+                    </div>
+                    {selectedRequest.start_time && selectedRequest.end_time && (
+                      <div>
+                        <span className="font-medium">Time:</span> {selectedRequest.start_time} -{" "}
+                        {selectedRequest.end_time}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {selectedRequest.training_description && (
+                <div>
+                  <h4 className="font-medium mb-2">Description</h4>
+                  <p className="text-sm text-muted-foreground">{selectedRequest.training_description}</p>
+                </div>
+              )}
+
+              <div>
+                <h4 className="font-medium mb-2">Justification</h4>
+                <p className="text-sm text-muted-foreground">{selectedRequest.justification}</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedRequest.training_provider && (
+                  <div>
+                    <h4 className="font-medium mb-2">Provider</h4>
+                    <p className="text-sm text-muted-foreground">{selectedRequest.training_provider}</p>
+                  </div>
+                )}
+                {selectedRequest.training_location && (
+                  <div>
+                    <h4 className="font-medium mb-2">Location</h4>
+                    <p className="text-sm text-muted-foreground">{selectedRequest.training_location}</p>
+                  </div>
+                )}
+              </div>
+
+              {selectedRequest.attachment_name && (
+                <div>
+                  <h4 className="font-medium mb-2">Attachment</h4>
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Paperclip className="h-4 w-4" />
+                      <span className="text-sm font-medium">{selectedRequest.attachment_name}</span>
+                      {selectedRequest.attachment_size_formatted && (
+                        <span className="text-xs text-muted-foreground">({selectedRequest.attachment_size_formatted})</span>
+                      )}
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => handleDownloadAttachment(selectedRequest)}>
+                      <Download className="h-4 w-4 mr-1" />
+                      Download
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {selectedRequest.admin_notes && (
+                <div>
+                  <h4 className="font-medium mb-2">Admin Notes</h4>
+                  <div className="bg-muted p-3 rounded">
+                    <p className="text-sm text-muted-foreground">{selectedRequest.admin_notes}</p>
+                  </div>
+                </div>
+              )}
+
+              {selectedRequest.approved_at && (
+                <div className="pt-4 border-t text-xs text-muted-foreground">
+                  {selectedRequest.status === "approved" ? "Approved" : "Processed"} on{" "}
+                  {format(new Date(selectedRequest.approved_at), "PPP")}
+                </div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

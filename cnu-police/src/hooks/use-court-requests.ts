@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react"
 import {
   courtRequestService,
-  type CourtRequest,
   type CourtRequestFilters,
   type CreateCourtRequestData,
   type UpdateCourtResponseData,
@@ -46,10 +45,10 @@ export function useCourtRequests(filters?: CourtRequestFilters) {
     fetchCourtRequests()
   }, [fetchCourtRequests])
 
-  const createCourtRequest = async (data: CreateCourtRequestData) => {
+  const createCourtRequest = async (data: CreateCourtRequestData, attachment?: File | null) => {
     try {
       setLoading(true)
-      const newCourtRequest = await courtRequestService.createCourtRequest(data)
+      const newCourtRequest = await courtRequestService.createCourtRequest(data, attachment)
       setCourtRequests((prev) => ({
         ...prev,
         data: [newCourtRequest, ...prev.data],
@@ -125,15 +124,31 @@ export function useCourtRequests(filters?: CourtRequestFilters) {
     }
   }
 
+  const downloadAttachment = async (id: number) => {
+    try {
+      await courtRequestService.downloadAttachment(id)
+      toast({
+        title: "Success",
+        description: "Attachment downloaded successfully",
+      })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to download attachment"
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
+      throw err
+    }
+  }
+
   const acceptCourtRequest = async (id: number, employeeNotes?: string) => {
     try {
       setLoading(true)
       const { data: updatedCourtRequest } = await courtRequestService.acceptCourtRequest(id, employeeNotes)
       setCourtRequests((prev) => ({
         ...prev,
-        data: prev.data.map((request) => 
-          request.id === id ? updatedCourtRequest : request
-        ),
+        data: prev.data.map((request) => (request.id === id ? updatedCourtRequest : request)),
       }))
       toast({
         title: "Success",
@@ -159,9 +174,7 @@ export function useCourtRequests(filters?: CourtRequestFilters) {
       const { data: updatedCourtRequest } = await courtRequestService.declineCourtRequest(id, employeeNotes)
       setCourtRequests((prev) => ({
         ...prev,
-        data: prev.data.map((request) => 
-          request.id === id ? updatedCourtRequest : request
-        ),
+        data: prev.data.map((request) => (request.id === id ? updatedCourtRequest : request)),
       }))
       toast({
         title: "Success",
@@ -190,6 +203,7 @@ export function useCourtRequests(filters?: CourtRequestFilters) {
     declineCourtRequest,
     updateCourtResponse,
     deleteCourtRequest,
+    downloadAttachment,
     refetch: fetchCourtRequests,
   }
 }

@@ -47,9 +47,9 @@ export function useTrainingRequests({ status, priority, autoFetch = true }: UseT
     }
   }
 
-  const createTrainingRequest = async (requestData: any) => {
+  const createTrainingRequest = async (requestData: any, attachment?: File | null) => {
     try {
-      const newRequest = await trainingRequestService.createTrainingRequest(requestData)
+      const newRequest = await trainingRequestService.createTrainingRequest(requestData, attachment)
       setTrainingRequests((prev) => [newRequest, ...prev])
       toast({
         title: "Success",
@@ -67,9 +67,9 @@ export function useTrainingRequests({ status, priority, autoFetch = true }: UseT
     }
   }
 
-  const updateTrainingRequest = async (id: number, requestData: any) => {
+  const updateTrainingRequest = async (id: number, requestData: any, attachment?: File | null) => {
     try {
-      const updatedRequest = await trainingRequestService.updateTrainingRequest(id, requestData)
+      const updatedRequest = await trainingRequestService.updateTrainingRequest(id, requestData, attachment)
       setTrainingRequests((prev) => prev.map((req) => (req.id === id ? updatedRequest : req)))
       toast({
         title: "Success",
@@ -97,6 +97,24 @@ export function useTrainingRequests({ status, priority, autoFetch = true }: UseT
       })
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to delete training request"
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      })
+      throw err
+    }
+  }
+
+  const downloadAttachment = async (id: number) => {
+    try {
+      await trainingRequestService.downloadAttachment(id)
+      toast({
+        title: "Success",
+        description: "Attachment downloaded successfully",
+      })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to download attachment"
       toast({
         title: "Error",
         description: errorMessage,
@@ -180,6 +198,7 @@ export function useTrainingRequests({ status, priority, autoFetch = true }: UseT
     createTrainingRequest,
     updateTrainingRequest,
     deleteTrainingRequest,
+    downloadAttachment,
     approveTrainingRequest,
     declineTrainingRequest,
     markTrainingCompleted,

@@ -16,8 +16,6 @@ import {
   Calendar,
   Clock,
   Gavel,
-  MapPin,
-  FileText,
   User,
   AlertCircle,
   CheckCircle,
@@ -25,11 +23,12 @@ import {
   MessageSquare,
   Loader2,
   RefreshCw,
+  Download,
+  Paperclip,
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { COURT_TYPES, type CourtRequest } from "@/services/court-request-service"
-import { PDFExportButton } from "./pdf-export-button"
 
 export function AdminCourt() {
   const { user } = useAuth()
@@ -39,11 +38,15 @@ export function AdminCourt() {
   const [employeeNotes, setEmployeeNotes] = useState("")
 
   // Memoize filters to prevent infinite re-renders
-  const filters = useMemo(() => ({
-    employee_id: user?.id
-  }), [user?.id])
+  const filters = useMemo(
+    () => ({
+      employee_id: user?.id,
+    }),
+    [user?.id],
+  )
 
-  const { courtRequests, loading, acceptCourtRequest, declineCourtRequest, refetch } = useCourtRequests(filters)
+  const { courtRequests, loading, acceptCourtRequest, declineCourtRequest, downloadAttachment, refetch } =
+    useCourtRequests(filters)
 
   const handleResponse = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,6 +64,14 @@ export function AdminCourt() {
       setResponseStatus("accepted")
     } catch (error) {
       // Error handled by hook
+    }
+  }
+
+  const handleDownloadAttachment = async (request: CourtRequest) => {
+    try {
+      await downloadAttachment(request.id)
+    } catch (error) {
+      console.error("Failed to download attachment:", error)
     }
   }
 
@@ -126,18 +137,7 @@ export function AdminCourt() {
           <p className="text-muted-foreground">View and respond to court appearance requests</p>
         </div>
         <div className="flex gap-2">
-          <PDFExportButton 
-            data={courtRequests?.data || []} 
-            type="court-admin" 
-            className="bg-transparent" 
-          />
-          
-          <Button 
-            onClick={refetch} 
-            disabled={loading} 
-            variant="outline" 
-            className="gap-2 bg-transparent"
-          >
+          <Button onClick={refetch} disabled={loading} variant="outline" className="gap-2 bg-transparent">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Refresh
           </Button>
@@ -182,6 +182,12 @@ export function AdminCourt() {
                         <div className="flex items-center gap-2">
                           {getCourtTypeBadge(request.court_type)}
                           {getStatusBadge(request.status)}
+                          {request.attachment_name && (
+                            <Badge variant="outline" className="text-xs">
+                              <Paperclip className="h-3 w-3 mr-1" />
+                              Attachment
+                            </Badge>
+                          )}
                         </div>
                         <CardTitle className="text-lg">Court Appearance Request</CardTitle>
                         <CardDescription>
@@ -223,6 +229,22 @@ export function AdminCourt() {
                       </div>
                     </div>
 
+                    {request.attachment_name && (
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Paperclip className="h-4 w-4" />
+                          <span className="text-sm font-medium">{request.attachment_name}</span>
+                          {request.attachment_size_formatted && (
+                            <span className="text-xs text-muted-foreground">({request.attachment_size_formatted})</span>
+                          )}
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => handleDownloadAttachment(request)}>
+                          <Download className="h-4 w-4 mr-1" />
+                          Download
+                        </Button>
+                      </div>
+                    )}
+
                     {request.description && (
                       <div className="space-y-2">
                         <p className="font-medium">Description</p>
@@ -261,6 +283,12 @@ export function AdminCourt() {
                         <div className="flex items-center gap-2">
                           {getCourtTypeBadge(request.court_type)}
                           {getStatusBadge(request.status)}
+                          {request.attachment_name && (
+                            <Badge variant="outline" className="text-xs">
+                              <Paperclip className="h-3 w-3 mr-1" />
+                              Attachment
+                            </Badge>
+                          )}
                         </div>
                         <CardTitle className="text-lg">Court Appearance Request</CardTitle>
                         <CardDescription>
@@ -285,6 +313,22 @@ export function AdminCourt() {
                         </div>
                       </div>
                     </div>
+
+                    {request.attachment_name && (
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <Paperclip className="h-4 w-4" />
+                          <span className="text-sm font-medium">{request.attachment_name}</span>
+                          {request.attachment_size_formatted && (
+                            <span className="text-xs text-muted-foreground">({request.attachment_size_formatted})</span>
+                          )}
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => handleDownloadAttachment(request)}>
+                          <Download className="h-4 w-4 mr-1" />
+                          Download
+                        </Button>
+                      </div>
+                    )}
 
                     {request.employee_notes && (
                       <div className="space-y-2">
@@ -331,6 +375,22 @@ export function AdminCourt() {
                 </div>
               </div>
 
+              {selectedRequest.attachment_name && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Attachment:</p>
+                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Paperclip className="h-4 w-4" />
+                      <span className="text-sm font-medium">{selectedRequest.attachment_name}</span>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => handleDownloadAttachment(selectedRequest)}>
+                      <Download className="h-4 w-4 mr-1" />
+                      Download
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="status">Response</Label>
                 <Select
@@ -356,8 +416,8 @@ export function AdminCourt() {
                   value={employeeNotes}
                   onChange={(e) => setEmployeeNotes(e.target.value)}
                   placeholder={
-                    responseStatus === "accepted" 
-                      ? "Add any notes about your response..." 
+                    responseStatus === "accepted"
+                      ? "Add any notes about your response..."
                       : "Please provide a reason for declining..."
                   }
                   rows={3}

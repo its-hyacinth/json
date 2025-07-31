@@ -31,10 +31,12 @@ import {
   Loader2,
   Filter,
   RefreshCw,
+  Paperclip,
 } from "lucide-react"
 import { format } from "date-fns"
 import { TRAINING_PRIORITIES, TRAINING_STATUSES, type TrainingRequest } from "@/services/training-request-service"
 import { PDFExportButton } from "./pdf-export-button"
+import { useToast } from "@/hooks/use-toast"
 
 export function AdminTrainingRequests() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
@@ -43,7 +45,7 @@ export function AdminTrainingRequests() {
   const [showApprovalModal, setShowApprovalModal] = useState(false)
   const [approvalAction, setApprovalAction] = useState<"approve" | "decline">("approve")
   const [adminNotes, setAdminNotes] = useState("")
-  const [processing, setProcessing] = useState(false)
+  const { toast } = useToast()
 
   const {
     trainingRequests,
@@ -52,6 +54,8 @@ export function AdminTrainingRequests() {
     approveTrainingRequest,
     declineTrainingRequest,
     markTrainingCompleted,
+    downloadAttachment,
+    error,
   } = useTrainingRequests({
     status: statusFilter === "all" ? undefined : statusFilter,
   })
@@ -68,16 +72,27 @@ export function AdminTrainingRequests() {
     setShowApprovalModal(true)
   }
 
+  const handleDownloadAttachment = async (requestId: number) => {
+    try {
+      await downloadAttachment(requestId)
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+  }
+
   const handleSubmitApproval = async () => {
     if (!selectedRequest) return
 
-    setProcessing(true)
     try {
       if (approvalAction === "approve") {
         await approveTrainingRequest(selectedRequest.id, adminNotes || undefined)
       } else {
         if (!adminNotes.trim()) {
-          alert("Please provide a reason for declining the request")
+          toast({
+            title: "Validation Error",
+            description: "Please provide a reason for declining the request",
+            variant: "destructive",
+          })
           return
         }
         await declineTrainingRequest(selectedRequest.id, adminNotes)
@@ -87,14 +102,14 @@ export function AdminTrainingRequests() {
       setAdminNotes("")
     } catch (error) {
       // Error handling is done in the hook
-    } finally {
-      setProcessing(false)
     }
   }
 
   const handleMarkCompleted = async (request: TrainingRequest) => {
-    if (confirm("Mark this training as completed?")) {
+    try {
       await markTrainingCompleted(request.id)
+    } catch (error) {
+      // Error handling is done in the hook
     }
   }
 
@@ -192,6 +207,9 @@ export function AdminTrainingRequests() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-lg">{request.training_title}</h3>
+                      {request.attachment_name && (
+                        <Paperclip className="h-4 w-4 text-muted-foreground" />
+                      )}
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
@@ -241,6 +259,16 @@ export function AdminTrainingRequests() {
                       Submitted {format(new Date(request.created_at), "PPP")}
                     </div>
                     <div className="flex gap-2">
+                      {request.attachment_name && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleDownloadAttachment(request.id)}
+                        >
+                          <Paperclip className="h-4 w-4 mr-1" />
+                          Download
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" onClick={() => handleViewDetails(request)}>
                         View Details
                       </Button>
@@ -416,16 +444,16 @@ export function AdminTrainingRequests() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowApprovalModal(false)} disabled={processing}>
+            <Button variant="outline" onClick={() => setShowApprovalModal(false)} disabled={loading}>
               Cancel
             </Button>
             <Button
               onClick={handleSubmitApproval}
-              disabled={processing || (approvalAction === "decline" && !adminNotes.trim())}
+              disabled={loading || (approvalAction === "decline" && !adminNotes.trim())}
               className={approvalAction === "approve" ? "bg-green-600 hover:bg-green-700" : ""}
               variant={approvalAction === "decline" ? "destructive" : "default"}
             >
-              {processing ? (
+              {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : approvalAction === "approve" ? (
                 <Check className="h-4 w-4 mr-2" />

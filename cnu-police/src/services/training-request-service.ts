@@ -15,6 +15,11 @@ export interface TrainingRequest {
   end_time?: string
   estimated_cost?: number
   justification: string
+  attachment_name?: string
+  attachment_path?: string
+  attachment_mime_type?: string
+  attachment_size?: number
+  attachment_size_formatted?: string
   priority: "low" | "medium" | "high"
   status: "pending" | "approved" | "declined" | "completed"
   admin_notes?: string
@@ -104,11 +109,24 @@ class TrainingRequestService {
     return response.json()
   }
 
-  async createTrainingRequest(data: CreateTrainingRequestData): Promise<TrainingRequest> {
+  async createTrainingRequest(data: CreateTrainingRequestData, attachment?: File | null): Promise<TrainingRequest> {
+    const formData = new FormData()
+
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        formData.append(key, value.toString())
+      }
+    })
+
+    // Add attachment if provided
+    if (attachment) {
+      formData.append("attachment", attachment)
+    }
+
     const response = await fetch(`${API_BASE_URL}/training-requests`, {
       method: "POST",
-      headers: authService.getAuthHeaders(),
-      body: JSON.stringify(data),
+      headers: authService.getAuthHeaders(false),
+      body: formData,
     })
 
     if (!response.ok) {
@@ -120,11 +138,32 @@ class TrainingRequestService {
     return result.training_request
   }
 
-  async updateTrainingRequest(id: number, data: UpdateTrainingRequestData): Promise<TrainingRequest> {
+  async updateTrainingRequest(
+    id: number,
+    data: UpdateTrainingRequestData,
+    attachment?: File | null,
+  ): Promise<TrainingRequest> {
+    const formData = new FormData()
+
+    // Add form fields
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        formData.append(key, value.toString())
+      }
+    })
+
+    // Add attachment if provided
+    if (attachment) {
+      formData.append("attachment", attachment)
+    }
+
+    // Add method override for Laravel
+    formData.append("_method", "PUT")
+
     const response = await fetch(`${API_BASE_URL}/training-requests/${id}`, {
-      method: "PUT",
-      headers: authService.getAuthHeaders(),
-      body: JSON.stringify(data),
+      method: "POST", // Using POST with _method override for file uploads
+      headers: authService.getAuthHeaders(false), // Skip Content-Type for FormData
+      body: formData,
     })
 
     if (!response.ok) {
@@ -146,6 +185,38 @@ class TrainingRequestService {
       const error = await response.json().catch(() => ({ message: "Failed to delete training request" }))
       throw new Error(error.message || "Failed to delete training request")
     }
+  }
+
+  async downloadAttachment(id: number): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/training-requests/${id}/attachment`, {
+      headers: authService.getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Failed to download attachment" }))
+      throw new Error(error.message || "Failed to download attachment")
+    }
+
+    // Get filename from Content-Disposition header or use default
+    const contentDisposition = response.headers.get("Content-Disposition")
+    let filename = "attachment"
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/)
+      if (filenameMatch) {
+        filename = filenameMatch[1]
+      }
+    }
+
+    // Create blob and download
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
   }
 
   // Admin methods

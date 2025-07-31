@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { FileUpload } from "@/components/ui/file-upload"
 import {
   Dialog,
   DialogContent,
@@ -24,27 +25,23 @@ import {
   Calendar,
   Clock,
   Plus,
-  Search,
-  Filter,
   Gavel,
   User,
-  MapPin,
-  FileText,
-  TrendingUp,
   AlertCircle,
   CheckCircle,
   XCircle,
+  Download,
+  Paperclip,
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { COURT_TYPES, type CreateCourtRequestData, type CourtRequestFilters } from "@/services/court-request-service"
 import { useAuth } from "@/contexts/auth-context"
-import { PDFExportButton } from "./pdf-export-button"
 
 export function EmployeeCourt() {
   const { user } = useAuth()
   const [filters, setFilters] = useState<CourtRequestFilters>({
-    employee_id: user?.id || 0
+    employee_id: user?.id || 0,
   })
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [createData, setCreateData] = useState<CreateCourtRequestData>({
@@ -54,25 +51,26 @@ export function EmployeeCourt() {
     court_type: "criminal",
     description: "",
   })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
-  // Ensure courtRequests defaults to empty array
-  const { courtRequests, refetch, loading, createCourtRequest, deleteCourtRequest } = useCourtRequests(filters)
+  const { courtRequests, refetch, loading, createCourtRequest, deleteCourtRequest, downloadAttachment } =
+    useCourtRequests(filters)
   const { employees = [] } = useEmployees()
 
   // Filter admins from employees
-  const admins = employees.filter(employee => employee.role === 'admin')
+  const admins = employees.filter((employee) => employee.role === "admin")
 
   // Auto-select the first admin when admins load
   useEffect(() => {
     if (admins.length > 0 && createData.employee_id === 0) {
-      setCreateData(prev => ({ ...prev, employee_id: admins[0].id }))
+      setCreateData((prev) => ({ ...prev, employee_id: admins[0].id }))
     }
   }, [admins])
 
   const handleCreateCourtRequest = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await createCourtRequest(createData)
+      await createCourtRequest(createData, selectedFile)
       setShowCreateDialog(false)
       setCreateData({
         employee_id: admins.length > 0 ? admins[0].id : 0,
@@ -81,10 +79,18 @@ export function EmployeeCourt() {
         court_type: "criminal",
         description: "",
       })
-
+      setSelectedFile(null)
       await refetch()
     } catch (error) {
       console.error("Failed to create court request:", error)
+    }
+  }
+
+  const handleDownloadAttachment = async (request: any) => {
+    try {
+      await downloadAttachment(request.id)
+    } catch (error) {
+      console.error("Failed to download attachment:", error)
     }
   }
 
@@ -147,11 +153,6 @@ export function EmployeeCourt() {
         </div>
 
         <div className="flex gap-2">
-          <PDFExportButton 
-            data={courtRequests?.data || []} 
-            type="court-employee" 
-            className="bg-transparent" 
-          />
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
             <DialogTrigger asChild>
               <Button>
@@ -169,7 +170,9 @@ export function EmployeeCourt() {
                   <Label htmlFor="employee">Admin</Label>
                   <Select
                     value={createData.employee_id.toString()}
-                    onValueChange={(value) => setCreateData((prev) => ({ ...prev, employee_id: Number.parseInt(value) }))}
+                    onValueChange={(value) =>
+                      setCreateData((prev) => ({ ...prev, employee_id: Number.parseInt(value) }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={admins.length > 0 ? "Select admin" : "No admins available"} />
@@ -241,6 +244,8 @@ export function EmployeeCourt() {
                     rows={3}
                   />
                 </div>
+
+                <FileUpload onFileSelect={setSelectedFile} />
 
                 <div className="flex gap-2 pt-4">
                   <Button type="submit" className="flex-1" disabled={admins.length === 0}>
@@ -344,9 +349,7 @@ export function EmployeeCourt() {
             <div className="text-center py-8">
               <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Data Error</h3>
-              <p className="text-muted-foreground mb-4">
-                Unable to load court requests. Please try again later.
-              </p>
+              <p className="text-muted-foreground mb-4">Unable to load court requests. Please try again later.</p>
             </div>
           ) : courtRequests.data.length === 0 ? (
             <div className="text-center py-8">
@@ -367,6 +370,7 @@ export function EmployeeCourt() {
                     <TableHead>Court Date</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Attachment</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -377,7 +381,9 @@ export function EmployeeCourt() {
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-muted-foreground" />
                           <div>
-                            <p className="font-medium">{request.employee?.first_name} {request.employee?.last_name}</p>
+                            <p className="font-medium">
+                              {request.employee?.first_name} {request.employee?.last_name}
+                            </p>
                             {request.employee?.badge_number && (
                               <p className="text-xs text-muted-foreground">#{request.employee.badge_number}</p>
                             )}
@@ -402,6 +408,22 @@ export function EmployeeCourt() {
                       </TableCell>
                       <TableCell>{getCourtTypeBadge(request.court_type)}</TableCell>
                       <TableCell>{getStatusBadge(request.status)}</TableCell>
+                      <TableCell>
+                        {request.attachment_name ? (
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              <Paperclip className="h-3 w-3 mr-1" />
+                              Attachment
+                            </Badge>
+                            <Button size="sm" variant="outline" onClick={() => handleDownloadAttachment(request)}>
+                              <Download className="h-4 w-4 mr-1" />
+                              Download
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">No attachment</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button variant="outline" size="sm" onClick={() => deleteCourtRequest(request.id)}>

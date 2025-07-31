@@ -1,5 +1,5 @@
 import { authService } from "./auth-service"
-import { Employee } from "./employee-service"
+import type { Employee } from "./employee-service"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
 
@@ -13,6 +13,11 @@ export interface CourtRequest {
   court_type: "criminal" | "civil" | "traffic" | "family" | "juvenile" | "administrative"
   location?: string
   description?: string
+  attachment_name?: string
+  attachment_path?: string
+  attachment_mime_type?: string
+  attachment_size?: number
+  attachment_size_formatted?: string
   status: "pending" | "accepted" | "declined"
   employee_notes?: string
   responded_at?: string
@@ -119,11 +124,25 @@ class CourtRequestService {
     return response.json()
   }
 
-  async createCourtRequest(data: CreateCourtRequestData): Promise<CourtRequest> {
+  async createCourtRequest(data: CreateCourtRequestData, attachment?: File | null): Promise<CourtRequest> {
+    const formData = new FormData()
+
+    // Add form fields
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        formData.append(key, value.toString())
+      }
+    })
+
+    // Add attachment if provided
+    if (attachment) {
+      formData.append("attachment", attachment)
+    }
+
     const response = await fetch(`${API_BASE_URL}/court-requests`, {
       method: "POST",
-      headers: authService.getAuthHeaders(),
-      body: JSON.stringify(data),
+      headers: authService.getAuthHeaders(false), // Skip Content-Type for FormData
+      body: formData,
     })
 
     if (!response.ok) {
@@ -132,14 +151,35 @@ class CourtRequestService {
     }
 
     const result = await response.json()
-    return result.courtRequest
+    return result.court_request
   }
 
-  async updateCourtRequest(id: number, data: Partial<CreateCourtRequestData>): Promise<CourtRequest> {
+  async updateCourtRequest(
+    id: number,
+    data: Partial<CreateCourtRequestData>,
+    attachment?: File | null,
+  ): Promise<CourtRequest> {
+    const formData = new FormData()
+
+    // Add form fields
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        formData.append(key, value.toString())
+      }
+    })
+
+    // Add attachment if provided
+    if (attachment) {
+      formData.append("attachment", attachment)
+    }
+
+    // Add method override for Laravel
+    formData.append("_method", "PUT")
+
     const response = await fetch(`${API_BASE_URL}/court-requests/${id}`, {
-      method: "PUT",
-      headers: authService.getAuthHeaders(),
-      body: JSON.stringify(data),
+      method: "POST", // Using POST with _method override for file uploads
+      headers: authService.getAuthHeaders(false), // Skip Content-Type for FormData
+      body: formData,
     })
 
     if (!response.ok) {
@@ -148,7 +188,7 @@ class CourtRequestService {
     }
 
     const result = await response.json()
-    return result.courtRequest
+    return result.court_request
   }
 
   async deleteCourtRequest(id: number): Promise<void> {
@@ -161,6 +201,38 @@ class CourtRequestService {
       const error = await response.json().catch(() => ({ message: "Failed to delete court request" }))
       throw new Error(error.message || "Failed to delete court request")
     }
+  }
+
+  async downloadAttachment(id: number): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/court-requests/${id}/attachment`, {
+      headers: authService.getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Failed to download attachment" }))
+      throw new Error(error.message || "Failed to download attachment")
+    }
+
+    // Get filename from Content-Disposition header or use default
+    const contentDisposition = response.headers.get("Content-Disposition")
+    let filename = "attachment"
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/)
+      if (filenameMatch) {
+        filename = filenameMatch[1]
+      }
+    }
+
+    // Create blob and download
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
   }
 
   async updateCourtResponse(id: number, data: UpdateCourtResponseData): Promise<CourtRequest> {
@@ -220,10 +292,7 @@ class CourtRequestService {
     return response.json()
   }
 
-  async acceptCourtRequest(
-    id: number,
-    employeeNotes?: string
-  ): Promise<{ message: string; data: CourtRequest }> {
+  async acceptCourtRequest(id: number, employeeNotes?: string): Promise<{ message: string; data: CourtRequest }> {
     const response = await fetch(`${API_BASE_URL}/court-requests/${id}/accept`, {
       method: "PATCH",
       headers: {
@@ -241,10 +310,7 @@ class CourtRequestService {
     return response.json()
   }
 
-  async declineCourtRequest(
-    id: number,
-    employeeNotes: string
-  ): Promise<{ message: string; data: CourtRequest }> {
+  async declineCourtRequest(id: number, employeeNotes: string): Promise<{ message: string; data: CourtRequest }> {
     const response = await fetch(`${API_BASE_URL}/court-requests/${id}/decline`, {
       method: "PATCH",
       headers: {

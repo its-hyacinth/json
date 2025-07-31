@@ -388,28 +388,13 @@ export function AdminSchedules() {
   const handleCellClick = (employeeId: number, date: Date) => {
     if (loading || generatingSchedules || savingCell) return
 
-    const schedule = getScheduleForEmployeeAndDate(employeeId, date)
     const dateString = format(date, "yyyy-MM-dd")
     
-    // Get current display value
-    let currentValue = ""
-    if (schedule) {
-      if (['C', 'SD', 'S', 'M', 'CT'].includes(schedule.status)) {
-        currentValue = schedule.status
-      } else if (schedule.time_in) {
-        const hour = parseInt(schedule.time_in.split(':')[0])
-        currentValue = hour.toString()
-      } else {
-        currentValue = "0"
-      }
-    } else {
-      currentValue = "0"
-    }
-
+    // Clear the value when editing for fast input
     setEditingCell({
       employeeId,
       date: dateString,
-      value: currentValue
+      value: "" // Clear the value instead of showing current
     })
   }
 
@@ -420,8 +405,58 @@ export function AdminSchedules() {
   }
 
   const handleCellInputKeyDown = async (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault() // Prevent default tab behavior
       await saveCellEdit()
+      
+      // Only proceed to next cell if Tab was pressed
+      if (e.key === 'Tab' && editingCell) {
+        // Find current employee index
+        const currentEmployeeIndex = sortedEmployees.findIndex(
+          emp => emp.id === editingCell.employeeId
+        )
+        
+        // Find current date index
+        const currentDateIndex = monthDays.findIndex(
+          day => format(day, "yyyy-MM-dd") === editingCell.date
+        )
+        
+        // Determine next cell coordinates
+        let nextEmployeeIndex = currentEmployeeIndex
+        let nextDateIndex = currentDateIndex
+        
+        if (e.shiftKey) {
+          // Shift+Tab - move left
+          if (currentDateIndex > 0) {
+            nextDateIndex = currentDateIndex - 1
+          } else if (currentEmployeeIndex > 0) {
+            nextEmployeeIndex = currentEmployeeIndex - 1
+            nextDateIndex = monthDays.length - 1
+          }
+        } else {
+          // Tab - move right
+          if (currentDateIndex < monthDays.length - 1) {
+            nextDateIndex = currentDateIndex + 1
+          } else if (currentEmployeeIndex < sortedEmployees.length - 1) {
+            nextEmployeeIndex = currentEmployeeIndex + 1
+            nextDateIndex = 0
+          }
+        }
+        
+        // If we have a valid next cell, edit it
+        if (nextEmployeeIndex !== currentEmployeeIndex || nextDateIndex !== currentDateIndex) {
+          const nextEmployee = sortedEmployees[nextEmployeeIndex]
+          const nextDate = monthDays[nextDateIndex]
+          
+          if (nextEmployee && nextDate) {
+            setEditingCell({
+              employeeId: nextEmployee.id,
+              date: format(nextDate, "yyyy-MM-dd"),
+              value: "" // Clear for fast editing
+            })
+          }
+        }
+      }
     } else if (e.key === 'Escape') {
       setEditingCell(null)
     }
