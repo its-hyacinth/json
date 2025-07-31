@@ -427,9 +427,6 @@ export function EmployeeSchedule() {
                                     </span>
                                   )}
                                 </div>
-                                {employee.first_name && (
-                                  <div className="text-xs text-gray-600 truncate">{employee.first_name}</div>
-                                )}
                               </div>
                             </div>
                           </td>

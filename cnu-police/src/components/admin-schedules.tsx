@@ -1566,9 +1566,6 @@ export function AdminSchedules() {
                             <GripVertical className="h-4 w-4 text-gray-400 cursor-grab active:cursor-grabbing" />
                             <div className="min-w-0 flex-1 ml-2">
                               <div className="font-bold text-sm truncate uppercase">{employee.last_name}</div>
-                              {employee.first_name && (
-                                <div className="text-xs text-gray-600 truncate">{employee.first_name}</div>
-                              )}
                             </div>
                             <Button
                               size="sm"

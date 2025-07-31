@@ -468,9 +468,6 @@ export function AdminScheduleOverview() {
                           <div className="flex items-center justify-between">
                             <div className="min-w-0 flex-1">
                               <div className="font-bold text-sm truncate uppercase">{employee.last_name}</div>
-                              {employee.first_name && (
-                                <div className="text-xs text-gray-600 truncate">{employee.first_name}</div>
-                              )}
                             </div>
                           </div>
                         </td>
