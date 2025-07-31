@@ -20,7 +20,7 @@ class CourtRequestService
         private ScheduleService $scheduleService
     ) {}
 
-    public function getAllCourtRequests(array $filters = []): LengthAwarePaginator
+    public function getAllCourtRequests(int $employeeId, array $filters = []): LengthAwarePaginator
     {
         $query = CourtRequest::with(['creator'])
             ->where('employee_id', $employeeId)
@@ -49,9 +49,7 @@ class CourtRequestService
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('case_number', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
+                $q->orWhere('description', 'like', "%{$search}%")
                   ->orWhereHas('employee', function ($eq) use ($search) {
                       $eq->where('name', 'like', "%{$search}%");
                   });
@@ -63,8 +61,8 @@ class CourtRequestService
 
     public function getEmployeeCourtRequests(int $employeeId, array $filters = []): LengthAwarePaginator
     {
-        $query = CourtRequest::with(['creator'])
-            ->where('employee_id', $employeeId)
+        $query = CourtRequest::with(['employee'])
+            ->where('created_by', $employeeId)
             ->orderBy('court_date', 'desc');
 
         if (!empty($filters['status'])) {

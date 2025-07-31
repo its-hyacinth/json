@@ -17,7 +17,7 @@ class ScheduleService
         $startDate = Carbon::create($year, $month, 1);
         $endDate = $startDate->copy()->endOfMonth();
         
-        $defaultTimeIn = '08:00:00'; // Default schedule
+        $defaultTimeIn = '00:00:00'; // Default schedule
         
         while ($startDate <= $endDate) {
             Schedule::firstOrCreate([
@@ -112,7 +112,7 @@ class ScheduleService
         $templateEnd = $templateStart->copy()->endOfWeek(Carbon::SUNDAY);
         
         $generatedCount = 0;
-        $defaultTimeIn = '08:00:00';
+        $defaultTimeIn = '00:00:00';
         
         // Get all weeks in the target month
         $monthStart = Carbon::create($year, $month, 1);
@@ -196,7 +196,7 @@ class ScheduleService
     {
         $sourceStart = Carbon::parse($sourceWeekStart)->startOfWeek(Carbon::MONDAY);
         $sourceEnd = $sourceStart->copy()->endOfWeek(Carbon::SUNDAY);
-        $defaultTimeIn = '08:00:00';
+        $defaultTimeIn = '00:00:00';
         
         // Get source week schedules (including all status types) using ISO day format
         $sourceSchedules = Schedule::where('user_id', $user->id)

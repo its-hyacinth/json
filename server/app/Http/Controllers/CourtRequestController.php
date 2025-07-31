@@ -29,7 +29,7 @@ class CourtRequestController extends Controller
             return response()->json($courtRequests);
         }
 
-        $courtRequests = $this->courtRequestService->getAllCourtRequests($filters);
+        $courtRequests = $this->courtRequestService->getAllCourtRequests($request->user()->id ,$filters);
         return response()->json($courtRequests);
     }
 

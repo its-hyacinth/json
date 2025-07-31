@@ -22,9 +22,7 @@ return new class extends Migration
             $table->date('end_date');
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();
-            $table->decimal('estimated_cost', 10, 2)->nullable();
             $table->text('justification');
-            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
             $table->enum('status', ['pending', 'approved', 'declined', 'completed'])->default('pending');
             $table->text('admin_notes')->nullable();
             $table->unsignedBigInteger('approved_by')->nullable();

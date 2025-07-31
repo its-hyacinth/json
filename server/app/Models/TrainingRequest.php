@@ -20,9 +20,7 @@ class TrainingRequest extends Model
         'end_date',
         'start_time',
         'end_time',
-        'estimated_cost',
         'justification',
-        'priority',
         'status',
         'admin_notes',
         'approved_by',
@@ -34,14 +32,7 @@ class TrainingRequest extends Model
         'end_date' => 'date',
         'start_time' => 'datetime:H:i',
         'end_time' => 'datetime:H:i',
-        'estimated_cost' => 'decimal:2',
         'approved_at' => 'datetime',
-    ];
-
-    public const PRIORITIES = [
-        'low' => 'Low Priority',
-        'medium' => 'Medium Priority',
-        'high' => 'High Priority',
     ];
 
     public const STATUSES = [
@@ -59,11 +50,6 @@ class TrainingRequest extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
-    }
-
-    public function getPriorityLabelAttribute(): string
-    {
-        return self::PRIORITIES[$this->priority] ?? 'Unknown';
     }
 
     public function getStatusLabelAttribute(): string
@@ -84,10 +70,5 @@ class TrainingRequest extends Model
     public function scopeApproved($query)
     {
         return $query->where('status', 'approved');
-    }
-
-    public function scopeByPriority($query, $priority)
-    {
-        return $query->where('priority', $priority);
     }
 }

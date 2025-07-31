@@ -28,9 +28,9 @@ class TrainingRequestRequest extends FormRequest
             'end_date' => 'required|date|after_or_equal:start_date',
             'start_time' => 'nullable|date_format:H:i',
             'end_time' => 'nullable|date_format:H:i|after:start_time',
-            'estimated_cost' => 'nullable|numeric|min:0|max:999999.99',
             'justification' => 'required|string|max:1000',
-            'priority' => 'required|in:low,medium,high',
+            'attachment_name' => 'nullable|string|max:255',
+            'attachment_path' => 'nullable|string|max:255',
         ];
     }
 
@@ -47,8 +47,8 @@ class TrainingRequestRequest extends FormRequest
             'end_date.after_or_equal' => 'End date must be on or after the start date.',
             'end_time.after' => 'End time must be after start time.',
             'justification.required' => 'Justification for training is required.',
-            'priority.required' => 'Priority level is required.',
-            'estimated_cost.numeric' => 'Estimated cost must be a valid number.',
+            'attachment_name.max' => 'Attachment name cannot exceed 255 characters.',
+            'attachment_path.max' => 'Attachment path cannot exceed 255 characters.',
         ];
     }
 }

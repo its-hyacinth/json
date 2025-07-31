@@ -17,7 +17,37 @@ class ScheduleController extends Controller
     {
         $this->scheduleService = $scheduleService;
     }
-    
+    /**
+     * Get schedules for multiple users in batch (optimized for admin view)
+     */
+    public function batchIndex(Request $request)
+    {
+        $request->validate([
+            'month' => 'required|integer|between:1,12',
+            'year' => 'required|integer|min:2020',
+            'user_ids' => 'sometimes|array',
+            'user_ids.*' => 'exists:users,id'
+        ]);
+        
+        $month = $request->input('month');
+        $year = $request->input('year');
+        
+        $query = Schedule::with('user')
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month);
+            
+        if ($request->has('user_ids')) {
+            $query->whereIn('user_id', $request->user_ids);
+        }
+        
+        // Optimized query with eager loading and proper indexing
+        $schedules = $query->orderBy('user_id')
+            ->orderBy('date')
+            ->get()
+            ->groupBy('user_id');
+        
+        return response()->json($schedules);
+    }
     /**
      * Get schedules for current user or specific user (admin only)
      */

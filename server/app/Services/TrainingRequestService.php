@@ -25,10 +25,6 @@ class TrainingRequestService
             $query->where('status', $filters['status']);
         }
 
-        if (isset($filters['priority'])) {
-            $query->where('priority', $filters['priority']);
-        }
-
         if (isset($filters['start_date']) && isset($filters['end_date'])) {
             $query->whereBetween('start_date', [$filters['start_date'], $filters['end_date']]);
         }
@@ -52,10 +48,6 @@ class TrainingRequestService
         // Apply filters
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
-        }
-
-        if (isset($filters['priority'])) {
-            $query->where('priority', $filters['priority']);
         }
 
         if (isset($filters['user_id'])) {
@@ -253,27 +245,6 @@ class TrainingRequestService
     public function canDeleteTrainingRequest(TrainingRequest $trainingRequest, User $user): bool
     {
         return $trainingRequest->user_id === $user->id && $trainingRequest->status === 'pending';
-    }
-
-    /**
-     * Get training statistics.
-     */
-    public function getTrainingStatistics(User $user = null): array
-    {
-        $query = TrainingRequest::query();
-        
-        if ($user && !$user->is_admin) {
-            $query->where('user_id', $user->id);
-        }
-
-        return [
-            'total' => $query->count(),
-            'pending' => $query->where('status', 'pending')->count(),
-            'approved' => $query->where('status', 'approved')->count(),
-            'declined' => $query->where('status', 'declined')->count(),
-            'completed' => $query->where('status', 'completed')->count(),
-            'high_priority' => $query->where('priority', 'high')->count(),
-        ];
     }
 
     /**

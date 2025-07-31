@@ -14,9 +14,7 @@ return new class extends Migration
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->date('court_date');
             $table->time('court_time')->nullable();
-            $table->string('case_number')->nullable();
             $table->string('court_type')->default('criminal');
-            $table->string('location')->nullable();
             $table->text('description')->nullable();
             $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
             $table->text('employee_notes')->nullable();
