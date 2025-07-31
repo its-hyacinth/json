@@ -21,22 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import {
-  Download,
-  Plus,
-  Save,
-  Calendar,
-  Users,
-  Loader2,
-  Copy,
-  Clipboard,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  Star,
-  Edit,
-  Trash2,
-} from "lucide-react"
+import { Download, Plus, Save, Calendar, Users, Loader2, Copy, Clipboard, CalendarDays, ChevronLeft, ChevronRight, Star, Edit, Trash2, GripVertical, UserPlus } from 'lucide-react'
 import {
   format,
   startOfMonth,
@@ -56,6 +41,7 @@ import { EVENT_TYPES, type Event, type CreateEventData } from "@/services/event-
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 import { ExportDialog } from "./export-dialog"
+import { accountService, type CreateUserData } from "@/services/account-service"
 
 interface EditingSchedule {
   employeeId: number
@@ -85,16 +71,22 @@ interface EditingEvent {
   location: string
 }
 
+interface EditingCell {
+  employeeId: number
+  date: string
+  value: string
+}
+
 export function AdminSchedules() {
   const [selectedMonth, setSelectedMonth] = useState(new Date())
   const [allSchedules, setAllSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(false)
   const [generatingSchedules, setGeneratingSchedules] = useState(false)
+  const [employeeOrder, setEmployeeOrder] = useState<number[]>([])
 
-  // Modal states
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [editingSchedule, setEditingSchedule] = useState<EditingSchedule | null>(null)
-  const [savingSchedule, setSavingSchedule] = useState(false)
+  // Inline editing state
+  const [editingCell, setEditingCell] = useState<EditingCell | null>(null)
+  const [savingCell, setSavingCell] = useState(false)
 
   // Copy/Paste states
   const [copiedWeek, setCopiedWeek] = useState<CopiedWeek | null>(null)
@@ -116,16 +108,43 @@ export function AdminSchedules() {
   const [savingEvent, setSavingEvent] = useState(false)
   const [showEventsPanel, setShowEventsPanel] = useState(false)
 
+  // Employee creation states
+  const [showCreateEmployeeModal, setShowCreateEmployeeModal] = useState(false)
+  const [creatingEmployee, setCreatingEmployee] = useState(false)
+  const [employeeFormData, setEmployeeFormData] = useState<CreateUserData>({
+    first_name: "",
+    last_name: "",
+    email: "",
+    badge_number: "",
+    division: "",
+    phone: "",
+    address: "",
+    role: "employee",
+    password: "",
+  })
+
   const [showExportDialog, setShowExportDialog] = useState(false)
 
-  const { employees, loading: employeesLoading } = useEmployees()
+  const { employees, loading: employeesLoading, refetch: refetchEmployees } = useEmployees()
 
   // Filter out admin users (without depending on schedules)
   const filteredEmployees = useMemo(() => {
     return employees.filter((employee) => employee.role !== "admin")
   }, [employees])
 
-  // Sort employees by today's start time (only after schedules are loaded)
+  // Load employee order from localStorage
+  useEffect(() => {
+    const savedOrder = localStorage.getItem('employee-order')
+    if (savedOrder) {
+      try {
+        setEmployeeOrder(JSON.parse(savedOrder))
+      } catch (error) {
+        console.warn('Failed to parse saved employee order:', error)
+      }
+    }
+  }, [])
+
+  // Sort employees by saved order, then by custom sort order
   const sortedEmployees = useMemo(() => {
     // Define the custom sort order
     const customSortOrder = [
@@ -145,29 +164,64 @@ export function AdminSchedules() {
       "WILLIAMS",
       "GOLBAD",
       "REYNOLDS"
-    ].map(name => name.toLowerCase()); // Convert to lowercase for case-insensitive comparison
+    ].map(name => name.toLowerCase())
 
-    return [...filteredEmployees].sort((a, b) => {
-      // Get the index in the custom sort order (default to end if not found)
-      const indexA = customSortOrder.indexOf(a.last_name.toLowerCase());
-      const indexB = customSortOrder.indexOf(b.last_name.toLowerCase());
+    let sorted = [...filteredEmployees]
 
-      // If both are in the custom order, sort by that
-      if (indexA !== -1 && indexB !== -1) {
-        return indexA - indexB;
-      }
-      // If only A is in the custom order, it comes first
-      if (indexA !== -1) {
-        return -1;
-      }
-      // If only B is in the custom order, it comes first
-      if (indexB !== -1) {
-        return 1;
-      }
-      // If neither is in the custom order, sort alphabetically
-      return a.last_name.localeCompare(b.last_name);
-    });
-  }, [filteredEmployees, allSchedules]);
+    // If we have a saved order, use it
+    if (employeeOrder.length > 0) {
+      sorted.sort((a, b) => {
+        const indexA = employeeOrder.indexOf(a.id)
+        const indexB = employeeOrder.indexOf(b.id)
+        
+        // If both are in saved order, sort by that
+        if (indexA !== -1 && indexB !== -1) {
+          return indexA - indexB
+        }
+        // If only A is in saved order, it comes first
+        if (indexA !== -1) {
+          return -1
+        }
+        // If only B is in saved order, it comes first
+        if (indexB !== -1) {
+          return 1
+        }
+        // If neither is in saved order, use custom sort
+        const customIndexA = customSortOrder.indexOf(a.last_name.toLowerCase())
+        const customIndexB = customSortOrder.indexOf(b.last_name.toLowerCase())
+        
+        if (customIndexA !== -1 && customIndexB !== -1) {
+          return customIndexA - customIndexB
+        }
+        if (customIndexA !== -1) {
+          return -1
+        }
+        if (customIndexB !== -1) {
+          return 1
+        }
+        return a.last_name.localeCompare(b.last_name)
+      })
+    } else {
+      // Use custom sort order
+      sorted.sort((a, b) => {
+        const indexA = customSortOrder.indexOf(a.last_name.toLowerCase())
+        const indexB = customSortOrder.indexOf(b.last_name.toLowerCase())
+
+        if (indexA !== -1 && indexB !== -1) {
+          return indexA - indexB
+        }
+        if (indexA !== -1) {
+          return -1
+        }
+        if (indexB !== -1) {
+          return 1
+        }
+        return a.last_name.localeCompare(b.last_name)
+      })
+    }
+
+    return sorted
+  }, [filteredEmployees, employeeOrder])
 
   const {
     events,
@@ -187,38 +241,70 @@ export function AdminSchedules() {
     end: endOfMonth(selectedMonth),
   })
 
+  // Save employee order to localStorage
+  const saveEmployeeOrder = (newOrder: number[]) => {
+    setEmployeeOrder(newOrder)
+    localStorage.setItem('employee-order', JSON.stringify(newOrder))
+  }
+
+  // Handle drag and drop for employee rows
+  const handleDragStart = (e: React.DragEvent, employeeId: number) => {
+    e.dataTransfer.setData('text/plain', employeeId.toString())
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = (e: React.DragEvent, targetEmployeeId: number) => {
+    e.preventDefault()
+    const draggedEmployeeId = parseInt(e.dataTransfer.getData('text/plain'))
+    
+    if (draggedEmployeeId === targetEmployeeId) return
+
+    const currentOrder = employeeOrder.length > 0 ? employeeOrder : sortedEmployees.map(emp => emp.id)
+    const newOrder = [...currentOrder]
+    
+    const draggedIndex = newOrder.indexOf(draggedEmployeeId)
+    const targetIndex = newOrder.indexOf(targetEmployeeId)
+    
+    if (draggedIndex !== -1 && targetIndex !== -1) {
+      // Remove dragged item and insert at target position
+      newOrder.splice(draggedIndex, 1)
+      newOrder.splice(targetIndex, 0, draggedEmployeeId)
+      saveEmployeeOrder(newOrder)
+    }
+  }
+
   // Fetch schedules for all employees
   const fetchAllSchedules = useCallback(async () => {
-    if (filteredEmployees.length === 0) return
+    if (filteredEmployees.length === 0) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const allEmployeeSchedules: Schedule[] = []
+      // Get all employee IDs
+      const employeeIds = filteredEmployees.map(emp => emp.id);
+      
+      // Use batch fetch instead of individual fetches
+      const batchSchedules = await scheduleService.getBatchSchedules({
+        user_ids: employeeIds,
+        month: selectedMonth.getMonth() + 1,
+        year: selectedMonth.getFullYear()
+      });
 
-      for (const employee of filteredEmployees) {
-        try {
-          const schedules = await scheduleService.getAdminSchedules({
-            month: selectedMonth.getMonth() + 1,
-            year: selectedMonth.getFullYear(),
-            user_id: employee.id,
-          })
-          allEmployeeSchedules.push(...schedules)
-        } catch (error) {
-          console.warn(`Failed to fetch schedules for employee ${employee.id}:`, error)
-        }
-      }
-
-      setAllSchedules(allEmployeeSchedules)
+      // Convert the grouped schedules into a flat array
+      const allSchedules = Object.values(batchSchedules).flat();
+      setAllSchedules(allSchedules);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to fetch schedules",
+        description: error instanceof Error ? error.message : "Failed to fetch schedules",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [filteredEmployees, selectedMonth, toast])
+  }, [filteredEmployees, selectedMonth, toast]);
 
   // Only fetch schedules when month changes or filtered employees change
   useEffect(() => {
@@ -261,45 +347,112 @@ export function AdminSchedules() {
     })
   }
 
-  const handleCellClick = (employeeId: number, date: Date) => {
-    if (loading || generatingSchedules) return
+  // Parse simple input to time and status
+  const parseScheduleInput = (input: string): { time_in: string | null; status: string } => {
+    const trimmed = input.trim().toUpperCase()
+    
+    // Handle status codes
+    if (['C', 'SD', 'S', 'M', 'CT'].includes(trimmed)) {
+      return { time_in: null, status: trimmed }
+    }
+    
+    // Handle empty or 0
+    if (!trimmed || trimmed === '0') {
+      return { time_in: null, status: 'working' }
+    }
+    
+    // Handle numeric input (assume it's hour in 24-hour format)
+    const num = parseInt(trimmed)
+    if (!isNaN(num) && num >= 0 && num <= 23) {
+      const timeString = `${num.toString().padStart(2, '0')}:00`
+      return { time_in: timeString, status: 'working' }
+    }
+    
+    // Handle time format (HH:MM)
+    const timeMatch = trimmed.match(/^(\d{1,2}):?(\d{2})?$/)
+    if (timeMatch) {
+      const hour = parseInt(timeMatch[1])
+      const minute = timeMatch[2] ? parseInt(timeMatch[2]) : 0
+      
+      if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+        return { time_in: timeString, status: 'working' }
+      }
+    }
+    
+    // Default to working status with no time
+    return { time_in: null, status: 'working' }
+  }
 
-    const employee = filteredEmployees.find((e) => e.id === employeeId)
-    if (!employee) return
+  // Handle inline cell editing
+  const handleCellClick = (employeeId: number, date: Date) => {
+    if (loading || generatingSchedules || savingCell) return
 
     const schedule = getScheduleForEmployeeAndDate(employeeId, date)
     const dateString = format(date, "yyyy-MM-dd")
+    
+    // Get current display value
+    let currentValue = ""
+    if (schedule) {
+      if (['C', 'SD', 'S', 'M', 'CT'].includes(schedule.status)) {
+        currentValue = schedule.status
+      } else if (schedule.time_in) {
+        const hour = parseInt(schedule.time_in.split(':')[0])
+        currentValue = hour.toString()
+      } else {
+        currentValue = "0"
+      }
+    } else {
+      currentValue = "0"
+    }
 
-    setEditingSchedule({
+    setEditingCell({
       employeeId,
-      employeeName: `${employee.first_name} ${employee.last_name}`,
       date: dateString,
-      scheduleId: schedule?.id,
-      value: schedule?.time_in ? format(new Date(`2000-01-01T${schedule.time_in}`), "HH:mm") : "08:00",
-      status: schedule?.status || "working",
+      value: currentValue
     })
-    setShowEditModal(true)
   }
 
-  const handleSaveSchedule = async () => {
-    if (!editingSchedule) return
+  const handleCellInputChange = (value: string) => {
+    if (editingCell) {
+      setEditingCell({ ...editingCell, value })
+    }
+  }
 
-    setSavingSchedule(true)
+  const handleCellInputKeyDown = async (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      await saveCellEdit()
+    } else if (e.key === 'Escape') {
+      setEditingCell(null)
+    }
+  }
+
+  const handleCellInputBlur = async () => {
+    await saveCellEdit()
+  }
+
+  const saveCellEdit = async () => {
+    if (!editingCell || savingCell) return
+
+    setSavingCell(true)
     try {
+      const { time_in, status } = parseScheduleInput(editingCell.value)
+      const schedule = getScheduleForEmployeeAndDate(editingCell.employeeId, new Date(editingCell.date))
+      
       const updateData = {
-        time_in: editingSchedule.status === "working" ? editingSchedule.value : null,
-        status: editingSchedule.status as "working" | "C" | "SD" | "S" | "M" | "CT",
+        time_in,
+        status: status as "working" | "C" | "SD" | "S" | "M" | "CT",
       }
 
       let updatedSchedule: Schedule
 
-      if (editingSchedule.scheduleId) {
+      if (schedule?.id) {
         // Update existing schedule
-        updatedSchedule = await scheduleService.updateSchedule(editingSchedule.scheduleId, updateData)
+        updatedSchedule = await scheduleService.updateSchedule(schedule.id, updateData)
       } else {
         // Generate schedule for this employee first, then update
         await scheduleService.generateSchedules(
-          editingSchedule.employeeId,
+          editingCell.employeeId,
           selectedMonth.getMonth() + 1,
           selectedMonth.getFullYear(),
         )
@@ -308,9 +461,9 @@ export function AdminSchedules() {
         const newSchedules = await scheduleService.getAdminSchedules({
           month: selectedMonth.getMonth() + 1,
           year: selectedMonth.getFullYear(),
-          user_id: editingSchedule.employeeId,
+          user_id: editingCell.employeeId,
         })
-        const newSchedule = newSchedules.find((s) => s.date === editingSchedule.date)
+        const newSchedule = newSchedules.find((s) => s.date === editingCell.date)
         if (newSchedule) {
           updatedSchedule = await scheduleService.updateSchedule(newSchedule.id, updateData)
         } else {
@@ -320,13 +473,7 @@ export function AdminSchedules() {
 
       // Soft update the UI
       updateLocalSchedule(updatedSchedule)
-      setShowEditModal(false)
-      setEditingSchedule(null)
-
-      toast({
-        title: "Success",
-        description: "Schedule updated successfully",
-      })
+      setEditingCell(null)
     } catch (error) {
       toast({
         title: "Error",
@@ -334,7 +481,7 @@ export function AdminSchedules() {
         variant: "destructive",
       })
     } finally {
-      setSavingSchedule(false)
+      setSavingCell(false)
     }
   }
 
@@ -402,6 +549,42 @@ export function AdminSchedules() {
   const handleDeleteEvent = async (eventId: number) => {
     if (confirm("Are you sure you want to delete this event?")) {
       await deleteEvent(eventId)
+    }
+  }
+
+  // Employee creation functions
+  const handleCreateEmployee = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCreatingEmployee(true)
+    
+    try {
+      await accountService.createUser(employeeFormData)
+      toast({
+        title: "Success",
+        description: "Employee account created successfully",
+      })
+      setShowCreateEmployeeModal(false)
+      setEmployeeFormData({
+        first_name: "",
+        last_name: "",
+        email: "",
+        badge_number: "",
+        division: "",
+        phone: "",
+        address: "",
+        role: "employee",
+        password: "",
+      })
+      // Refetch employees to update the list
+      await refetchEmployees()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create employee account",
+        variant: "destructive",
+      })
+    } finally {
+      setCreatingEmployee(false)
     }
   }
 
@@ -529,117 +712,89 @@ export function AdminSchedules() {
   }
 
   const getCellContent = (employeeId: number, date: Date) => {
+    const dateString = format(date, "yyyy-MM-dd")
+    const isEditing = editingCell?.employeeId === employeeId && editingCell?.date === dateString
+    
+    if (isEditing) {
+      return (
+        <Input
+          value={editingCell.value}
+          onChange={(e) => handleCellInputChange(e.target.value)}
+          onKeyDown={handleCellInputKeyDown}
+          onBlur={handleCellInputBlur}
+          className="h-8 w-full text-center text-xs font-bold border-2 border-primary"
+          autoFocus
+          disabled={savingCell}
+        />
+      )
+    }
+
     const schedule = getScheduleForEmployeeAndDate(employeeId, date)
 
     if (!schedule) {
       return (
-        <div className="flex items-center justify-center h-full">
-          <div className="text-xs text-muted-foreground">—</div>
+        <div className="flex items-center justify-center h-full cursor-pointer">
+          <span className="text-xs text-gray-400 font-bold">0</span>
         </div>
       )
     }
 
-    if (schedule.status === "C") {
+    if (['C', 'SD', 'S', 'M', 'CT'].includes(schedule.status)) {
       return (
-        <div className="flex items-center justify-center h-full">
-          <Badge
-            variant="secondary"
-            className="text-xs font-bold bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300"
-          >
-            C
-          </Badge>
-        </div>
-      )
-    }
-
-    if (schedule.status === "SD") {
-      return (
-        <div className="flex items-center justify-center h-full">
-          <Badge
-            variant="destructive"
-            className="text-xs font-bold bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300"
-          >
-            SD
-          </Badge>
-        </div>
-      )
-    }
-
-    if (schedule.status === "S") {
-      return (
-        <div className="flex items-center justify-center h-full">
-          <Badge
-            variant="outline"
-            className="text-xs font-bold bg-cyan-100 text-cyan-700 hover:bg-cyan-100 dark:bg-cyan-900 dark:text-cyan-300 border-cyan-300"
-          >
-            S
-          </Badge>
-        </div>
-      )
-    }
-
-    if (schedule.status === "M") {
-      return (
-        <div className="flex items-center justify-center h-full">
-          <Badge
-            variant="outline"
-            className="text-xs font-bold bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900 dark:text-amber-300 border-amber-300"
-          >
-            M
-          </Badge>
-        </div>
-      )
-    }
-
-    // Add this new case for CT (Court)
-    if (schedule.status === "CT") {
-      return (
-        <div className="flex items-center justify-center h-full">
-          <Badge
-            variant="outline"
-            className="text-xs font-bold bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300 border-indigo-300"
-          >
-            CT
-          </Badge>
+        <div className="flex items-center justify-center h-full cursor-pointer">
+          <span className="text-xs font-bold text-black">{schedule.status}</span>
         </div>
       )
     }
 
     if (schedule.time_in) {
-      const timeIn = format(new Date(`2000-01-01T${schedule.time_in}`), "HH:mm")
+      const hour = parseInt(schedule.time_in.split(':')[0])
       return (
-        <div className="flex items-center justify-center h-full">
-          <div className="text-xs font-mono font-semibold text-foreground">{timeIn}</div>
+        <div className="flex items-center justify-center h-full cursor-pointer">
+          <span className="text-xs font-bold text-black">{hour}</span>
         </div>
       )
     }
 
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-xs text-muted-foreground">—</div>
+      <div className="flex items-center justify-center h-full cursor-pointer">
+        <span className="text-xs text-gray-400 font-bold">0</span>
       </div>
     )
   }
 
-  const getCellBackground = (date: Date, employeeIndex: number) => {
+  const getCellBackground = (date: Date, employeeIndex: number, schedule?: Schedule) => {
     const dayOfWeek = getDay(date)
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
     const isTodayDate = isToday(date)
     const hasEvents = getEventsForDate(date).length > 0
 
+    // Special background colors for different statuses
+    if (schedule?.status === "C") {
+      return "bg-yellow-200"
+    } else if (schedule?.status === "SD") {
+      return "bg-green-200"
+    } else if (schedule?.status === "S") {
+      return "bg-cyan-200"
+    } else if (schedule?.status === "M") {
+      return "bg-amber-200"
+    } else if (schedule?.status === "CT") {
+      return "bg-indigo-200"
+    }
+
     if (isTodayDate) {
-      return "bg-primary/10 border-primary/30"
+      return "bg-blue-100"
     }
 
     if (hasEvents) {
-      return "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800"
+      return "bg-yellow-100"
     }
 
     if (isWeekend) {
-      return "bg-muted/30"
+      return "bg-gray-100"
     }
 
-    return employeeIndex % 2 === 0 ? "bg-background" : "bg-muted/10"
+    return "bg-white"
   }
 
   const generateSchedulesForAll = async () => {
@@ -985,63 +1140,6 @@ export function AdminSchedules() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Schedule Modal */}
-      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Schedule</DialogTitle>
-            <DialogDescription>
-              Update schedule for {editingSchedule?.employeeName} on{" "}
-              {editingSchedule?.date && format(new Date(editingSchedule.date), "EEEE, MMMM d, yyyy")}
-            </DialogDescription>
-          </DialogHeader>
-          {editingSchedule && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={editingSchedule.status}
-                  onValueChange={(value) => setEditingSchedule({ ...editingSchedule, status: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="working">Working</SelectItem>
-                    <SelectItem value="C">Ordinary Leave (C)</SelectItem>
-                    <SelectItem value="SD">Sick Leave (SD)</SelectItem>
-                    <SelectItem value="S">School/Training (S)</SelectItem>
-                    <SelectItem value="M">Military (M)</SelectItem>
-                    <SelectItem value="CT">Court (CT)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {editingSchedule.status === "working" && (
-                <div className="space-y-2">
-                  <Label htmlFor="time">Start Time</Label>
-                  <Input
-                    id="time"
-                    type="time"
-                    value={editingSchedule.value}
-                    onChange={(e) => setEditingSchedule({ ...editingSchedule, value: e.target.value })}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditModal(false)} disabled={savingSchedule}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveSchedule} disabled={savingSchedule}>
-              {savingSchedule ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Copy Week Modal */}
       <Dialog open={showCopyModal} onOpenChange={setShowCopyModal}>
         <DialogContent className="sm:max-w-md">
@@ -1249,13 +1347,119 @@ export function AdminSchedules() {
         </DialogContent>
       </Dialog>
 
+      {/* Create Employee Modal */}
+      <Dialog open={showCreateEmployeeModal} onOpenChange={setShowCreateEmployeeModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Employee Account</DialogTitle>
+            <DialogDescription>
+              Add a new employee account to the system
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateEmployee} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="first_name">First Name</Label>
+                <Input
+                  id="first_name"
+                  value={employeeFormData.first_name}
+                  onChange={(e) => setEmployeeFormData({ ...employeeFormData, first_name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="last_name">Last Name</Label>
+                <Input
+                  id="last_name"
+                  value={employeeFormData.last_name}
+                  onChange={(e) => setEmployeeFormData({ ...employeeFormData, last_name: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={employeeFormData.email}
+                onChange={(e) => setEmployeeFormData({ ...employeeFormData, email: e.target.value })}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="badge_number">Badge Number</Label>
+                <Input
+                  id="badge_number"
+                  value={employeeFormData.badge_number}
+                  onChange={(e) => setEmployeeFormData({ ...employeeFormData, badge_number: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="division">Division</Label>
+                <Input
+                  id="division"
+                  value={employeeFormData.division}
+                  onChange={(e) => setEmployeeFormData({ ...employeeFormData, division: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="phone">Phone</Label>
+              <Input
+                id="phone"
+                value={employeeFormData.phone}
+                onChange={(e) => setEmployeeFormData({ ...employeeFormData, phone: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="address">Address</Label>
+              <Input
+                id="address"
+                value={employeeFormData.address}
+                onChange={(e) => setEmployeeFormData({ ...employeeFormData, address: e.target.value })}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={employeeFormData.password}
+                onChange={(e) => setEmployeeFormData({ ...employeeFormData, password: e.target.value })}
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowCreateEmployeeModal(false)} 
+                disabled={creatingEmployee}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={creatingEmployee}>
+                {creatingEmployee ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
+                Create Employee
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Schedule Grid */}
       <Card className="border-primary/10 w-full">
         <CardHeader>
           <CardTitle className="text-xl text-primary">Schedule Grid</CardTitle>
           <CardDescription>
-            Click on any cell to edit schedule. Click the copy button next to employee names to copy week patterns.
-            Times are displayed in 24-hour format. Yellow highlighted cells indicate event days.
+            Click on any cell to edit schedule. Enter numbers (0-23) for hours, or status codes (C, SD, S, M, CT). 
+            Drag rows to reorder employees. Times are displayed in 24-hour format. Yellow highlighted cells indicate event days.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -1269,8 +1473,8 @@ export function AdminSchedules() {
               </div>
             </div>
           ) : (
-            <div className="w-[70vw] ml-10 overflow-x-auto">
-              <div className="min-w-max">
+            <div className="overflow-x-auto">
+              <div className="w-[75vw] ml-2">
                 {/* Spreadsheet-style table */}
                 <table className="w-full border-collapse border border-gray-300">
                   {/* Header Row */}
@@ -1317,10 +1521,15 @@ export function AdminSchedules() {
                           "hover:bg-gray-50 transition-colors",
                           index % 2 === 0 ? "bg-white" : "bg-gray-50/50",
                         )}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, employee.id)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, employee.id)}
                       >
                         <td className="border border-gray-300 p-2 bg-gray-100 font-bold text-sm sticky left-0 z-10">
                           <div className="flex items-center justify-between group">
-                            <div className="min-w-0 flex-1">
+                            <GripVertical className="h-4 w-4 text-gray-400 cursor-grab active:cursor-grabbing" />
+                            <div className="min-w-0 flex-1 ml-2">
                               <div className="font-bold text-sm truncate uppercase">{employee.last_name}</div>
                               {employee.first_name && (
                                 <div className="text-xs text-gray-600 truncate">{employee.first_name}</div>
@@ -1340,63 +1549,18 @@ export function AdminSchedules() {
 
                         {monthDays.map((date) => {
                           const schedule = getScheduleForEmployeeAndDate(employee.id, date)
-                          const dayOfWeek = getDay(date)
-                          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
-                          const isTodayDate = isToday(date)
-                          const hasEvents = getEventsForDate(date).length > 0
-
-                          let cellBg = "bg-white"
-                          if (isTodayDate) {
-                            cellBg = "bg-blue-100"
-                          } else if (hasEvents) {
-                            cellBg = "bg-yellow-100"
-                          } else if (isWeekend) {
-                            cellBg = "bg-gray-100"
-                          }
-
-                          // Special background colors for different statuses
-                          if (schedule?.status === "C") {
-                            cellBg = "bg-yellow-200"
-                          } else if (schedule?.status === "SD") {
-                            cellBg = "bg-green-200"
-                          } else if (schedule?.status === "S") {
-                            cellBg = "bg-cyan-200"
-                          } else if (schedule?.status === "M") {
-                            cellBg = "bg-amber-200"
-                          } else if (schedule?.status === "CT") {
-                            cellBg = "bg-indigo-200"
-                          }
+                          const cellBg = getCellBackground(date, index, schedule)
 
                           return (
                             <td
                               key={`${employee.id}-${date.toISOString()}`}
                               className={cn(
-                                "border border-gray-300 p-1 text-center cursor-pointer hover:bg-gray-200 transition-colors h-12 w-12",
+                                "border border-gray-300 p-1 text-center hover:bg-gray-200 transition-colors h-12 w-12",
                                 cellBg,
                               )}
                               onClick={() => handleCellClick(employee.id, date)}
                             >
-                              <div className="flex items-center justify-center h-full">
-                                {!schedule ? (
-                                  <span className="text-xs text-gray-400 font-bold">0</span>
-                                ) : schedule.status === "C" ? (
-                                  <span className="text-xs font-bold text-black">C</span>
-                                ) : schedule.status === "SD" ? (
-                                  <span className="text-xs font-bold text-black">SD</span>
-                                ) : schedule.status === "S" ? (
-                                  <span className="text-xs font-bold text-black">S</span>
-                                ) : schedule.status === "M" ? (
-                                  <span className="text-xs font-bold text-black">M</span>
-                                ) : schedule.status === "CT" ? (
-                                  <span className="text-xs font-bold text-black">CT</span>
-                                ) : schedule.time_in ? (
-                                  <span className="text-xs font-bold text-black">
-                                    {Number.parseInt(schedule.time_in.split(":")[0])}
-                                  </span>
-                                ) : (
-                                  <span className="text-xs text-gray-400 font-bold">0</span>
-                                )}
-                              </div>
+                              {getCellContent(employee.id, date)}
                             </td>
                           )
                         })}
@@ -1404,6 +1568,18 @@ export function AdminSchedules() {
                     ))}
                   </tbody>
                 </table>
+
+                {/* Add Employee Button */}
+                <div className="mt-4 p-4 border-t border-gray-300 bg-gray-50">
+                  <Button
+                    onClick={() => setShowCreateEmployeeModal(true)}
+                    variant="outline"
+                    className="w-full gap-2"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Add Employee Account
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -1415,73 +1591,88 @@ export function AdminSchedules() {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-primary"></div>
-            Schedule Legend
+            Schedule Legend & Instructions
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-6 bg-background border-2 border-primary/20 rounded flex items-center justify-center text-xs font-mono font-semibold">
-                08:00
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-6 bg-background border-2 border-primary/20 rounded flex items-center justify-center text-xs font-mono font-semibold">
+                  8
+                </div>
+                <span className="text-sm">Working Time (8 = 8:00)</span>
               </div>
-              <span className="text-sm">Working Time</span>
+              <div className="flex items-center gap-3">
+                <Badge
+                  variant="secondary"
+                  className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300"
+                >
+                  C
+                </Badge>
+                <span className="text-sm">Ordinary Leave</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge
+                  variant="destructive"
+                  className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300"
+                >
+                  SD
+                </Badge>
+                <span className="text-sm">Sick Leave</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge
+                  variant="outline"
+                  className="bg-cyan-100 text-cyan-700 hover:bg-cyan-100 dark:bg-cyan-900 dark:text-cyan-300 border-cyan-300"
+                >
+                  S
+                </Badge>
+                <span className="text-sm">School/Training</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge
+                  variant="outline"
+                  className="bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900 dark:text-amber-300 border-amber-300"
+                >
+                  M
+                </Badge>
+                <span className="text-sm">Military</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge
+                  variant="outline"
+                  className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300 border-indigo-300"
+                >
+                  CT
+                </Badge>
+                <span className="text-sm">Court</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-6 bg-yellow-50 border-2 border-yellow-200 rounded"></div>
+                <span className="text-sm">Event Day</span>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Badge
-                variant="secondary"
-                className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300"
-              >
-                C
-              </Badge>
-              <span className="text-sm">Ordinary Leave</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge
-                variant="destructive"
-                className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-300"
-              >
-                SD
-              </Badge>
-              <span className="text-sm">Sick Leave</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge
-                variant="outline"
-                className="bg-cyan-100 text-cyan-700 hover:bg-cyan-100 dark:bg-cyan-900 dark:text-cyan-300 border-cyan-300"
-              >
-                S
-              </Badge>
-              <span className="text-sm">School/Training</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge
-                variant="outline"
-                className="bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900 dark:text-amber-300 border-amber-300"
-              >
-                M
-              </Badge>
-              <span className="text-sm">Military</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge
-                variant="outline"
-                className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300 border-indigo-300"
-              >
-                CT
-              </Badge>
-              <span className="text-sm">Court</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-6 bg-yellow-50 border-2 border-yellow-200 rounded"></div>
-              <span className="text-sm">Event Day</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Copy className="h-4 w-4 text-primary" />
-              <span className="text-sm">Click copy button</span>
+            
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h4 className="font-semibold text-blue-900 mb-2">Quick Entry Instructions:</h4>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• Enter <strong>13</strong> for 1:00 PM (13:00)</li>
+                <li>• Enter <strong>8</strong> for 8:00 AM (08:00)</li>
+                <li>• Enter <strong>0</strong> for no schedule</li>
+                <li>• Enter <strong>C</strong> for Ordinary Leave</li>
+                <li>• Enter <strong>SD</strong> for Sick Leave</li>
+                <li>• Enter <strong>S</strong> for School/Training</li>
+                <li>• Enter <strong>M</strong> for Military</li>
+                <li>• Enter <strong>CT</strong> for Court</li>
+                <li>• Press <strong>Enter</strong> to save, <strong>Escape</strong> to cancel</li>
+                <li>• Drag rows by the grip handle to reorder employees</li>
+              </ul>
             </div>
           </div>
         </CardContent>
       </Card>
+      
       {/* Export Dialog */}
       <ExportDialog open={showExportDialog} onOpenChange={setShowExportDialog} currentMonth={selectedMonth} />
     </div>

@@ -35,6 +35,27 @@ export function useSchedules(params?: { month?: number; year?: number; user_id?:
     }
   }
 
+  const fetchBatchSchedules = async (userIds: number[], month?: number, year?: number) => {
+    try {
+      setLoading(true)
+      const data = await scheduleService.getBatchSchedules({
+        user_ids: userIds,
+        month,
+        year
+      })
+      setSchedules(data)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to fetch batch schedules",
+        variant: "destructive",
+      })
+      return []
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchSchedules()
   }, [params?.month, params?.year, params?.user_id, user?.role])
@@ -75,8 +96,9 @@ export function useSchedules(params?: { month?: number; year?: number; user_id?:
 
   return {
     schedules,
+    fetchBatchSchedules,
     loading,
-    refetch: fetchSchedules,
+    refetch: fetchBatchSchedules,
     updateSchedule,
     generateSchedules,
   }

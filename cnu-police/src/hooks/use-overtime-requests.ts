@@ -187,5 +187,6 @@ export function useOvertimeRequests({ status, overtime_type, autoFetch = true }:
     acceptOvertimeRequest,
     declineOvertimeRequest,
     autoCreateOvertimeForLeave,
+    refetch: fetchOvertimeRequests,
   }
 }

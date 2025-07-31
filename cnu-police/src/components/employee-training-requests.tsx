@@ -33,6 +33,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { TRAINING_PRIORITIES, type CreateTrainingRequestData } from "@/services/training-request-service"
+import { PDFExportButton } from "./pdf-export-button"
 
 export function EmployeeTrainingRequests() {
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -47,9 +48,7 @@ export function EmployeeTrainingRequests() {
     end_date: "",
     start_time: "",
     end_time: "",
-    estimated_cost: undefined,
     justification: "",
-    priority: "medium",
   })
   const [submitting, setSubmitting] = useState(false)
 
@@ -80,9 +79,7 @@ export function EmployeeTrainingRequests() {
       end_date: request.end_date,
       start_time: request.start_time || "",
       end_time: request.end_time || "",
-      estimated_cost: request.estimated_cost,
       justification: request.justification,
-      priority: request.priority,
     })
     setShowEditModal(true)
   }
@@ -119,9 +116,7 @@ export function EmployeeTrainingRequests() {
       end_date: "",
       start_time: "",
       end_time: "",
-      estimated_cost: undefined,
       justification: "",
-      priority: "medium",
     })
   }
 
@@ -190,172 +185,143 @@ export function EmployeeTrainingRequests() {
           </h2>
           <p className="text-muted-foreground">Submit and track your training requests</p>
         </div>
-        <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Request
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Submit Training Request</DialogTitle>
-              <DialogDescription>Fill out the form to request training approval</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex gap-2">
+          <PDFExportButton 
+            data={trainingRequests || []} 
+            type="training" 
+            className="bg-transparent" 
+          />
+          <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                New Request
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Submit Training Request</DialogTitle>
+                <DialogDescription>Fill out the form to request training approval</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="training_title">Training Title *</Label>
+                    <Input
+                      id="training_title"
+                      value={formData.training_title}
+                      onChange={(e) => setFormData({ ...formData, training_title: e.target.value })}
+                      placeholder="Enter training title"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="training_title">Training Title *</Label>
-                  <Input
-                    id="training_title"
-                    value={formData.training_title}
-                    onChange={(e) => setFormData({ ...formData, training_title: e.target.value })}
-                    placeholder="Enter training title"
+                  <Label htmlFor="training_description">Description</Label>
+                  <Textarea
+                    id="training_description"
+                    value={formData.training_description}
+                    onChange={(e) => setFormData({ ...formData, training_description: e.target.value })}
+                    placeholder="Describe the training content and objectives"
+                    rows={3}
                   />
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="training_provider">Training Provider</Label>
+                    <Input
+                      id="training_provider"
+                      value={formData.training_provider}
+                      onChange={(e) => setFormData({ ...formData, training_provider: e.target.value })}
+                      placeholder="Organization or institution"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="training_location">Location</Label>
+                    <Input
+                      id="training_location"
+                      value={formData.training_location}
+                      onChange={(e) => setFormData({ ...formData, training_location: e.target.value })}
+                      placeholder="Training location"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="start_date">Start Date *</Label>
+                    <Input
+                      id="start_date"
+                      type="date"
+                      value={formData.start_date}
+                      onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="end_date">End Date *</Label>
+                    <Input
+                      id="end_date"
+                      type="date"
+                      value={formData.end_date}
+                      onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="start_time">Start Time</Label>
+                    <Input
+                      id="start_time"
+                      type="time"
+                      value={formData.start_time}
+                      onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="end_time">End Time</Label>
+                    <Input
+                      id="end_time"
+                      type="time"
+                      value={formData.end_time}
+                      onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="priority">Priority *</Label>
-                  <Select
-                    value={formData.priority}
-                    onValueChange={(value: "low" | "medium" | "high") => setFormData({ ...formData, priority: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(TRAINING_PRIORITIES).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="justification">Justification *</Label>
+                  <Textarea
+                    id="justification"
+                    value={formData.justification}
+                    onChange={(e) => setFormData({ ...formData, justification: e.target.value })}
+                    placeholder="Explain why this training is necessary and how it will benefit your role"
+                    rows={3}
+                  />
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="training_description">Description</Label>
-                <Textarea
-                  id="training_description"
-                  value={formData.training_description}
-                  onChange={(e) => setFormData({ ...formData, training_description: e.target.value })}
-                  placeholder="Describe the training content and objectives"
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="training_provider">Training Provider</Label>
-                  <Input
-                    id="training_provider"
-                    value={formData.training_provider}
-                    onChange={(e) => setFormData({ ...formData, training_provider: e.target.value })}
-                    placeholder="Organization or institution"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="training_location">Location</Label>
-                  <Input
-                    id="training_location"
-                    value={formData.training_location}
-                    onChange={(e) => setFormData({ ...formData, training_location: e.target.value })}
-                    placeholder="Training location"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="start_date">Start Date *</Label>
-                  <Input
-                    id="start_date"
-                    type="date"
-                    value={formData.start_date}
-                    onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="end_date">End Date *</Label>
-                  <Input
-                    id="end_date"
-                    type="date"
-                    value={formData.end_date}
-                    onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="start_time">Start Time</Label>
-                  <Input
-                    id="start_time"
-                    type="time"
-                    value={formData.start_time}
-                    onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="end_time">End Time</Label>
-                  <Input
-                    id="end_time"
-                    type="time"
-                    value={formData.end_time}
-                    onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="estimated_cost">Estimated Cost ($)</Label>
-                <Input
-                  id="estimated_cost"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.estimated_cost || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      estimated_cost: e.target.value ? Number.parseFloat(e.target.value) : undefined,
-                    })
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowCreateModal(false)} disabled={submitting}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateRequest}
+                  disabled={
+                    submitting ||
+                    !formData.training_title ||
+                    !formData.start_date ||
+                    !formData.end_date ||
+                    !formData.justification
                   }
-                  placeholder="0.00"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="justification">Justification *</Label>
-                <Textarea
-                  id="justification"
-                  value={formData.justification}
-                  onChange={(e) => setFormData({ ...formData, justification: e.target.value })}
-                  placeholder="Explain why this training is necessary and how it will benefit your role"
-                  rows={3}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowCreateModal(false)} disabled={submitting}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleCreateRequest}
-                disabled={
-                  submitting ||
-                  !formData.training_title ||
-                  !formData.start_date ||
-                  !formData.end_date ||
-                  !formData.justification
-                }
-              >
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-                Submit Request
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                >
+                  {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                  Submit Request
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Statistics */}
@@ -512,24 +478,6 @@ export function EmployeeTrainingRequests() {
                   placeholder="Enter training title"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit_priority">Priority *</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(value: "low" | "medium" | "high") => setFormData({ ...formData, priority: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(TRAINING_PRIORITIES).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
             <div className="space-y-2">
@@ -604,24 +552,6 @@ export function EmployeeTrainingRequests() {
                   onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit_estimated_cost">Estimated Cost ($)</Label>
-              <Input
-                id="edit_estimated_cost"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.estimated_cost || ""}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    estimated_cost: e.target.value ? Number.parseFloat(e.target.value) : undefined,
-                  })
-                }
-                placeholder="0.00"
-              />
             </div>
 
             <div className="space-y-2">

@@ -76,11 +76,14 @@ class AuthService {
     this.removeToken()
   }
 
-  getAuthHeaders(): Record<string, string> {
+  getAuthHeaders(includeContentType: boolean = true): Record<string, string> {
     const token = this.getToken()
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
       Accept: "application/json",
+    }
+
+    if (includeContentType) {
+      headers["Content-Type"] = "application/json"
     }
 
     if (token) {

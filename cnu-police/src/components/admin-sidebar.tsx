@@ -1,7 +1,7 @@
 "use client"
 
 import { SidebarInset } from "@/components/ui/sidebar"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import {
   Sidebar,
@@ -42,7 +42,17 @@ import { AdminCourt } from "./admin-court"
 import { AdminScheduleOverview } from "./admin-schedule-overview"
 
 export function AdminSidebar() {
-  const { user, logout } = useAuth()
+  const { user, logout, isAuthenticated, loading } = useAuth()
+
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token")
+    console.log(token)
+    if (!isAuthenticated) {
+      console.log('hello')
+      logout()
+    }
+  }, [user, loading, isAuthenticated])
+  
   const [activeView, setActiveView] = useState<
     "dashboard" | "schedules" | "leave-requests" | "training-requests" | "overtime" | "court" | "accounts" | "profile"
   >("dashboard")

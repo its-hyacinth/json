@@ -23,10 +23,13 @@ import {
   CheckCircle,
   XCircle,
   MessageSquare,
+  Loader2,
+  RefreshCw,
 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { COURT_TYPES, type CourtRequest } from "@/services/court-request-service"
+import { PDFExportButton } from "./pdf-export-button"
 
 export function AdminCourt() {
   const { user } = useAuth()
@@ -114,12 +117,31 @@ export function AdminCourt() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="space-y-1">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Gavel className="h-6 w-6" />
-          My Court Appearances
-        </h2>
-        <p className="text-muted-foreground">View and respond to court appearance requests</p>
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Gavel className="h-6 w-6" />
+            My Court Appearances
+          </h2>
+          <p className="text-muted-foreground">View and respond to court appearance requests</p>
+        </div>
+        <div className="flex gap-2">
+          <PDFExportButton 
+            data={courtRequests?.data || []} 
+            type="court-admin" 
+            className="bg-transparent" 
+          />
+          
+          <Button 
+            onClick={refetch} 
+            disabled={loading} 
+            variant="outline" 
+            className="gap-2 bg-transparent"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Court Requests */}
@@ -192,26 +214,6 @@ export function AdminCourt() {
                         </div>
                       </div>
 
-                      {request.case_number && (
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">Case Number</p>
-                            <p className="text-sm font-mono">{request.case_number}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {request.location && (
-                        <div className="flex items-center gap-3">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">Location</p>
-                            <p className="text-sm">{request.location}</p>
-                          </div>
-                        </div>
-                      )}
-
                       <div className="flex items-center gap-3">
                         <User className="h-4 w-4 text-muted-foreground" />
                         <div>
@@ -282,16 +284,6 @@ export function AdminCourt() {
                           )}
                         </div>
                       </div>
-
-                      {request.case_number && (
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">Case Number</p>
-                            <p className="text-sm font-mono">{request.case_number}</p>
-                          </div>
-                        </div>
-                      )}
                     </div>
 
                     {request.employee_notes && (
@@ -331,11 +323,6 @@ export function AdminCourt() {
                   {selectedRequest.court_time && (
                     <p className="text-sm">
                       <strong>Time:</strong> {selectedRequest.court_time}
-                    </p>
-                  )}
-                  {selectedRequest.case_number && (
-                    <p className="text-sm">
-                      <strong>Case:</strong> {selectedRequest.case_number}
                     </p>
                   )}
                   <p className="text-sm">

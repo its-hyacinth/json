@@ -38,17 +38,20 @@ import {
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { COURT_TYPES, type CreateCourtRequestData, type CourtRequestFilters } from "@/services/court-request-service"
+import { useAuth } from "@/contexts/auth-context"
+import { PDFExportButton } from "./pdf-export-button"
 
 export function EmployeeCourt() {
-  const [filters, setFilters] = useState<CourtRequestFilters>({})
+  const { user } = useAuth()
+  const [filters, setFilters] = useState<CourtRequestFilters>({
+    employee_id: user?.id || 0
+  })
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [createData, setCreateData] = useState<CreateCourtRequestData>({
     employee_id: 0,
     court_date: "",
     court_time: "",
-    case_number: "",
     court_type: "criminal",
-    location: "",
     description: "",
   })
 
@@ -75,9 +78,7 @@ export function EmployeeCourt() {
         employee_id: admins.length > 0 ? admins[0].id : 0,
         court_date: "",
         court_time: "",
-        case_number: "",
         court_type: "criminal",
-        location: "",
         description: "",
       })
 
@@ -145,146 +146,120 @@ export function EmployeeCourt() {
           <p className="text-muted-foreground">Manage court appearances and requests for employees</p>
         </div>
 
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Court Request
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create Court Request</DialogTitle>
-              <DialogDescription>Request a court appearance for an admin</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCreateCourtRequest} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="employee">Admin</Label>
-                <Select
-                  value={createData.employee_id.toString()}
-                  onValueChange={(value) => setCreateData((prev) => ({ ...prev, employee_id: Number.parseInt(value) }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={admins.length > 0 ? "Select admin" : "No admins available"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {admins.length > 0 ? (
-                      admins.map((admin) => (
-                        <SelectItem key={admin.id} value={admin.id.toString()}>
-                          {admin.first_name} {admin.last_name} {admin.badge_number && `(#${admin.badge_number})`}
+        <div className="flex gap-2">
+          <PDFExportButton 
+            data={courtRequests?.data || []} 
+            type="court-employee" 
+            className="bg-transparent" 
+          />
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Court Request
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create Court Request</DialogTitle>
+                <DialogDescription>Request a court appearance for an admin</DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreateCourtRequest} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="employee">Admin</Label>
+                  <Select
+                    value={createData.employee_id.toString()}
+                    onValueChange={(value) => setCreateData((prev) => ({ ...prev, employee_id: Number.parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={admins.length > 0 ? "Select admin" : "No admins available"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {admins.length > 0 ? (
+                        admins.map((admin) => (
+                          <SelectItem key={admin.id} value={admin.id.toString()}>
+                            {admin.first_name} {admin.last_name} {admin.badge_number && `(#${admin.badge_number})`}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="0" disabled>
+                          No admins available
                         </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="0" disabled>
-                        No admins available
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="court_date">Court Date</Label>
+                    <Input
+                      id="court_date"
+                      type="date"
+                      value={createData.court_date}
+                      onChange={(e) => setCreateData((prev) => ({ ...prev, court_date: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="court_time">Court Time</Label>
+                    <Input
+                      id="court_time"
+                      type="time"
+                      value={createData.court_time}
+                      onChange={(e) => setCreateData((prev) => ({ ...prev, court_time: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="court_date">Court Date</Label>
-                  <Input
-                    id="court_date"
-                    type="date"
-                    value={createData.court_date}
-                    onChange={(e) => setCreateData((prev) => ({ ...prev, court_date: e.target.value }))}
-                    required
+                  <Label htmlFor="court_type">Court Type</Label>
+                  <Select
+                    value={createData.court_type}
+                    onValueChange={(value) => setCreateData((prev) => ({ ...prev, court_type: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(COURT_TYPES).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={createData.description}
+                    onChange={(e) => setCreateData((prev) => ({ ...prev, description: e.target.value }))}
+                    placeholder="Additional details about the court appearance..."
+                    rows={3}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="court_time">Court Time</Label>
-                  <Input
-                    id="court_time"
-                    type="time"
-                    value={createData.court_time}
-                    onChange={(e) => setCreateData((prev) => ({ ...prev, court_time: e.target.value }))}
-                  />
+
+                <div className="flex gap-2 pt-4">
+                  <Button type="submit" className="flex-1" disabled={admins.length === 0}>
+                    Create Request
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
+                    Cancel
+                  </Button>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="court_type">Court Type</Label>
-                <Select
-                  value={createData.court_type}
-                  onValueChange={(value) => setCreateData((prev) => ({ ...prev, court_type: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(COURT_TYPES).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="case_number">Case Number</Label>
-                <Input
-                  id="case_number"
-                  value={createData.case_number}
-                  onChange={(e) => setCreateData((prev) => ({ ...prev, case_number: e.target.value }))}
-                  placeholder="e.g., CR-2024-001"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={createData.location}
-                  onChange={(e) => setCreateData((prev) => ({ ...prev, location: e.target.value }))}
-                  placeholder="e.g., Newport News Circuit Court"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={createData.description}
-                  onChange={(e) => setCreateData((prev) => ({ ...prev, description: e.target.value }))}
-                  placeholder="Additional details about the court appearance..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button type="submit" className="flex-1" disabled={admins.length === 0}>
-                  Create Request
-                </Button>
-                <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Filters */}
       <Card>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label>Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search case number, location..."
-                  value={filters.search || ""}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
             <div className="space-y-2">
               <Label>Status</Label>
               <Select
@@ -390,9 +365,7 @@ export function EmployeeCourt() {
                   <TableRow>
                     <TableHead>Admin</TableHead>
                     <TableHead>Court Date</TableHead>
-                    <TableHead>Case Number</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Location</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -427,23 +400,7 @@ export function EmployeeCourt() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-mono text-sm">{request.case_number || "N/A"}</span>
-                        </div>
-                      </TableCell>
                       <TableCell>{getCourtTypeBadge(request.court_type)}</TableCell>
-                      <TableCell>
-                        {request.location ? (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{request.location}</span>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">N/A</span>
-                        )}
-                      </TableCell>
                       <TableCell>{getStatusBadge(request.status)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">

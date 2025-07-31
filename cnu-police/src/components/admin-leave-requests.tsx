@@ -4,11 +4,12 @@ import { useLeaveRequests } from "@/hooks/use-leave-requests"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Check, X, Clock, User, FileText } from "lucide-react"
+import { Check, X, Clock, User, FileText, Loader2, RefreshCw } from "lucide-react"
 import { format } from "date-fns"
+import { PDFExportButton } from "./pdf-export-button"
 
 export function AdminLeaveRequests() {
-  const { leaveRequests, loading, approveLeaveRequest, declineLeaveRequest } = useLeaveRequests()
+  const { leaveRequests, loading, refetch, approveLeaveRequest, declineLeaveRequest } = useLeaveRequests()
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -56,12 +57,29 @@ export function AdminLeaveRequests() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="space-y-1">
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <FileText className="h-6 w-6" />
             Leave Requests
           </h2>
           <p className="text-muted-foreground">Manage employee leave requests and approvals</p>
+        </div>
+        <div className="flex gap-2">
+          <PDFExportButton 
+            data={leaveRequests || []} 
+            type="leave" 
+            className="bg-transparent" 
+          />
+          
+          <Button 
+            onClick={refetch} 
+            disabled={loading} 
+            variant="outline" 
+            className="gap-2 bg-transparent"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Refresh
+          </Button>
         </div>
       </div>
 

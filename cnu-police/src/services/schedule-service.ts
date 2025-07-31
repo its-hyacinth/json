@@ -64,6 +64,33 @@ class ScheduleService {
     return response.json()
   }
 
+  async getBatchSchedules(params: { 
+    user_ids: number[]; 
+    month?: number; 
+    year?: number 
+  }): Promise<Schedule[]> {
+    const searchParams = new URLSearchParams();
+    
+    // Add array parameters correctly
+    params.user_ids.forEach(id => {
+      searchParams.append('user_ids[]', id.toString());
+    });
+    
+    if (params.month) searchParams.append('month', params.month.toString());
+    if (params.year) searchParams.append('year', params.year.toString());
+
+    const response = await fetch(`${API_BASE_URL}/schedules/batch?${searchParams}`, {
+      headers: authService.getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Failed to fetch batch schedules" }));
+      throw new Error(error.message || "Failed to fetch batch schedules");
+    }
+
+    return response.json();
+  }
+
   async getCurrentMonth(): Promise<Schedule[]> {
     const response = await fetch(`${API_BASE_URL}/schedules/current-month`, {
       headers: authService.getAuthHeaders(),

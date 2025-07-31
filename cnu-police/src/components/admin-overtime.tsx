@@ -36,6 +36,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { OVERTIME_TYPES, OVERTIME_STATUSES, type CreateOvertimeRequestData } from "@/services/overtime-request-service"
+import { PDFExportButton } from "./pdf-export-button"
 
 export function AdminOvertime() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
@@ -222,6 +223,8 @@ export function AdminOvertime() {
           <p className="text-muted-foreground">Create and manage overtime requests for employees</p>
         </div>
         <div className="flex gap-2">
+          <PDFExportButton data={overtimeRequests} type="overtime" className="bg-transparent" />
+          
           <Button onClick={fetchOvertimeRequests} disabled={loading} variant="outline" className="gap-2 bg-transparent">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Refresh

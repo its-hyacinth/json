@@ -15,9 +15,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Clock, Check, X, User, Calendar, CheckCircle2, XCircle, AlertCircle, Loader2 } from "lucide-react"
+import { Clock, Check, X, User, Calendar, CheckCircle2, XCircle, AlertCircle, Loader2, RefreshCw } from "lucide-react"
 import { format } from "date-fns"
 import { OVERTIME_TYPES } from "@/services/overtime-request-service"
+import { PDFExportButton } from "./pdf-export-button"
 
 export function EmployeeOvertime() {
   const [selectedRequest, setSelectedRequest] = useState<any>(null)
@@ -26,7 +27,7 @@ export function EmployeeOvertime() {
   const [employeeNotes, setEmployeeNotes] = useState("")
   const [responding, setResponding] = useState(false)
 
-  const { overtimeRequests, loading, acceptOvertimeRequest, declineOvertimeRequest } = useOvertimeRequests()
+  const { overtimeRequests, loading, refetch, acceptOvertimeRequest, declineOvertimeRequest } = useOvertimeRequests()
 
   const handleResponseAction = (request: any, action: "accept" | "decline") => {
     setSelectedRequest(request)
@@ -114,12 +115,29 @@ export function EmployeeOvertime() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
+        <div className="space-y-1">
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Clock className="h-6 w-6" />
-            Overtime Requests
+            Overtime Management
           </h2>
           <p className="text-muted-foreground">Review and respond to overtime assignments</p>
+        </div>
+        <div className="flex gap-2">
+          <PDFExportButton 
+            data={overtimeRequests || []} 
+            type="overtime" 
+            className="bg-transparent" 
+          />
+          
+          <Button 
+            onClick={refetch} 
+            disabled={loading} 
+            variant="outline" 
+            className="gap-2 bg-transparent"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Refresh
+          </Button>
         </div>
       </div>
 

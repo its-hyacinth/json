@@ -48,9 +48,7 @@ export interface CreateTrainingRequestData {
   end_date: string
   start_time?: string
   end_time?: string
-  estimated_cost?: number
   justification: string
-  priority: "low" | "medium" | "high"
 }
 
 export interface UpdateTrainingRequestData extends Partial<CreateTrainingRequestData> {}

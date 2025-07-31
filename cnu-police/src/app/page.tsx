@@ -61,7 +61,7 @@ export default function Home() {
             </div>
           </div>
 
-          <h1 className="text-3xl font-bold text-center text-white uppercase tracking-wider mb-2 font-serif">
+          <h1 className="text-2xl font-medium text-center text-white uppercase tracking-wider mb-2 font-serif">
             CHRISTOPHER NEWPORT UNIVERSITY
           </h1>
           <h2 className="text-2xl font-medium text-center text-white/90 uppercase tracking-wider mb-8 font-serif">

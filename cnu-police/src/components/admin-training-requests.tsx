@@ -34,10 +34,10 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { TRAINING_PRIORITIES, TRAINING_STATUSES, type TrainingRequest } from "@/services/training-request-service"
+import { PDFExportButton } from "./pdf-export-button"
 
 export function AdminTrainingRequests() {
   const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [priorityFilter, setPriorityFilter] = useState<string>("all")
   const [selectedRequest, setSelectedRequest] = useState<TrainingRequest | null>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showApprovalModal, setShowApprovalModal] = useState(false)
@@ -54,7 +54,6 @@ export function AdminTrainingRequests() {
     markTrainingCompleted,
   } = useTrainingRequests({
     status: statusFilter === "all" ? undefined : statusFilter,
-    priority: priorityFilter === "all" ? undefined : priorityFilter,
   })
 
   const handleViewDetails = (request: TrainingRequest) => {
@@ -134,26 +133,6 @@ export function AdminTrainingRequests() {
     }
   }
 
-  const getPriorityBadge = (priority: keyof typeof TRAINING_PRIORITIES) => {
-    switch (priority) {
-      case "high":
-        return <Badge variant="destructive">{TRAINING_PRIORITIES.high}</Badge>
-      case "medium":
-        return <Badge variant="outline">{TRAINING_PRIORITIES.medium}</Badge>
-      case "low":
-        return <Badge variant="secondary">{TRAINING_PRIORITIES.low}</Badge>
-      default:
-        return <Badge variant="outline">{priority}</Badge>
-    }
-  }
-
-  // Statistics
-  const totalRequests = trainingRequests.length
-  const pendingRequests = trainingRequests.filter((r) => r.status === "pending").length
-  const approvedRequests = trainingRequests.filter((r) => r.status === "approved").length
-  const completedRequests = trainingRequests.filter((r) => r.status === "completed").length
-  const highPriorityRequests = trainingRequests.filter((r) => r.priority === "high").length
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -165,10 +144,13 @@ export function AdminTrainingRequests() {
           </h2>
           <p className="text-muted-foreground">Review and manage employee training requests</p>
         </div>
-        <Button onClick={fetchTrainingRequests} disabled={loading} variant="outline" className="gap-2 bg-transparent">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <PDFExportButton data={trainingRequests} type="training" className="bg-transparent" />
+          <Button onClick={fetchTrainingRequests} disabled={loading} variant="outline" className="gap-2 bg-transparent">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -189,75 +171,7 @@ export function AdminTrainingRequests() {
             ))}
           </SelectContent>
         </Select>
-
-        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-[180px]">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              <SelectValue placeholder="Filter by priority" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Priorities</SelectItem>
-            {Object.entries(TRAINING_PRIORITIES).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
-
-      {/* Statistics */}
-      {totalRequests > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <GraduationCap className="h-4 w-4 text-primary" />
-              <div>
-                <p className="text-sm font-medium">Total Requests</p>
-                <p className="text-2xl font-bold">{totalRequests}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-yellow-600" />
-              <div>
-                <p className="text-sm font-medium">{TRAINING_STATUSES.pending}</p>
-                <p className="text-2xl font-bold text-yellow-600">{pendingRequests}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <div>
-                <p className="text-sm font-medium">{TRAINING_STATUSES.approved}</p>
-                <p className="text-2xl font-bold text-green-600">{approvedRequests}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-blue-600" />
-              <div>
-                <p className="text-sm font-medium">{TRAINING_STATUSES.completed}</p>
-                <p className="text-2xl font-bold text-blue-600">{completedRequests}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <div>
-                <p className="text-sm font-medium">{TRAINING_PRIORITIES.high}</p>
-                <p className="text-2xl font-bold text-red-600">{highPriorityRequests}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
 
       {/* Training Requests List */}
       {loading ? (
@@ -278,7 +192,6 @@ export function AdminTrainingRequests() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-lg">{request.training_title}</h3>
-                      {getPriorityBadge(request.priority as keyof typeof TRAINING_PRIORITIES)}
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
@@ -294,12 +207,6 @@ export function AdminTrainingRequests() {
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
                           {request.start_time} - {request.end_time}
-                        </div>
-                      )}
-                      {request.estimated_cost && (
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="h-4 w-4" />
-                          ${request.estimated_cost}
                         </div>
                       )}
                     </div>
@@ -392,9 +299,6 @@ export function AdminTrainingRequests() {
                       <span className="font-medium">Training Title:</span> {selectedRequest.training_title}
                     </div>
                     <div>
-                      <span className="font-medium">Priority:</span> {getPriorityBadge(selectedRequest.priority as keyof typeof TRAINING_PRIORITIES)}
-                    </div>
-                    <div>
                       <span className="font-medium">Status:</span> {getStatusBadge(selectedRequest.status as keyof typeof TRAINING_STATUSES)}
                     </div>
                   </div>
@@ -414,12 +318,6 @@ export function AdminTrainingRequests() {
                       <div>
                         <span className="font-medium">Time:</span> {selectedRequest.start_time} -{" "}
                         {selectedRequest.end_time}
-                      </div>
-                    )}
-                    {selectedRequest.estimated_cost && (
-                      <div>
-                        <span className="font-medium">Estimated Cost:</span> $
-                        {selectedRequest.estimated_cost}
                       </div>
                     )}
                   </div>

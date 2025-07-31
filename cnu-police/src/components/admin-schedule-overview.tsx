@@ -30,6 +30,7 @@ export function AdminScheduleOverview() {
   const [selectedMonth, setSelectedMonth] = useState(new Date())
   const [allSchedules, setAllSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(false)
+  const [employeeOrder, setEmployeeOrder] = useState<number[]>([])
 
   const { employees, loading: employeesLoading } = useEmployees()
 
@@ -38,6 +39,18 @@ export function AdminScheduleOverview() {
     return employees.filter((employee) => employee.role !== "admin")
   }, [employees])
 
+  useEffect(() => {
+    const savedOrder = localStorage.getItem('employee-order')
+    if (savedOrder) {
+      try {
+        setEmployeeOrder(JSON.parse(savedOrder))
+      } catch (error) {
+        console.warn('Failed to parse saved employee order:', error)
+      }
+    }
+  }, [])
+
+  // Sort employees by saved order, then by custom sort order
   const sortedEmployees = useMemo(() => {
     // Define the custom sort order
     const customSortOrder = [
@@ -57,29 +70,64 @@ export function AdminScheduleOverview() {
       "WILLIAMS",
       "GOLBAD",
       "REYNOLDS"
-    ].map(name => name.toLowerCase()); // Convert to lowercase for case-insensitive comparison
+    ].map(name => name.toLowerCase())
 
-    return [...filteredEmployees].sort((a, b) => {
-      // Get the index in the custom sort order (default to end if not found)
-      const indexA = customSortOrder.indexOf(a.last_name.toLowerCase());
-      const indexB = customSortOrder.indexOf(b.last_name.toLowerCase());
+    let sorted = [...filteredEmployees]
 
-      // If both are in the custom order, sort by that
-      if (indexA !== -1 && indexB !== -1) {
-        return indexA - indexB;
-      }
-      // If only A is in the custom order, it comes first
-      if (indexA !== -1) {
-        return -1;
-      }
-      // If only B is in the custom order, it comes first
-      if (indexB !== -1) {
-        return 1;
-      }
-      // If neither is in the custom order, sort alphabetically
-      return a.last_name.localeCompare(b.last_name);
-    });
-  }, [filteredEmployees, allSchedules]);
+    // If we have a saved order, use it
+    if (employeeOrder.length > 0) {
+      sorted.sort((a, b) => {
+        const indexA = employeeOrder.indexOf(a.id)
+        const indexB = employeeOrder.indexOf(b.id)
+        
+        // If both are in saved order, sort by that
+        if (indexA !== -1 && indexB !== -1) {
+          return indexA - indexB
+        }
+        // If only A is in saved order, it comes first
+        if (indexA !== -1) {
+          return -1
+        }
+        // If only B is in saved order, it comes first
+        if (indexB !== -1) {
+          return 1
+        }
+        // If neither is in saved order, use custom sort
+        const customIndexA = customSortOrder.indexOf(a.last_name.toLowerCase())
+        const customIndexB = customSortOrder.indexOf(b.last_name.toLowerCase())
+        
+        if (customIndexA !== -1 && customIndexB !== -1) {
+          return customIndexA - customIndexB
+        }
+        if (customIndexA !== -1) {
+          return -1
+        }
+        if (customIndexB !== -1) {
+          return 1
+        }
+        return a.last_name.localeCompare(b.last_name)
+      })
+    } else {
+      // Use custom sort order
+      sorted.sort((a, b) => {
+        const indexA = customSortOrder.indexOf(a.last_name.toLowerCase())
+        const indexB = customSortOrder.indexOf(b.last_name.toLowerCase())
+
+        if (indexA !== -1 && indexB !== -1) {
+          return indexA - indexB
+        }
+        if (indexA !== -1) {
+          return -1
+        }
+        if (indexB !== -1) {
+          return 1
+        }
+        return a.last_name.localeCompare(b.last_name)
+      })
+    }
+
+    return sorted
+  }, [filteredEmployees, employeeOrder])
 
   const {
     events,
@@ -98,36 +146,33 @@ export function AdminScheduleOverview() {
 
   // Fetch schedules for all employees
   const fetchAllSchedules = useCallback(async () => {
-    if (filteredEmployees.length === 0) return
+    if (filteredEmployees.length === 0) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const allEmployeeSchedules: Schedule[] = []
+      // Get all employee IDs
+      const employeeIds = filteredEmployees.map(emp => emp.id);
+      
+      // Use batch fetch instead of individual fetches
+      const batchSchedules = await scheduleService.getBatchSchedules({
+        user_ids: employeeIds,
+        month: selectedMonth.getMonth() + 1,
+        year: selectedMonth.getFullYear()
+      });
 
-      for (const employee of filteredEmployees) {
-        try {
-          const schedules = await scheduleService.getAdminSchedules({
-            month: selectedMonth.getMonth() + 1,
-            year: selectedMonth.getFullYear(),
-            user_id: employee.id,
-          })
-          allEmployeeSchedules.push(...schedules)
-        } catch (error) {
-          console.warn(`Failed to fetch schedules for employee ${employee.id}:`, error)
-        }
-      }
-
-      setAllSchedules(allEmployeeSchedules)
+      // Convert the grouped schedules into a flat array
+      const allSchedules = Object.values(batchSchedules).flat();
+      setAllSchedules(allSchedules);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to fetch schedules",
+        description: error instanceof Error ? error.message : "Failed to fetch schedules",
         variant: "destructive",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [filteredEmployees, selectedMonth, toast])
+  }, [filteredEmployees, selectedMonth, toast]);
 
   // Only fetch schedules when month changes or filtered employees change
   useEffect(() => {
@@ -370,8 +415,8 @@ export function AdminScheduleOverview() {
               </div>
             </div>
           ) : (
-            <div className="w-[70vw] ml-10 overflow-x-auto">
-              <div className="min-w-max">
+            <div className="overflow-x-auto">
+              <div className="w-[75vw] ml-2">
                 {/* Spreadsheet-style table */}
                 <table className="w-full border-collapse border border-gray-300">
                   {/* Header Row */}
