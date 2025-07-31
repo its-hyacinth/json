@@ -15,7 +15,7 @@ if [ ! -d "/app/storage" ]; then
 fi
 
 echo "Waiting for DB to be ready..."
-until php artisan migrate:fresh --seed --force; do
+until php artisan migrate --force; do
   echo "Retrying database..."
   sleep 5
 done
