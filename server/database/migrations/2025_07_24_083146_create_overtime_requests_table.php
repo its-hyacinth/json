@@ -14,22 +14,26 @@ return new class extends Migration
         Schema::create('overtime_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('requested_by')->constrained('users')->onDelete('cascade'); // Admin who requested
-            $table->foreignId('assigned_to')->constrained('users')->onDelete('cascade'); // Employee assigned
             $table->foreignId('covering_for')->nullable()->constrained('users')->onDelete('set null'); // Employee being covered
             $table->date('overtime_date');
             $table->time('start_time');
             $table->time('end_time');
-            $table->text('reason');
-            $table->enum('overtime_type', ['leave_coverage', 'event_coverage', 'emergency', 'special_duty'])->default('leave_coverage');
+            $table->enum('overtime_type', ['leave_coverage', 'event_coverage']);
             $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
             $table->text('employee_notes')->nullable();
             $table->decimal('overtime_hours', 5, 2)->nullable();
             $table->decimal('overtime_rate', 8, 2)->nullable();
             $table->timestamp('responded_at')->nullable();
+            $table->integer('employees_required')->default(1);
+            $table->integer('employees_applied')->default(0);
+            $table->integer('employees_approved')->default(0);
+            $table->boolean('is_closed')->default(false);
+            $table->timestamp('closed_at')->nullable();
+            $table->string('event_location')->nullable();
             $table->timestamps();
 
-            $table->index(['assigned_to', 'status']);
-            $table->index(['overtime_date', 'status']);
+            $table->index(['overtime_date', 'is_closed']);
+            $table->index(['status', 'is_closed']);
             $table->index('requested_by');
         });
     }

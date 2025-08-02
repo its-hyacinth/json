@@ -70,9 +70,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Overtime request routes (employee)
     Route::get('/overtime-requests', [OvertimeRequestController::class, 'index']);
-    Route::get('/overtime-requests/{overtimeRequest}', [OvertimeRequestController::class, 'show']);
-    Route::post('/overtime-requests/{overtimeRequest}/accept', [OvertimeRequestController::class, 'accept']);
-    Route::post('/overtime-requests/{overtimeRequest}/decline', [OvertimeRequestController::class, 'decline']);
+    Route::get('/overtime-applications', [OvertimeRequestController::class, 'myApplications']);
+    Route::post('/overtime-requests/{overtimeRequest}/apply', [OvertimeRequestController::class, 'apply']);
 
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'show']);
@@ -123,7 +122,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/overtime-requests', [OvertimeRequestController::class, 'store']);
         Route::put('/overtime-requests/{overtimeRequest}', [OvertimeRequestController::class, 'update']);
         Route::delete('/overtime-requests/{overtimeRequest}', [OvertimeRequestController::class, 'destroy']);
-        Route::post('/overtime-requests/auto-create-leave', [OvertimeRequestController::class, 'autoCreateForLeave']);
+        Route::post('/overtime-requests/{overtimeRequest}/close', [OvertimeRequestController::class, 'close']);
+        Route::post('/overtime-applications/{application}/approve', [OvertimeRequestController::class, 'approveApplication']);
+        Route::post('/overtime-applications/{application}/decline', [OvertimeRequestController::class, 'declineApplication']);
 
         // Account management routes
         Route::get('/admin/accounts', [AccountController::class, 'index']);

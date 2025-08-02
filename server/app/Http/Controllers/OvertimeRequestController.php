@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\OvertimeRequestRequest;
 use App\Models\OvertimeRequest;
+use App\Models\OvertimeApplication;
 use App\Services\OvertimeRequestService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,18 +20,62 @@ class OvertimeRequestController extends Controller
     }
 
     /**
-     * Display a listing of overtime requests for the authenticated user.
+     * Display available overtime requests for employees to apply.
      */
     public function index(Request $request): JsonResponse
     {
         try {
-            $overtimeRequests = $this->overtimeRequestService->getOvertimeRequestsForEmployee($request->user(), $request->all());
+            $overtimeRequests = $this->overtimeRequestService->getAvailableOvertimeRequests($request->user(), $request->all());
             return response()->json($overtimeRequests);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to fetch overtime requests',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Get employee's overtime applications.
+     */
+    public function myApplications(Request $request): JsonResponse
+    {
+        try {
+            $applications = $this->overtimeRequestService->getEmployeeApplications($request->user(), $request->all());
+            return response()->json($applications);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch applications',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Apply for overtime request.
+     */
+    public function apply(Request $request, OvertimeRequest $overtimeRequest): JsonResponse
+    {
+        $request->validate([
+            'employee_notes' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            $application = $this->overtimeRequestService->applyForOvertime(
+                $overtimeRequest, 
+                $request->user(), 
+                $request->employee_notes
+            );
+            
+            return response()->json([
+                'message' => 'Application submitted successfully',
+                'application' => $application
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to apply for overtime',
+                'error' => $e->getMessage()
+            ], 400);
         }
     }
 
@@ -43,34 +88,13 @@ class OvertimeRequestController extends Controller
             $overtimeRequest = $this->overtimeRequestService->createOvertimeRequest($request->validated(), $request->user());
             return response()->json([
                 'message' => 'Overtime request created successfully',
-                'overtime_request' => $overtimeRequest->load(['requester', 'assignedEmployee', 'coveringForEmployee'])
+                'overtime_request' => $overtimeRequest->load(['requester', 'applications.employee'])
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to create overtime request',
                 'error' => $e->getMessage()
             ], 500);
-        }
-    }
-
-    /**
-     * Display the specified overtime request.
-     */
-    public function show(OvertimeRequest $overtimeRequest): JsonResponse
-    {
-        try {
-            // Check if user can view this overtime request
-            $user = Auth::user();
-            if (!$this->overtimeRequestService->canViewOvertimeRequest($overtimeRequest, $user)) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-
-            return response()->json($overtimeRequest->load(['requester', 'assignedEmployee', 'coveringForEmployee']));
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Overtime request not found',
-                'error' => $e->getMessage()
-            ], 404);
         }
     }
 
@@ -83,13 +107,13 @@ class OvertimeRequestController extends Controller
             $updatedOvertimeRequest = $this->overtimeRequestService->updateOvertimeRequest($overtimeRequest, $request->validated());
             return response()->json([
                 'message' => 'Overtime request updated successfully',
-                'overtime_request' => $updatedOvertimeRequest->load(['requester', 'assignedEmployee', 'coveringForEmployee'])
+                'overtime_request' => $updatedOvertimeRequest->load(['requester', 'applications.employee'])
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to update overtime request',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 400);
         }
     }
 
@@ -107,7 +131,7 @@ class OvertimeRequestController extends Controller
             return response()->json([
                 'message' => 'Failed to delete overtime request',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 400);
         }
     }
 
@@ -128,99 +152,75 @@ class OvertimeRequestController extends Controller
     }
 
     /**
-     * Accept an overtime request (Employee response).
+     * Approve overtime application (Admin only).
      */
-    public function accept(Request $request, OvertimeRequest $overtimeRequest): JsonResponse
+    public function approveApplication(Request $request, OvertimeApplication $application): JsonResponse
     {
         $request->validate([
-            'employee_notes' => 'nullable|string|max:1000',
+            'admin_notes' => 'nullable|string|max:1000',
         ]);
 
         try {
-            // Check if user can respond to this overtime request
-            if ($overtimeRequest->assigned_to !== $request->user()->id) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-
-            $acceptedRequest = $this->overtimeRequestService->acceptOvertimeRequest(
-                $overtimeRequest, 
-                $request->employee_notes
+            $approvedApplication = $this->overtimeRequestService->approveApplication(
+                $application, 
+                $request->admin_notes
             );
             
             return response()->json([
-                'message' => 'Overtime request accepted',
-                'overtime_request' => $acceptedRequest->load(['requester', 'assignedEmployee', 'coveringForEmployee'])
+                'message' => 'Application approved successfully',
+                'application' => $approvedApplication->load(['overtimeRequest', 'employee'])
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to accept overtime request',
+                'message' => 'Failed to approve application',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 400);
         }
     }
 
     /**
-     * Decline an overtime request (Employee response).
+     * Decline overtime application (Admin only).
      */
-    public function decline(Request $request, OvertimeRequest $overtimeRequest): JsonResponse
+    public function declineApplication(Request $request, OvertimeApplication $application): JsonResponse
     {
         $request->validate([
-            'employee_notes' => 'required|string|max:1000',
+            'admin_notes' => 'required|string|max:1000',
         ]);
 
         try {
-            // Check if user can respond to this overtime request
-            if ($overtimeRequest->assigned_to !== $request->user()->id) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-
-            $declinedRequest = $this->overtimeRequestService->declineOvertimeRequest(
-                $overtimeRequest, 
-                $request->employee_notes
+            $declinedApplication = $this->overtimeRequestService->declineApplication(
+                $application, 
+                $request->admin_notes
             );
             
             return response()->json([
-                'message' => 'Overtime request declined',
-                'overtime_request' => $declinedRequest->load(['requester', 'assignedEmployee', 'coveringForEmployee'])
+                'message' => 'Application declined successfully',
+                'application' => $declinedApplication->load(['overtimeRequest', 'employee'])
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to decline overtime request',
+                'message' => 'Failed to decline application',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 400);
         }
     }
 
     /**
-     * Auto-create overtime requests for leave coverage.
+     * Close overtime request manually (Admin only).
      */
-    public function autoCreateForLeave(Request $request): JsonResponse
+    public function close(OvertimeRequest $overtimeRequest): JsonResponse
     {
-        $request->validate([
-            'leave_date' => 'required|date',
-            'employee_on_leave' => 'required|exists:users,id',
-            'coverage_employees' => 'required|array|min:1',
-            'coverage_employees.*' => 'exists:users,id',
-        ]);
-
         try {
-            $overtimeRequests = $this->overtimeRequestService->autoCreateOvertimeForLeave(
-                $request->leave_date,
-                $request->employee_on_leave,
-                $request->coverage_employees,
-                $request->user()
-            );
-            
+            $closedRequest = $this->overtimeRequestService->closeOvertimeRequest($overtimeRequest);
             return response()->json([
-                'message' => 'Overtime requests created for leave coverage',
-                'overtime_requests' => $overtimeRequests,
-                'count' => count($overtimeRequests)
+                'message' => 'Overtime request closed successfully',
+                'overtime_request' => $closedRequest->load(['requester', 'applications.employee'])
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to create overtime requests for leave coverage',
+                'message' => 'Failed to close overtime request',
                 'error' => $e->getMessage()
-            ], 500);
+            ], 400);
         }
     }
 }

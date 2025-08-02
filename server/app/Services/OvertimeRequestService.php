@@ -3,26 +3,28 @@
 namespace App\Services;
 
 use App\Models\OvertimeRequest;
+use App\Models\OvertimeApplication;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 
 class OvertimeRequestService
 {
     /**
-     * Get overtime requests for an employee.
+     * Get available overtime requests for an employee to apply.
      */
-    public function getOvertimeRequestsForEmployee(User $user, array $filters = []): Collection|LengthAwarePaginator
+    public function getAvailableOvertimeRequests(User $user, array $filters = []): Collection
     {
-        $query = OvertimeRequest::with(['requester', 'assignedEmployee', 'coveringForEmployee'])
-            ->where('assigned_to', $user->id)
-            ->orderBy('created_at', 'desc');
+        $query = OvertimeRequest::with(['requester', 'applications.employee'])
+            ->where('is_closed', false)
+            ->where('overtime_date', '>=', now()->toDateString())
+            ->whereDoesntHave('applications', function ($q) use ($user) {
+                $q->where('employee_id', $user->id);
+            })
+            ->orderBy('overtime_date', 'asc');
 
         // Apply filters
-        if (isset($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-
         if (isset($filters['overtime_type'])) {
             $query->where('overtime_type', $filters['overtime_type']);
         }
@@ -31,9 +33,21 @@ class OvertimeRequestService
             $query->whereBetween('overtime_date', [$filters['start_date'], $filters['end_date']]);
         }
 
-        // Pagination
-        if (isset($filters['per_page'])) {
-            return $query->paginate($filters['per_page']);
+        return $query->get();
+    }
+
+    /**
+     * Get employee's overtime applications.
+     */
+    public function getEmployeeApplications(User $user, array $filters = []): Collection
+    {
+        $query = OvertimeApplication::with(['overtimeRequest.requester', 'employee'])
+            ->where('employee_id', $user->id)
+            ->orderBy('applied_at', 'desc');
+
+        // Apply filters
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
         }
 
         return $query->get();
@@ -44,20 +58,16 @@ class OvertimeRequestService
      */
     public function getAdminOvertimeRequests(array $filters = []): Collection|LengthAwarePaginator
     {
-        $query = OvertimeRequest::with(['requester', 'assignedEmployee', 'coveringForEmployee'])
+        $query = OvertimeRequest::with(['requester', 'applications.employee'])
             ->orderBy('created_at', 'desc');
 
         // Apply filters
-        if (isset($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-
         if (isset($filters['overtime_type'])) {
             $query->where('overtime_type', $filters['overtime_type']);
         }
 
-        if (isset($filters['assigned_to'])) {
-            $query->where('assigned_to', $filters['assigned_to']);
+        if (isset($filters['is_closed'])) {
+            $query->where('is_closed', $filters['is_closed']);
         }
 
         if (isset($filters['start_date']) && isset($filters['end_date'])) {
@@ -79,17 +89,16 @@ class OvertimeRequestService
     {
         $data['requested_by'] = $admin->id;
         
-        // Calculate overtime hours if not provided
-        if (!isset($data['overtime_hours'])) {
-            $start = \Carbon\Carbon::parse($data['start_time']);
-            $end = \Carbon\Carbon::parse($data['end_time']);
-            $data['overtime_hours'] = $end->diffInHours($start, true);
-        }
-        
         $overtimeRequest = OvertimeRequest::create($data);
         
-        // Send notification
-        NotificationService::sendOvertimeRequestCreated($overtimeRequest->load(['requester', 'assignedEmployee']));
+        // Send notification to all employees
+        // NotificationService::sendOvertimeRequestCreated($overtimeRequest);
+        
+        if ($overtimeRequest->overtime_type === 'leave_coverage') {
+            NotificationService::sendNewPatrolOvertimeRequest($overtimeRequest);
+        } else {
+            NotificationService::sendNewEventOvertimeRequest($overtimeRequest);
+        }
         
         return $overtimeRequest;
     }
@@ -99,27 +108,16 @@ class OvertimeRequestService
      */
     public function updateOvertimeRequest(OvertimeRequest $overtimeRequest, array $data): OvertimeRequest
     {
-        // Only allow updates if status is pending
-        if ($overtimeRequest->status !== 'pending') {
-            throw new \Exception('Cannot update overtime request that has already been responded to.');
-        }
-
-        // Recalculate overtime hours if times are updated
-        if (isset($data['start_time']) || isset($data['end_time'])) {
-            $startTime = $data['start_time'] ?? $overtimeRequest->start_time;
-            $endTime = $data['end_time'] ?? $overtimeRequest->end_time;
-            
-            $start = \Carbon\Carbon::parse($startTime);
-            $end = \Carbon\Carbon::parse($endTime);
-            $data['overtime_hours'] = $end->diffInHours($start, true);
+        // Only allow updates if no applications yet or if closed
+        if ($overtimeRequest->employees_applied > 0 && !$overtimeRequest->is_closed) {
+            throw new \Exception('Cannot update overtime request that has applications.');
         }
 
         $overtimeRequest->update($data);
         
-        // Send notification if any significant fields were changed
-        if (count(array_intersect(array_keys($data), ['start_time', 'end_time', 'reason', 'overtime_type']))) {
-            NotificationService::sendOvertimeRequestUpdated($overtimeRequest->load(['requester', 'assignedEmployee']));
-        }
+        $user = Auth::user();
+        // Send notification about update
+        NotificationService::sendOvertimeRequestUpdated($overtimeRequest, $user);
         
         return $overtimeRequest->fresh();
     }
@@ -129,95 +127,149 @@ class OvertimeRequestService
      */
     public function deleteOvertimeRequest(OvertimeRequest $overtimeRequest): bool
     {
-        // Only allow deletion if status is pending
-        if ($overtimeRequest->status !== 'pending') {
-            throw new \Exception('Cannot delete overtime request that has already been responded to.');
+        // Only allow deletion if no applications
+        if ($overtimeRequest->employees_applied > 0) {
+            throw new \Exception('Cannot delete overtime request that has applications.');
         }
 
-        // Send notification before deletion
-        NotificationService::sendOvertimeRequestDeleted($overtimeRequest->load(['requester', 'assignedEmployee']));
-        
+        $user = Auth::user();
+        // Send notification about deletion
+        NotificationService::sendOvertimeRequestDeleted($overtimeRequest, $user);
+
         return $overtimeRequest->delete();
     }
 
     /**
-     * Accept an overtime request.
+     * Apply for overtime request.
      */
-    public function acceptOvertimeRequest(OvertimeRequest $overtimeRequest, ?string $employeeNotes = null): OvertimeRequest
+    public function applyForOvertime(OvertimeRequest $overtimeRequest, User $employee, ?string $notes = null): OvertimeApplication
     {
-        if ($overtimeRequest->status !== 'pending') {
-            throw new \Exception('Overtime request has already been responded to.');
+        // Check if request is still open
+        if ($overtimeRequest->is_closed) {
+            throw new \Exception('This overtime request is closed.');
         }
 
-        $overtimeRequest->update([
-            'status' => 'accepted',
-            'employee_notes' => $employeeNotes,
-            'responded_at' => now(),
+        // Check if employee already applied
+        $existingApplication = OvertimeApplication::where('overtime_request_id', $overtimeRequest->id)
+            ->where('employee_id', $employee->id)
+            ->first();
+
+        if ($existingApplication) {
+            throw new \Exception('You have already applied for this overtime request.');
+        }
+
+        // Create application
+        $application = OvertimeApplication::create([
+            'overtime_request_id' => $overtimeRequest->id,
+            'employee_id' => $employee->id,
+            'employee_notes' => $notes,
+            'applied_at' => now(),
         ]);
 
+        // Update request counters
+        $overtimeRequest->increment('employees_applied');
+
         // Send notification
-        NotificationService::sendOvertimeRequestAccepted($overtimeRequest->load(['requester', 'assignedEmployee']));
+        // NotificationService::sendOvertimeApplicationSubmitted($application);
         
-        return $overtimeRequest->fresh();
+        // Send notification to admins
+        NotificationService::sendOvertimeApplicationSubmitted($application);
+        
+        return $application->load(['overtimeRequest', 'employee']);
     }
 
     /**
-     * Decline an overtime request.
+     * Approve overtime application.
      */
-    public function declineOvertimeRequest(OvertimeRequest $overtimeRequest, string $employeeNotes): OvertimeRequest
+    public function approveApplication(OvertimeApplication $application, ?string $adminNotes = null): OvertimeApplication
     {
-        if ($overtimeRequest->status !== 'pending') {
-            throw new \Exception('Overtime request has already been responded to.');
+        if ($application->status !== 'pending') {
+            throw new \Exception('Application has already been responded to.');
         }
 
-        $overtimeRequest->update([
+        $overtimeRequest = $application->overtimeRequest;
+
+        // Check if request is full
+        if ($overtimeRequest->employees_approved >= $overtimeRequest->employees_required) {
+            throw new \Exception('This overtime request is already full.');
+        }
+
+        $application->update([
+            'status' => 'approved',
+            'admin_notes' => $adminNotes,
+            'responded_at' => now(),
+        ]);
+
+        // Update request counters
+        $overtimeRequest->increment('employees_approved');
+
+        // Check if request should be closed
+        if ($overtimeRequest->employees_approved >= $overtimeRequest->employees_required) {
+            $overtimeRequest->update([
+                'is_closed' => true,
+                'closed_at' => now(),
+            ]);
+        }
+
+        // Send notification
+        // NotificationService::sendOvertimeApplicationApproved($application);
+        
+        $user = Auth::user();
+        // Send notification to employee
+        NotificationService::sendOvertimeApplicationApproved($application, $user);
+
+        // Check if request should be closed and send auto-close notification
+        if ($overtimeRequest->employees_approved >= $overtimeRequest->employees_required) {
+            NotificationService::sendOvertimeRequestAutoClosed($overtimeRequest);
+        }
+        
+        return $application->fresh();
+    }
+
+    /**
+     * Decline overtime application.
+     */
+    public function declineApplication(OvertimeApplication $application, string $adminNotes): OvertimeApplication
+    {
+        if ($application->status !== 'pending') {
+            throw new \Exception('Application has already been responded to.');
+        }
+
+        $application->update([
             'status' => 'declined',
-            'employee_notes' => $employeeNotes,
+            'admin_notes' => $adminNotes,
             'responded_at' => now(),
         ]);
 
         // Send notification
-        NotificationService::sendOvertimeRequestDeclined($overtimeRequest->load(['requester', 'assignedEmployee']));
+        // NotificationService::sendOvertimeApplicationDeclined($application);
         
-        return $overtimeRequest->fresh();
+        $user = Auth::user();
+        // Send notification to employee
+        NotificationService::sendOvertimeApplicationDeclined($application, $user);
+        
+        return $application->fresh();
     }
 
     /**
-     * Auto-create overtime requests for leave coverage.
+     * Close overtime request manually.
      */
-    public function autoCreateOvertimeForLeave(string $leaveDate, int $employeeOnLeave, array $coverageEmployees, User $admin): array
+    public function closeOvertimeRequest(OvertimeRequest $overtimeRequest): OvertimeRequest
     {
-        $overtimeRequests = [];
-
-        foreach ($coverageEmployees as $employeeId) {
-            $overtimeRequest = $this->createOvertimeRequest([
-                'assigned_to' => $employeeId,
-                'covering_for' => $employeeOnLeave,
-                'overtime_date' => $leaveDate,
-                'start_time' => '08:00',
-                'end_time' => '16:00',
-                'reason' => 'Coverage required for employee leave',
-                'overtime_type' => 'leave_coverage',
-                'overtime_hours' => 8.0,
-            ], $admin);
-
-            $overtimeRequests[] = $overtimeRequest->load(['requester', 'assignedEmployee', 'coveringForEmployee']);
+        if ($overtimeRequest->is_closed) {
+            throw new \Exception('Overtime request is already closed.');
         }
 
-        // Send notifications for all auto-created requests
-        NotificationService::sendAutoCreatedOvertimeRequests($overtimeRequests, $admin);
-        
-        return $overtimeRequests;
-    }
+        $overtimeRequest->update([
+            'is_closed' => true,
+            'closed_at' => now(),
+        ]);
 
-    /**
-     * Check if user can view overtime request.
-     */
-    public function canViewOvertimeRequest(OvertimeRequest $overtimeRequest, User $user): bool
-    {
-        return $overtimeRequest->assigned_to === $user->id || 
-               $overtimeRequest->requested_by === $user->id || 
-               $user->is_admin;
+        $user = Auth::user();
+        // Send notification about manual closure
+        NotificationService::sendOvertimeRequestManuallyClosed($overtimeRequest, $user);
+
+        return $overtimeRequest->fresh();
     }
 
     /**
@@ -225,21 +277,33 @@ class OvertimeRequestService
      */
     public function getOvertimeStatistics(User $user = null): array
     {
-        $query = OvertimeRequest::query();
-        
         if ($user && !$user->is_admin) {
-            $query->where('assigned_to', $user->id);
+            // Employee statistics
+            $applications = OvertimeApplication::where('employee_id', $user->id);
+            
+            return [
+                'total_applications' => $applications->count(),
+                'pending_applications' => $applications->where('status', 'pending')->count(),
+                'approved_applications' => $applications->where('status', 'approved')->count(),
+                'declined_applications' => $applications->where('status', 'declined')->count(),
+                'available_requests' => OvertimeRequest::where('is_closed', false)
+                    ->where('overtime_date', '>=', now()->toDateString())
+                    ->whereDoesntHave('applications', function ($q) use ($user) {
+                        $q->where('employee_id', $user->id);
+                    })->count(),
+            ];
+        } else {
+            // Admin statistics
+            $requests = OvertimeRequest::query();
+            
+            return [
+                'total_requests' => $requests->count(),
+                'open_requests' => $requests->where('is_closed', false)->count(),
+                'closed_requests' => $requests->where('is_closed', true)->count(),
+                'total_applications' => OvertimeApplication::count(),
+                'pending_applications' => OvertimeApplication::where('status', 'pending')->count(),
+                'approved_applications' => OvertimeApplication::where('status', 'approved')->count(),
+            ];
         }
-
-        return [
-            'total' => $query->count(),
-            'pending' => $query->where('status', 'pending')->count(),
-            'accepted' => $query->where('status', 'accepted')->count(),
-            'declined' => $query->where('status', 'declined')->count(),
-            'total_hours' => $query->where('status', 'accepted')->sum('overtime_hours'),
-            'this_month' => $query->whereMonth('overtime_date', now()->month)
-                                 ->whereYear('overtime_date', now()->year)
-                                 ->count(),
-        ];
     }
 }

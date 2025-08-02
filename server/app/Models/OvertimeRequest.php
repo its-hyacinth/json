@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OvertimeRequest extends Model
 {
@@ -12,40 +13,30 @@ class OvertimeRequest extends Model
 
     protected $fillable = [
         'requested_by',
-        'assigned_to',
-        'covering_for',
         'overtime_date',
         'start_time',
         'end_time',
-        'reason',
         'overtime_type',
-        'status',
-        'employee_notes',
-        'overtime_hours',
-        'overtime_rate',
-        'responded_at',
+        'covering_for',
+        'event_location',
+        'employees_required',
+        'employees_applied',
+        'employees_approved',
+        'is_closed',
+        'closed_at',
     ];
 
     protected $casts = [
         'overtime_date' => 'date',
         'start_time' => 'datetime:H:i',
         'end_time' => 'datetime:H:i',
-        'overtime_hours' => 'decimal:2',
-        'overtime_rate' => 'decimal:2',
-        'responded_at' => 'datetime',
+        'is_closed' => 'boolean',
+        'closed_at' => 'datetime',
     ];
 
     public const OVERTIME_TYPES = [
-        'leave_coverage' => 'Leave Coverage',
+        'leave_coverage' => 'Leave Coverage (Patrol)',
         'event_coverage' => 'Event Coverage',
-        'emergency' => 'Emergency Duty',
-        'special_duty' => 'Special Duty',
-    ];
-
-    public const STATUSES = [
-        'pending' => 'Pending Response',
-        'accepted' => 'Accepted',
-        'declined' => 'Declined',
     ];
 
     public function requester(): BelongsTo
@@ -53,24 +44,29 @@ class OvertimeRequest extends Model
         return $this->belongsTo(User::class, 'requested_by');
     }
 
-    public function assignedEmployee(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'assigned_to');
-    }
-
     public function coveringForEmployee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'covering_for');
     }
 
+    public function applications(): HasMany
+    {
+        return $this->hasMany(OvertimeApplication::class);
+    }
+
+    public function pendingApplications(): HasMany
+    {
+        return $this->hasMany(OvertimeApplication::class)->where('status', 'pending');
+    }
+
+    public function approvedApplications(): HasMany
+    {
+        return $this->hasMany(OvertimeApplication::class)->where('status', 'approved');
+    }
+
     public function getOvertimeTypeLabelAttribute(): string
     {
         return self::OVERTIME_TYPES[$this->overtime_type] ?? 'Unknown';
-    }
-
-    public function getStatusLabelAttribute(): string
-    {
-        return self::STATUSES[$this->status] ?? 'Unknown';
     }
 
     public function getCalculatedHoursAttribute(): float
@@ -83,19 +79,41 @@ class OvertimeRequest extends Model
         return 0;
     }
 
-    public function scopePending($query)
+    public function getIsFullAttribute(): bool
     {
-        return $query->where('status', 'pending');
+        return $this->employees_approved >= $this->employees_required;
     }
 
-    public function scopeAccepted($query)
+    public function getDescriptionAttribute(): string
     {
-        return $query->where('status', 'accepted');
+        if ($this->overtime_type === 'leave_coverage') {
+            $coveringFor = $this->coveringForEmployee;
+            return $coveringFor 
+                ? "Coverage for {$coveringFor->first_name} {$coveringFor->last_name}"
+                : 'Leave Coverage';
+        } else {
+            return $this->event_location ? "Event at {$this->event_location}" : 'Event Coverage';
+        }
     }
 
-    public function scopeForEmployee($query, $userId)
+    public function scopeOpen($query)
     {
-        return $query->where('assigned_to', $userId);
+        return $query->where('is_closed', false);
+    }
+
+    public function scopeClosed($query)
+    {
+        return $query->where('is_closed', true);
+    }
+
+    public function scopeLeaveType($query)
+    {
+        return $query->where('overtime_type', 'leave_coverage');
+    }
+
+    public function scopeEventType($query)
+    {
+        return $query->where('overtime_type', 'event_coverage');
     }
 
     public function scopeByDate($query, $date)

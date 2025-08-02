@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\LeaveRequest;
 use App\Models\TrainingRequest;
 use App\Models\OvertimeRequest;
+use App\Models\OvertimeApplication;
 use App\Models\CourtRequest;
 use Carbon\Carbon;
 
@@ -482,25 +483,62 @@ class NotificationService
         );
     }
 
+    // ========================================
+    // NEW OVERTIME NOTIFICATION METHODS
+    // ========================================
+
     /**
-     * Send notification when a new overtime request is created
+     * Send notification to all employees when a new patrol overtime request is created
      */
-    public static function sendOvertimeRequestCreated(OvertimeRequest $overtimeRequest)
+    public static function sendNewPatrolOvertimeRequest(OvertimeRequest $overtimeRequest)
     {
-        $adminIds = self::getAdminUserIds();
-        $user = $overtimeRequest->requester;
-        $assignedUser = $overtimeRequest->assignedEmployee;
+        $allEmployeeIds = User::where('role', '!=', 'admin')->pluck('id')->toArray();
+        $requester = $overtimeRequest->requester;
+        $coveringFor = $overtimeRequest->coveringForEmployee;
         
-        $message = "{$user->first_name} {$user->last_name} has submitted a new overtime request for " .
-                  "{$assignedUser->first_name} {$assignedUser->last_name} on {$overtimeRequest->overtime_date} " .
-                  "({$overtimeRequest->start_time} to {$overtimeRequest->end_time})";
+        $message = "New patrol overtime available on {$overtimeRequest->overtime_date} " .
+                  "({$overtimeRequest->start_time} - {$overtimeRequest->end_time})";
+        
+        if ($coveringFor) {
+            $message .= " - Coverage for {$coveringFor->first_name} {$coveringFor->last_name}";
+        }
+        
+        $message .= ". {$overtimeRequest->employees_required} officer(s) needed.";
                   
         self::sendNotification(
-            $adminIds,
-            'new_overtime_request',
-            'New Overtime Request',
+            $allEmployeeIds,
+            'new_patrol_overtime',
+            'New Patrol Overtime Available',
             $message,
-            $user->id,
+            $requester->id,
+            null,
+            ['overtime_request_id' => $overtimeRequest->id]
+        );
+    }
+
+    /**
+     * Send notification to all employees when a new event overtime request is created
+     */
+    public static function sendNewEventOvertimeRequest(OvertimeRequest $overtimeRequest)
+    {
+        $allEmployeeIds = User::where('role', '!=', 'admin')->pluck('id')->toArray();
+        $requester = $overtimeRequest->requester;
+        
+        $message = "New event overtime available on {$overtimeRequest->overtime_date} " .
+                  "({$overtimeRequest->start_time} - {$overtimeRequest->end_time})";
+        
+        if ($overtimeRequest->event_location) {
+            $message .= " at {$overtimeRequest->event_location}";
+        }
+        
+        $message .= ". {$overtimeRequest->employees_required} officer(s) needed.";
+                  
+        self::sendNotification(
+            $allEmployeeIds,
+            'new_event_overtime',
+            'New Event Overtime Available',
+            $message,
+            $requester->id,
             null,
             ['overtime_request_id' => $overtimeRequest->id]
         );
@@ -509,139 +547,249 @@ class NotificationService
     /**
      * Send notification when an overtime request is updated
      */
-    public static function sendOvertimeRequestUpdated(OvertimeRequest $overtimeRequest)
+    public static function sendOvertimeRequestUpdated(OvertimeRequest $overtimeRequest, User $updatedBy)
     {
-        $adminIds = self::getAdminUserIds();
-        $user = $overtimeRequest->requester;
-        $assignedUser = $overtimeRequest->assignedEmployee;
+        $allEmployeeIds = User::where('role', '!=', 'admin')->pluck('id')->toArray();
+        $type = $overtimeRequest->overtime_type === 'leave_coverage' ? 'patrol' : 'event';
         
-        $message = "{$user->first_name} {$user->last_name} has updated the overtime request for " .
-                  "{$assignedUser->first_name} {$assignedUser->last_name} on {$overtimeRequest->overtime_date}";
+        $message = "The {$type} overtime request for {$overtimeRequest->overtime_date} has been updated";
                   
         self::sendNotification(
-            $adminIds,
+            $allEmployeeIds,
             'overtime_request_updated',
             'Overtime Request Updated',
             $message,
-            $user->id,
+            $updatedBy->id,
             null,
             ['overtime_request_id' => $overtimeRequest->id]
         );
     }
 
     /**
-     * Send notification when an overtime request is accepted
+     * Send notification when an employee applies for overtime
      */
-    public static function sendOvertimeRequestAccepted(OvertimeRequest $overtimeRequest)
+    public static function sendOvertimeApplicationSubmitted(OvertimeApplication $application)
     {
-        $user = $overtimeRequest->assignedEmployee;
-        $message = "Your overtime request for {$overtimeRequest->overtime_date} has been accepted";
+        $adminIds = self::getAdminUserIds();
+        $employee = $application->employee;
+        $overtimeRequest = $application->overtimeRequest;
+        $type = $overtimeRequest->overtime_type === 'leave_coverage' ? 'patrol' : 'event';
         
+        $message = "{$employee->first_name} {$employee->last_name} has applied for {$type} overtime " .
+                  "on {$overtimeRequest->overtime_date} ({$overtimeRequest->start_time} - {$overtimeRequest->end_time})";
+                  
         self::sendNotification(
-            [$user->id],
-            'overtime_request_accepted',
-            'Overtime Request Accepted',
+            $adminIds,
+            'overtime_application_submitted',
+            'New Overtime Application',
             $message,
-            $overtimeRequest->responded_by,
+            $employee->id,
             null,
-            ['overtime_request_id' => $overtimeRequest->id]
-        );
-
-        // Notify requester
-        $requesterMessage = "Your overtime request for {$user->first_name} {$user->last_name} on " .
-                           "{$overtimeRequest->overtime_date} has been accepted";
-        self::sendNotification(
-            [$overtimeRequest->requested_by],
-            'overtime_request_accepted',
-            'Overtime Request Accepted',
-            $requesterMessage,
-            $overtimeRequest->responded_by,
-            null,
-            ['overtime_request_id' => $overtimeRequest->id]
+            [
+                'overtime_request_id' => $overtimeRequest->id,
+                'overtime_application_id' => $application->id
+            ]
         );
     }
 
     /**
-     * Send notification when an overtime request is declined
+     * Send notification when an overtime application is approved
      */
-    public static function sendOvertimeRequestDeclined(OvertimeRequest $overtimeRequest)
+    public static function sendOvertimeApplicationApproved(OvertimeApplication $application, User $approvedBy)
     {
-        $user = $overtimeRequest->assignedEmployee;
-        $message = "Your overtime request for {$overtimeRequest->overtime_date} has been declined. " .
-                  "Reason: {$overtimeRequest->employee_notes}";
+        $employee = $application->employee;
+        $overtimeRequest = $application->overtimeRequest;
+        $type = $overtimeRequest->overtime_type === 'leave_coverage' ? 'patrol' : 'event';
         
-        self::sendNotification(
-            [$user->id],
-            'overtime_request_declined',
-            'Overtime Request Declined',
-            $message,
-            $overtimeRequest->responded_by,
-            null,
-            ['overtime_request_id' => $overtimeRequest->id]
-        );
-
-        // Notify requester
-        $requesterMessage = "Your overtime request for {$user->first_name} {$user->last_name} on " .
-                           "{$overtimeRequest->overtime_date} has been declined";
-        self::sendNotification(
-            [$overtimeRequest->requested_by],
-            'overtime_request_declined',
-            'Overtime Request Declined',
-            $requesterMessage,
-            $overtimeRequest->responded_by,
-            null,
-            ['overtime_request_id' => $overtimeRequest->id]
-        );
-    }
-
-    /**
-     * Send notification when overtime requests are auto-created for leave coverage
-     */
-    public static function sendAutoCreatedOvertimeRequests(array $overtimeRequests, User $admin)
-    {
-        foreach ($overtimeRequests as $overtimeRequest) {
-            $user = $overtimeRequest->assignedEmployee;
-            $coveringFor = $overtimeRequest->coveringForEmployee;
-            
-            $message = "You have been assigned overtime on {$overtimeRequest->overtime_date} " .
-                      "to cover for {$coveringFor->first_name} {$coveringFor->last_name}'s leave";
-            
-            self::sendNotification(
-                [$user->id],
-                'auto_overtime_assigned',
-                'Overtime Assignment',
-                $message,
-                $admin->id,
-                null,
-                ['overtime_request_id' => $overtimeRequest->id]
-            );
+        $message = "Your {$type} overtime application for {$overtimeRequest->overtime_date} " .
+                  "({$overtimeRequest->start_time} - {$overtimeRequest->end_time}) has been approved";
+        
+        if ($overtimeRequest->overtime_type === 'leave_coverage' && $overtimeRequest->coveringForEmployee) {
+            $message .= " - You will be covering for {$overtimeRequest->coveringForEmployee->first_name} {$overtimeRequest->coveringForEmployee->last_name}";
+        } elseif ($overtimeRequest->overtime_type === 'event_coverage' && $overtimeRequest->event_location) {
+            $message .= " at {$overtimeRequest->event_location}";
         }
+        
+        self::sendNotification(
+            [$employee->id],
+            'overtime_application_approved',
+            'Overtime Application Approved',
+            $message,
+            $approvedBy->id,
+            null,
+            [
+                'overtime_request_id' => $overtimeRequest->id,
+                'overtime_application_id' => $application->id
+            ]
+        );
+    }
+
+    /**
+     * Send notification when an overtime application is declined
+     */
+    public static function sendOvertimeApplicationDeclined(OvertimeApplication $application, User $declinedBy)
+    {
+        $employee = $application->employee;
+        $overtimeRequest = $application->overtimeRequest;
+        $type = $overtimeRequest->overtime_type === 'leave_coverage' ? 'patrol' : 'event';
+        
+        $message = "Your {$type} overtime application for {$overtimeRequest->overtime_date} " .
+                  "({$overtimeRequest->start_time} - {$overtimeRequest->end_time}) has been declined";
+        
+        if ($application->admin_notes) {
+            $message .= ". Reason: {$application->admin_notes}";
+        }
+        
+        self::sendNotification(
+            [$employee->id],
+            'overtime_application_declined',
+            'Overtime Application Declined',
+            $message,
+            $declinedBy->id,
+            null,
+            [
+                'overtime_request_id' => $overtimeRequest->id,
+                'overtime_application_id' => $application->id
+            ]
+        );
+    }
+
+    /**
+     * Send notification when an overtime request is automatically closed (full)
+     */
+    public static function sendOvertimeRequestAutoClosed(OvertimeRequest $overtimeRequest)
+    {
+        $allEmployeeIds = User::where('role', '!=', 'admin')->pluck('id')->toArray();
+        $type = $overtimeRequest->overtime_type === 'leave_coverage' ? 'patrol' : 'event';
+        
+        $message = "The {$type} overtime request for {$overtimeRequest->overtime_date} is now full and has been closed";
+                  
+        self::sendNotification(
+            $allEmployeeIds,
+            'overtime_request_closed',
+            'Overtime Request Closed',
+            $message,
+            null, // System generated
+            null,
+            ['overtime_request_id' => $overtimeRequest->id]
+        );
+    }
+
+    /**
+     * Send notification when an overtime request is manually closed by admin
+     */
+    public static function sendOvertimeRequestManuallyClosed(OvertimeRequest $overtimeRequest, User $closedBy)
+    {
+        $allEmployeeIds = User::where('role', '!=', 'admin')->pluck('id')->toArray();
+        $type = $overtimeRequest->overtime_type === 'leave_coverage' ? 'patrol' : 'event';
+        
+        $message = "The {$type} overtime request for {$overtimeRequest->overtime_date} has been closed by administration";
+                  
+        self::sendNotification(
+            $allEmployeeIds,
+            'overtime_request_closed',
+            'Overtime Request Closed',
+            $message,
+            $closedBy->id,
+            null,
+            ['overtime_request_id' => $overtimeRequest->id]
+        );
     }
 
     /**
      * Send notification when an overtime request is deleted
      */
-    public static function sendOvertimeRequestDeleted(OvertimeRequest $overtimeRequest)
+    public static function sendOvertimeRequestDeleted(OvertimeRequest $overtimeRequest, User $deletedBy)
     {
-        $adminIds = self::getAdminUserIds();
-        $user = $overtimeRequest->requester;
-        $assignedUser = $overtimeRequest->assignedEmployee;
+        // Notify employees who applied
+        $applicantIds = $overtimeRequest->applications->pluck('employee_id')->toArray();
+        $type = $overtimeRequest->overtime_type === 'leave_coverage' ? 'patrol' : 'event';
         
-        $message = "{$user->first_name} {$user->last_name} has withdrawn the overtime request for " .
-                  "{$assignedUser->first_name} {$assignedUser->last_name} on {$overtimeRequest->overtime_date}";
-                  
+        if (!empty($applicantIds)) {
+            $message = "The {$type} overtime request for {$overtimeRequest->overtime_date} that you applied for has been cancelled";
+                      
+            self::sendNotification(
+                $applicantIds,
+                'overtime_request_cancelled',
+                'Overtime Request Cancelled',
+                $message,
+                $deletedBy->id,
+                null,
+                ['overtime_request_id' => $overtimeRequest->id]
+            );
+        }
+
+        // Notify all employees
+        $allEmployeeIds = User::where('role', '!=', 'admin')->pluck('id')->toArray();
+        $generalMessage = "The {$type} overtime request for {$overtimeRequest->overtime_date} has been cancelled";
+        
         self::sendNotification(
-            $adminIds,
-            'overtime_request_withdrawn',
-            'Overtime Request Withdrawn',
-            $message,
-            $user->id,
+            $allEmployeeIds,
+            'overtime_request_cancelled',
+            'Overtime Request Cancelled',
+            $generalMessage,
+            $deletedBy->id,
             null,
             ['overtime_request_id' => $overtimeRequest->id]
         );
     }
 
-    private static function sendNotification($userIds, $type, $title, $message, $createdBy = null, $eventId = null)
+    /**
+     * Send reminder notification for upcoming overtime assignments
+     */
+    public static function sendOvertimeReminder(OvertimeApplication $application, $hoursBefore = 24)
+    {
+        $employee = $application->employee;
+        $overtimeRequest = $application->overtimeRequest;
+        $type = $overtimeRequest->overtime_type === 'leave_coverage' ? 'patrol' : 'event';
+        
+        $message = "Reminder: You have {$type} overtime in {$hoursBefore} hours on {$overtimeRequest->overtime_date} " .
+                  "({$overtimeRequest->start_time} - {$overtimeRequest->end_time})";
+        
+        if ($overtimeRequest->overtime_type === 'leave_coverage' && $overtimeRequest->coveringForEmployee) {
+            $message .= " - Coverage for {$overtimeRequest->coveringForEmployee->first_name} {$overtimeRequest->coveringForEmployee->last_name}";
+        } elseif ($overtimeRequest->overtime_type === 'event_coverage' && $overtimeRequest->event_location) {
+            $message .= " at {$overtimeRequest->event_location}";
+        }
+                  
+        self::sendNotification(
+            [$employee->id],
+            'overtime_reminder',
+            'Overtime Reminder',
+            $message,
+            null, // System generated
+            null,
+            [
+                'overtime_request_id' => $overtimeRequest->id,
+                'overtime_application_id' => $application->id
+            ]
+        );
+    }
+
+    /**
+     * Send notification when overtime request reaches capacity threshold
+     */
+    public static function sendOvertimeCapacityAlert(OvertimeRequest $overtimeRequest, $threshold = 0.8)
+    {
+        $adminIds = self::getAdminUserIds();
+        $type = $overtimeRequest->overtime_type === 'leave_coverage' ? 'patrol' : 'event';
+        $percentage = round(($overtimeRequest->employees_approved / $overtimeRequest->employees_required) * 100);
+        
+        $message = "The {$type} overtime request for {$overtimeRequest->overtime_date} is {$percentage}% full " .
+                  "({$overtimeRequest->employees_approved}/{$overtimeRequest->employees_required} positions filled)";
+                  
+        self::sendNotification(
+            $adminIds,
+            'overtime_capacity_alert',
+            'Overtime Capacity Alert',
+            $message,
+            null, // System generated
+            null,
+            ['overtime_request_id' => $overtimeRequest->id]
+        );
+    }
+
+    private static function sendNotification($userIds, $type, $title, $message, $createdBy = null, $eventId = null, $additionalData = [])
     {
         $notifications = [];
         foreach ($userIds as $userId) {
@@ -654,6 +802,9 @@ class NotificationService
             if ($eventId) {
                 $notificationData['event_id'] = $eventId;
             }
+
+            // Merge additional data
+            $notificationData = array_merge($notificationData, $additionalData);
 
             $notifications[] = [
                 'user_id' => $userId,
